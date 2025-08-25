@@ -50,8 +50,8 @@ SYSTEM_PROMPT = (
     1) Hỏi và ghi nhận: họ tên, số điện thoại.
     2) Khai thác TRIỆU CHỨNG (tên, mức độ) thật kĩ và nhiều nhất có thể qua trò chuyện gần gũi; khi nghi ngờ có triệu chứng khác thì chủ động hỏi thêm.
     3) Khi đã đủ dữ kiện để ĐẶT LỊCH, hãy GỌI TOOL `schedule_appointment` với các tham số bạn đã nắm (ví dụ: patient_name, phone, preferred_time, symptoms). KHÔNG dùng cụm từ kích hoạt.
-    4) Hỏi lại xem Booking có cần sự thay đổi gì không
-    5) Khi đã có đủ (thông tin cá nhân + triệu chứng + lịch khám được xác nhận), hãy GỌI TOOL `finalize_visit` để tổng kết và kết thúc. Sau khi tool trả về, nói lời chào kết thúc ngắn gọn và KHÔNG đặt thêm câu hỏi mới.
+    4) Hỏi lại xem Booking có cần sự thay đổi gì không.
+    5) KHI ĐÃ ĐỦ dữ kiện (đủ danh tính + triệu chứng + booking đã xác nhận), THỰC HIỆN THỨ TỰ SAU: (a) Nói một LỜI CHÀO KẾT THÚC NGẮN GỌN bằng tiếng Việt (không hỏi thêm, không giới thiệu lại, không yêu cầu phản hồi), sau đó (b) NGAY LẬP TỨC GỌI TOOL `finalize_visit` để tổng kết và đóng phiên. KHÔNG nói thêm gì sau khi đã gọi tool.
 
     QUY TẮC:
     - Luôn tuân thủ quy chuẩn y tế nội bộ (nếu có) được cung cấp trong hội thoại.
@@ -173,9 +173,10 @@ async def entrypoint(ctx: JobContext):
     # NEW: giữ booking gần nhất + cờ gate finalize
     latest_booking: Optional[dict] = None
     allow_finalize: bool = False
+    closing: bool = False   # <--- thêm cờ
 
     async def start_new_session():
-        nonlocal session, latest_booking, allow_finalize
+        nonlocal session, latest_booking, allow_finalize, closing
         if session is not None:
             with contextlib.suppress(Exception):
                 await session.aclose()
@@ -189,6 +190,8 @@ async def entrypoint(ctx: JobContext):
         # ---------- Event handlers ----------
         @session.on("conversation_item_added")
         def on_item_added(ev):
+            if closing:
+                return  # bỏ qua sự kiện sau khi wrap-up
             role = (ev.item.role or "unknown")
             text = (getattr(ev.item, "text_content", "") or "").strip()
             iid = getattr(ev.item, "id", None)
@@ -292,24 +295,14 @@ async def entrypoint(ctx: JobContext):
 
         @function_tool
         async def finalize_visit(context: RunContext) -> dict:
-            """
-            Tổng hợp & kết thúc phiên. KHÔNG reset session mới.
-            """
-            nonlocal latest_booking, allow_finalize, session
+            nonlocal latest_booking, allow_finalize, session, closing
+            if closing:
+                return {"ok": False, "message": "Đang đóng phiên."}
 
-            # Nếu tool được gọi khi agent vẫn đang nói: đợi nói xong rồi mới wrap-up
             await context.wait_for_playout()
 
             if not allow_finalize or latest_booking is None:
-                return {"ok": False, "message": "Chưa thể kết thúc: hãy xác nhận xong với bệnh nhân trước."}
-
-            # Nếu booking có symptoms mà transcript chưa có, bổ sung vào bộ đệm trước khi snapshot
-            try:
-                bk_sym = latest_booking.get("symptoms") if isinstance(latest_booking, dict) else None
-                if isinstance(bk_sym, str) and bk_sym and not any("Triệu chứng" in l for l in state.lines):
-                    state.add("user", f"Triệu chứng (booking): {bk_sym}")
-            except Exception:
-                pass
+                return {"ok": False, "message": "Chưa thể kết thúc: chưa có booking hợp lệ."}
 
             transcript_lines = list(state.lines)
             transcript = "\n".join(transcript_lines)
@@ -349,14 +342,34 @@ async def entrypoint(ctx: JobContext):
             finally:
                 allow_finalize = False
                 latest_booking = None
-                # Đóng phiên và KHÔNG start session mới
-                await asyncio.sleep(float(os.getenv("SESSION_CLOSE_DELAY", "1.0")))
-                with contextlib.suppress(Exception):
-                    if session is not None:
-                        await session.aclose()
-                state.clear()
+                closing = True  # bật cờ đóng
 
-            return {"ok": True, "message": "Visit finalized; session closed."}
+                async def _grace_close():
+                    # 1) gửi tín hiệu cho web
+                    try:
+                        payload = json.dumps({
+                            "type": "wrapup_done",
+                            "message": "Visit finalized; closing"
+                        }, ensure_ascii=False).encode("utf-8")
+                        with contextlib.suppress(Exception):
+                            await ctx.room.local_participant.publish_data(payload)
+                    except Exception:
+                        log.exception("publish wrapup_done failed")
+                    # 2) chờ cho web xử lý
+                    await asyncio.sleep(float(os.getenv("SESSION_CLOSE_DELAY", "1.0")))
+                    # 3) đóng session
+                    with contextlib.suppress(Exception):
+                        if session is not None:
+                            await session.aclose()
+                    # 4) rời phòng
+                    with contextlib.suppress(Exception):
+                        await ctx.room.disconnect()
+                    state.clear()
+                    log.info("Session & room disconnected after wrap-up.")
+
+                asyncio.create_task(_grace_close())
+
+            return {"ok": True, "message": "Visit finalized; closing."}
 
         # Cập nhật tool vào agent (đồng bộ với phiên realtime hiện tại)
         await talker.update_tools([schedule_appointment, finalize_visit])

@@ -93,10 +93,30 @@
         log('Đã nhận audio từ agent')
       }
     })
-    // Khi phiên đóng (agent gọi wrapup -> session close, hoặc người dùng bấm kết thúc)
+    // Lắng nghe gói dữ liệu wrapup_done
+    r.on(RoomEvent.DataReceived, (payload, participant, kind) => {
+      try {
+        const msg = JSON.parse(new TextDecoder().decode(payload))
+        log('Data: ' + JSON.stringify(msg))
+        if(msg.type === 'wrapup_done'){
+          log('Wrap-up xong: đóng cuộc gọi.')
+          hangup() // tự thoát phòng & reset UI
+        }
+      } catch(e){
+        log('Data(raw) len=' + payload?.byteLength)
+      }
+    })
+    // Khi participant (agent) rời có thể tự động reset (fallback)
+    r.on(RoomEvent.ParticipantDisconnected, (p) => {
+      // Nếu agent identity có prefix cấu hình (ví dụ 'agent-' hay 'kiosk')
+      if(p.identity && p.identity.toLowerCase().includes('kiosk')){
+        log('Agent rời phòng (fallback).')
+        hangup()
+      }
+    })
     r.on(RoomEvent.Disconnected, () => {
       log('Đã rời phòng')
-      showLanding()   // ← quay về nút tròn
+      showLanding()
     })
   }
 

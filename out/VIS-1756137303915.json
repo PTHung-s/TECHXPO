@@ -1,0 +1,15 @@
+{
+  "booking": {
+    "department": "Nội tổng quát",
+    "doctor_name": "BS. Trần Minh",
+    "slot_time": "2025-08-24 09:30",
+    "room": "K.101",
+    "queue_number": "A-051",
+    "patient_name": "Phạm Tuấn Hưng",
+    "phone": "0336018126",
+    "note": "ho, sổ mũi, đau họng nhẹ",
+    "speak_text": "Tôi đã sắp xếp lịch tại Nội tổng quát, bác sĩ BS. Trần Minh, khung giờ 09:30 ngày 24/08/2025. Nếu cần đổi, xin báo để tôi điều chỉnh.",
+    "symptoms": "ho, sổ mũi, đau họng nhẹ",
+    "customer_id": "CUS-3bc6fb07db"
+  }
+}
