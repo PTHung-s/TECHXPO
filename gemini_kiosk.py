@@ -215,53 +215,78 @@ async def entrypoint(ctx: JobContext):
             symptoms: Optional[str] = None,
         ) -> dict:
             """
-            Đặt lịch khám. Sau khi tool trả về, model PHẢI đọc 'speak_text' cho bệnh nhân,
-            rồi mới cân nhắc gọi finalize_visit.
+            Đặt lịch khám (chạy nền). Trả về ngay trạng thái 'pending' để agent không bị "đóng băng".
+            Khi xử lý xong sẽ tự gửi một lượt assistant với speak_text và cập nhật allow_finalize.
             """
             nonlocal latest_booking, allow_finalize
 
-            # Quan trọng: đợi câu nói dẫn nhập (nếu có) kết thúc trước khi chạy tool
-            await context.wait_for_playout()  # tránh chồng chéo speech/tool gây timeout  ⟶  LiveKit khuyên dùng
+            # Snapshot inputs (không tin cậy vào model arguments hoàn toàn)
+            raw_phone = (phone or "").strip()
+            raw_name = (patient_name or "").strip()
+            if not raw_name:
+                raw_name = "(không rõ)"
+            if not PHONE_RE.match(raw_phone):
+                raw_phone = raw_phone or "(không rõ)"
+
+            if symptoms:
+                state.add("user", f"Triệu chứng khai báo: {symptoms}")
 
             history = "\n".join(state.lines)
             data_path = os.getenv("CLINIC_DATA_PATH", "./clinic_data.json")
+            book_model = os.getenv("BOOK_MODEL", "gemini-2.5-flash")
 
-            if not patient_name.strip():
-                patient_name = "(không rõ)"
-            if not PHONE_RE.match((phone or "").strip()):
-                phone = (phone or "").strip() or "(không rõ)"
+            async def _do_booking():
+                nonlocal latest_booking, allow_finalize
+                try:
+                    result = await asyncio.to_thread(
+                        book_appointment, history, data_path, book_model
+                    )
+                    if symptoms and not result.get("symptoms"):
+                        result["symptoms"] = symptoms
+                    try:
+                        cid, _ = get_or_create_customer(
+                            result.get("patient_name") or raw_name,
+                            result.get("phone") or raw_phone,
+                        )
+                        result["customer_id"] = cid
+                        await asyncio.to_thread(save_visit, cid, {"booking": result})
+                    except Exception:
+                        log.exception("save booking failed")
+                    latest_booking = result
+                    allow_finalize = True
+                    # Phát speak_text cho bệnh nhân: dùng generate_reply (không chặn booking tool ban đầu)
+                    speak_text = (result.get("speak_text") or "Tôi đã sắp xếp lịch phù hợp. Cảm ơn bạn.").strip()
+                    # SPEAK_TEXT reliability patch: ép model đọc NGUYÊN VĂN, tránh tự tóm tắt hay bỏ qua
+                    primary_instr = (
+                        "Hãy ĐỌC NGUYÊN VĂN (bắt buộc, không thêm bớt, không giải thích) thông báo lịch hẹn sau đây cho bệnh nhân,"
+                        " rồi dừng lại để họ có thể phản hồi. Thông báo: \n" + speak_text
+                    )
+                    try:
+                        if session is not None:
+                            handle = await session.generate_reply(instructions=primary_instr)
+                            await handle
+                            # Fallback: nếu buffer chưa ghi nhận dòng assistant chứa phần chính của speak_text, thử lại tối giản
+                            key_fragment = speak_text[:30]  # đoạn đầu để dò
+                            if not any(key_fragment in ln for ln in state.lines[-5:]):
+                                fallback_instr = "Đọc nguyên văn: " + speak_text
+                                try:
+                                    fh = await session.generate_reply(instructions=fallback_instr)
+                                    await fh
+                                except Exception:
+                                    log.exception("fallback speak_text failed")
+                    except Exception:
+                        log.exception("send speak_text failed")
+                except Exception:
+                    log.exception("async booking failed")
 
-            result = await asyncio.to_thread(
-                book_appointment, history, data_path, os.getenv("BOOK_MODEL", "gemini-2.5-flash")
-            )
-
-            # Ghi lại triệu chứng vào lịch sử để phần tổng kết thấy được
-            if symptoms:
-                state.add("user", f"Triệu chứng khai báo: {symptoms}")
-            # Đảm bảo booking có field symptoms để wrap-up xuất hiện
-            if symptoms and isinstance(result, dict) and not result.get("symptoms"):
-                result["symptoms"] = symptoms
-
-            try:
-                cid, _ = get_or_create_customer(
-                    result.get("patient_name") or patient_name,
-                    result.get("phone") or phone,
-                )
-                result["customer_id"] = cid
-                await asyncio.to_thread(save_visit, cid, {"booking": result})
-            except Exception:
-                log.exception("save booking failed")
-
-            latest_booking = result
-            # CHƯA finalize ngay. Để model tự nói speak_text trước, rồi mới gọi tool finalize_visit.
-            allow_finalize = True
+            # Khởi động booking ở background, trả kết quả pending ngay
+            asyncio.create_task(_do_booking())
 
             return {
                 "ok": True,
-                "booking": result,
-                "speak_text": result.get("speak_text")
-                    or "Tôi đã sắp xếp lịch phù hợp. Cảm ơn bạn.",
-                "note": "Hãy đọc speak_text cho bệnh nhân, sau đó nếu thông tin đã đủ thì gọi finalize_visit."
+                "pending": True,
+                "message": "Đang kiểm tra lịch phù hợp, vui lòng đợi trong giây lát...",
+                "note": "Agent sẽ thông báo lịch và sau đó có thể finalize nếu đủ dữ kiện."
             }
 
 

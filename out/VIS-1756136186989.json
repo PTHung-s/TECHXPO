@@ -1,0 +1,41 @@
+{
+  "patient_name": "Phạm Tuấn Hưng",
+  "phone": "0336018126",
+  "customer_id": "CUS-3bc6fb07db",
+  "doctor_name": "BS. Lê Khánh",
+  "appointment_time": "2025-08-23 17:00",
+  "room": "TMH.201",
+  "queue_number": "A-051",
+  "symptoms": [
+    {
+      "name": "Ho",
+      "severity": "nhẹ",
+      "duration": "(không rõ)"
+    },
+    {
+      "name": "Sổ mũi",
+      "severity": "chảy nước mũi trong",
+      "duration": "(không rõ)"
+    },
+    {
+      "name": "Đau họng",
+      "severity": "nhẹ",
+      "duration": "(không rõ)"
+    }
+  ],
+  "tentative_diagnoses": [
+    "Viêm mũi họng cấp",
+    "Cảm lạnh thông thường"
+  ],
+  "tests_recommended": [
+    "Khám lâm sàng Tai - Mũi - Họng"
+  ],
+  "medications_advised": [
+    "Nước muối sinh lý để súc họng và rửa mũi",
+    "Thuốc giảm ho thảo dược (nếu ho nhiều)",
+    "Paracetamol (nếu có sốt hoặc đau nhức nhiều)"
+  ],
+  "diet_notes": "Uống nhiều nước ấm, ăn thức ăn mềm, dễ tiêu, bổ sung vitamin C từ trái cây.",
+  "follow_up": "Tái khám sau 3-5 ngày nếu các triệu chứng không thuyên giảm hoặc có dấu hiệu nặng hơn.",
+  "warnings": "Cần đến bệnh viện ngay nếu có các dấu hiệu: sốt cao liên tục, khó thở, ho ra máu, đau ngực."
+}
