@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <title>Kiosk Bác sĩ Ảo</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    body { font-family: system-ui, Arial, sans-serif; margin:0; background:#0f172a; color:#f1f5f9; }
+    header { padding:1rem 1.5rem; background:#1e293b; display:flex; justify-content:space-between; align-items:center; }
+    h1 { font-size:1.1rem; margin:0; font-weight:600; }
+    main { padding:1.5rem; max-width:900px; margin:0 auto; }
+    button { background:#2563eb; color:#fff; border:none; padding:0.8rem 1.2rem; border-radius:0.5rem; font-size:1rem; cursor:pointer; font-weight:600; }
+    button:disabled { background:#334155; cursor:not-allowed; }
+    #controls { display:flex; gap:0.75rem; flex-wrap:wrap; margin-top:1rem; }
+    #log { background:#020617; padding:1rem; border-radius:0.5rem; height:250px; overflow:auto; font-size:0.85rem; line-height:1.3; }
+    .pill { background:#1e293b; padding:0.4rem 0.7rem; border-radius:999px; font-size:0.7rem; text-transform:uppercase; letter-spacing:0.5px; }
+    .card { background:#1e293b; padding:1rem; border-radius:0.75rem; flex:1 1 280px; }
+    .videos { display:flex; gap:1rem; flex-wrap:wrap; margin-top:1rem; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Bác sĩ Ảo LiveKit + Gemini</h1>
+    <div class="pill" id="connState">DISCONNECTED</div>
+  </header>
+  <main>
+    <p>Nhấn "Bắt đầu" để kết nối vào phòng và nói chuyện với bác sĩ ảo. Trình duyệt sẽ xin quyền micro.</p>
+
+    <div id="controls">
+      <button id="btnJoin">Bắt đầu</button>
+      <button id="btnLeave" disabled>Thoát</button>
+      <button id="btnMute" disabled>Tắt mic</button>
+      <button id="btnUnmute" disabled>Bật mic</button>
+    </div>
+
+    <div class="videos">
+      <div class="card">
+        <strong>Remote Audio</strong>
+        <audio id="remoteAudio" autoplay playsinline></audio>
+      </div>
+      <div class="card">
+        <strong>Log</strong>
+        <div id="log" style="height:180px;"></div>
+      </div>
+    </div>
+  </main>
+
+  <script type="module">
+    import { Room, RoomEvent, createLocalAudioTrack } from 'https://esm.sh/livekit-client@2'
+
+    const btnJoin = document.getElementById('btnJoin')
+    const btnLeave = document.getElementById('btnLeave')
+    const btnMute = document.getElementById('btnMute')
+    const btnUnmute = document.getElementById('btnUnmute')
+    const connState = document.getElementById('connState')
+    const logEl = document.getElementById('log')
+
+    let room, localTrack
+
+    function log(msg){
+      const atBottom = logEl.scrollTop + logEl.clientHeight >= logEl.scrollHeight - 5
+      const line = document.createElement('div')
+      line.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`
+      logEl.appendChild(line)
+      if(atBottom) logEl.scrollTop = logEl.scrollHeight
+    }
+
+    async function fetchToken(identity){
+      const r = await fetch(`/api/token?identity=${encodeURIComponent(identity)}`)
+      if(!r.ok) throw new Error('Token fetch failed')
+      return r.json() // { url, token, room }
+    }
+
+    function attachRoomEvents(r){
+      r.on(RoomEvent.ConnectionStateChanged, state => connState.textContent = state)
+      r.on(RoomEvent.ParticipantConnected, p => log(`Participant joined: ${p.identity}`))
+      r.on(RoomEvent.ParticipantDisconnected, p => log(`Participant left: ${p.identity}`))
+      r.on(RoomEvent.TrackSubscribed, (track, pub, participant) => {
+        if(track.kind === 'audio'){
+          const el = document.getElementById('remoteAudio')
+          track.attach(el)
+          log('Đã nhận audio từ agent')
+        }
+      })
+      r.on(RoomEvent.Disconnected, () => { log('Rời phòng'); resetUI() })
+    }
+
+    async function join(){
+      btnJoin.disabled = true
+      try {
+        const identity = 'web-' + Math.random().toString(36).slice(2,8)
+        const { url, token, room: roomName } = await fetchToken(identity)
+
+        room = new Room()
+        attachRoomEvents(room)
+
+        // cấp local mic track
+        localTrack = await createLocalAudioTrack()
+        await room.connect(url, token, { autoSubscribe: true })
+        await room.localParticipant.publishTrack(localTrack)
+
+        log('Đã tham gia phòng: ' + roomName)
+        btnLeave.disabled = false
+        btnMute.disabled = false
+      } catch (e){
+        log('Lỗi join: ' + e.message)
+        btnJoin.disabled = false
+      }
+    }
+
+    async function leave(){
+      btnLeave.disabled = true
+      try {
+        if(localTrack){ localTrack.stop(); localTrack = null }
+        if(room){ await room.disconnect(); room = null }
+      } finally {
+        resetUI()
+      }
+    }
+
+    function resetUI(){
+      btnJoin.disabled = false
+      btnLeave.disabled = true
+      btnMute.disabled = true
+      btnUnmute.disabled = true
+      connState.textContent = 'DISCONNECTED'
+    }
+
+    function mute(){
+      if(!localTrack) return
+      localTrack.mute()
+      btnMute.disabled = true
+      btnUnmute.disabled = false
+    }
+    function unmute(){
+      if(!localTrack) return
+      localTrack.unmute()
+      btnMute.disabled = false
+      btnUnmute.disabled = true
+    }
+
+    btnJoin.addEventListener('click', join)
+    btnLeave.addEventListener('click', leave)
+    btnMute.addEventListener('click', mute)
+    btnUnmute.addEventListener('click', unmute)
+  </script>
+</body>
+</html>

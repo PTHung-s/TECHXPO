@@ -1,8 +1,22 @@
-# gemini_kiosk.py
+# gemini_kiosk_optimized.py
 # -*- coding: utf-8 -*-
-import os, asyncio, re, json, contextlib, logging
+"""
+Bác sĩ ảo (Realtime) dùng Gemini Live API + LiveKit Agents
+- Realtime LLM (voice) + function calling (schedule_appointment, finalize_visit)
+- RAG chèn theo lượt (system) ngay trước khi LLM trả lời
+- Bộ đệm hội thoại chống trùng lặp
+- Kết thúc phiên an toàn sau khi nói lời chào
+"""
+from __future__ import annotations
+
+import os
+import re
+import json
+import asyncio
+import contextlib
+import logging
 from dataclasses import dataclass, field
-from typing import List, Optional
+from typing import List, Optional, Set
 
 from dotenv import load_dotenv
 load_dotenv(".env.local") or load_dotenv()
@@ -11,14 +25,13 @@ from livekit import agents
 from livekit.agents import (
     WorkerOptions, Agent, AgentSession, JobContext,
     AutoSubscribe, RoomInputOptions, RoomOutputOptions, ChatContext,
-    function_tool, RunContext
+    function_tool, RunContext,
 )
 from livekit.plugins.google.beta import realtime
 from livekit.plugins import noise_cancellation
 
 from storage import init_db, get_or_create_customer, save_visit
 from clerk_wrapup import summarize_visit_json
-
 from med_rag import MedicalRAG
 from booking import book_appointment
 
@@ -29,35 +42,49 @@ WELCOME = (
     "Luôn chào hỏi bằng câu này khi chưa hỏi được tên và số điện thoại của bệnh nhân"
 )
 
-SYSTEM_PROMPT = """
-Bạn là bác sĩ hỏi bệnh thân thiện, chuyên nghiệp và già dặn, nói ngắn gọn bằng tiếng Việt, mỗi lần chỉ hỏi một câu, trầm tính.
+SYSTEM_PROMPT = (
+    """
+    Bạn là bác sĩ hỏi bệnh thân thiện, chuyên nghiệp và già dặn, nói ngắn gọn bằng tiếng Việt, mỗi lần chỉ hỏi một câu, trầm tính.
 
-Mục tiêu của 1 lượt khám:
-1) Hỏi và ghi nhận: họ tên, số điện thoại.
-2) Khai thác TRIỆU CHỨNG (tên, mức độ) thật kĩ và nhiều nhất có thể qua trò chuyện gần gũi; khi nghi ngờ có triệu chứng khác thì chủ động hỏi thêm.
-3) Khi đã đủ dữ kiện để ĐẶT LỊCH, hãy GỌI TOOL `schedule_appointment` với các tham số bạn đã nắm (ví dụ: patient_name, phone, preferred_time, symptoms). KHÔNG dùng cụm từ kích hoạt.
-4) Khi đã có đủ (thông tin cá nhân + triệu chứng + lịch khám), hãy GỌI TOOL `finalize_visit` để tổng kết và kết thúc. Sau khi tool trả về, nói lời chào kết thúc ngắn gọn và KHÔNG đặt thêm câu hỏi mới.
+    Mục tiêu của 1 lượt khám:
+    1) Hỏi và ghi nhận: họ tên, số điện thoại.
+    2) Khai thác TRIỆU CHỨNG (tên, mức độ) thật kĩ và nhiều nhất có thể qua trò chuyện gần gũi; khi nghi ngờ có triệu chứng khác thì chủ động hỏi thêm.
+    3) Khi đã đủ dữ kiện để ĐẶT LỊCH, hãy GỌI TOOL `schedule_appointment` với các tham số bạn đã nắm (ví dụ: patient_name, phone, preferred_time, symptoms). KHÔNG dùng cụm từ kích hoạt.
+    4) Khi đã có đủ (thông tin cá nhân + triệu chứng + lịch khám), hãy GỌI TOOL `finalize_visit` để tổng kết và kết thúc. Sau khi tool trả về, nói lời chào kết thúc ngắn gọn và KHÔNG đặt thêm câu hỏi mới.
 
-QUY TẮC:
-- Luôn tuân thủ quy chuẩn y tế nội bộ (nếu có) được cung cấp trong hội thoại.
-- Tránh độc thoại dài; luôn hỏi-đáp theo lượt.
-- Nhắc rõ rằng đây chỉ là hỗ trợ sơ bộ, không thay thế chẩn đoán y khoa chính thức.
-""".strip()
+    QUY TẮC:
+    - Luôn tuân thủ quy chuẩn y tế nội bộ (nếu có) được cung cấp trong hội thoại.
+    - Tránh độc thoại dài; luôn hỏi-đáp theo lượt.
+    - Nhắc rõ rằng đây chỉ là hỗ trợ sơ bộ, không thay thế chẩn đoán y khoa chính thức.
+    """
+    .strip()
+)
 
-# Logging level via env (DEBUG để theo dõi chi tiết)
+# Logging
 logging.basicConfig(level=getattr(logging, os.getenv("KIOSK_LOG_LEVEL", "DEBUG").upper(), logging.INFO))
 log = logging.getLogger("kiosk")
 
 # ================== Bộ đệm ==================
 @dataclass
 class SessionBuf:
-    lines: List[str] = field(default_factory=list)  # [role] text
+    lines: List[str] = field(default_factory=list)  # dạng: "[role] text"
+    seen_ids: Set[str] = field(default_factory=set)
+
     def add(self, role: str, text: str):
         text = (text or "").strip()
         if text:
             self.lines.append(f"[{role}] {text}")
+
+    def add_once(self, item_id: Optional[str], role: str, text: str):
+        if item_id and item_id in self.seen_ids:
+            return
+        if item_id:
+            self.seen_ids.add(item_id)
+        self.add(role, text)
+
     def clear(self):
         self.lines.clear()
+        self.seen_ids.clear()
 
 # ================== Helpers log ==================
 def _log_evt(tag: str, role: str, text: str, extra: str = ""):
@@ -72,15 +99,15 @@ class Talker(Agent):
 
     async def on_user_turn_completed(self, turn_ctx: ChatContext, new_message):
         """Chèn RAG (quy chuẩn y tế) vào system trước khi LLM trả lời."""
-        user_text = (new_message.text_content or "").strip()
+        user_text = (getattr(new_message, "text_content", "") or "").strip()
         if not user_text:
             return
-        ctx = self.rag.query(user_text, k=4, max_chars=1200)
+        ctx = self.rag.query(user_text, k=4, max_chars=900)  # gọn để giảm latency realtime
         if not ctx:
             return
         turn_ctx.add_message(
             role="system",
-            content="Các quy chuẩn y tế nội bộ ưu tiên áp dụng (không đọc ra, chỉ tham khảo):\n" + ctx
+            content=("Các quy chuẩn y tế nội bộ ưu tiên áp dụng (không đọc ra, chỉ tham khảo):\n" + ctx),
         )
         await self.update_chat_ctx(turn_ctx)
 
@@ -94,12 +121,13 @@ async def entrypoint(ctx: JobContext):
     log.info("connected to room: %s", getattr(ctx.room, "name", "?"))
 
     # 2) Gemini Live API (Realtime LLM có audio & tool calling)
-    # Lưu ý: ID đúng của model là 'gemini-live-2.5-flash-preview' (không phải 'gemini-2.5-flash-live-preview')
+    # Tên model theo docs: gemini-live-2.5-flash-preview (voice/video + tool calling)
     rt_model = os.getenv("GEMINI_RT_MODEL", "gemini-live-2.5-flash-preview")
-    rt_lang  = os.getenv("GEMINI_LANGUAGE", "vi-VN")  # BCP-47, ví dụ: vi-VN, en-US
+    rt_lang = os.getenv("GEMINI_LANGUAGE", "vi-VN")  # BCP-47
+
     llm = realtime.RealtimeModel(
         model=rt_model,
-        voice=os.getenv("GEMINI_VOICE", "Puck"),  # LiveKit plugin cho phép chọn 'Puck' mặc định
+        voice=os.getenv("GEMINI_VOICE", "Puck"),  # "Puck" là mặc định ổn định
         language=rt_lang,
     )
     log.info("Realtime LLM: %s", rt_model)
@@ -112,44 +140,42 @@ async def entrypoint(ctx: JobContext):
     state = SessionBuf()
     session: Optional[AgentSession] = None
 
+    # NEW: giữ booking gần nhất + cờ gate finalize
+    latest_booking: Optional[dict] = None
+    allow_finalize: bool = False
+
     async def start_new_session():
-        nonlocal session
+        nonlocal session, latest_booking, allow_finalize
         if session is not None:
             with contextlib.suppress(Exception):
                 await session.aclose()
 
         talker = Talker(rag=rag)
         session = AgentSession(llm=llm)
-        room_io = RoomInputOptions(noise_cancellation=noise_cancellation.BVC())
 
-        # === Event: transcript người dùng
-        @session.on("user_input_transcribed")
-        def on_user_input_transcribed(ev):
-            _log_evt("EVT user_input_transcribed", "user", ev.transcript,
-                     extra=f"final={getattr(ev,'is_final',None)} lang={getattr(ev,'language',None)}")
-            if getattr(ev, "is_final", False):
-                state.add("user", ev.transcript)
+        room_io = RoomInputOptions(
+            noise_cancellation=noise_cancellation.BVC(),
+        )
 
-        # === Event: item assistant/user được commit vào history
+        # ---------- Event handlers ----------
         @session.on("conversation_item_added")
         def on_item_added(ev):
             role = (ev.item.role or "unknown")
             text = (getattr(ev.item, "text_content", "") or "").strip()
+            iid = getattr(ev.item, "id", None)
             if text:
                 _log_evt("EVT conversation_item_added", role, text)
-                state.add(role, text)
+                state.add_once(iid, role, text)
 
-        # === Event: item assistant/user được cập nhật
         @session.on("conversation_item_updated")
         def on_item_updated(ev):
             role = (ev.item.role or "unknown")
             text = (getattr(ev.item, "text_content", "") or "").strip()
             if text:
                 _log_evt("EVT conversation_item_updated", role, text)
-                state.add(role, text)
 
         # ---------- Tool definitions (function calling) ----------
-        # Đăng ký tool bên trong để có thể "bắt" state/session qua closure
+        PHONE_RE = re.compile(r"^(\+?84|0)(3|5|7|8|9)\d{8}$")
 
         @function_tool
         async def schedule_appointment(
@@ -160,43 +186,62 @@ async def entrypoint(ctx: JobContext):
             symptoms: Optional[str] = None,
         ) -> dict:
             """
-            Đặt lịch khám cho bệnh nhân.
-            Sử dụng khi bạn (model) đã thu thập được họ tên, số điện thoại và (nếu có) thời gian mong muốn + tóm tắt triệu chứng.
-            Trả về JSON chứa thông tin lịch hẹn và gợi ý câu nói xác nhận cho bệnh nhân.
+            Đặt lịch khám. Sau khi tool trả về, model PHẢI đọc 'speak_text' cho bệnh nhân,
+            rồi mới cân nhắc gọi finalize_visit.
             """
+            nonlocal latest_booking, allow_finalize
+
+            # Quan trọng: đợi câu nói dẫn nhập (nếu có) kết thúc trước khi chạy tool
+            await context.wait_for_playout()  # tránh chồng chéo speech/tool gây timeout  ⟶  LiveKit khuyên dùng
+
             history = "\n".join(state.lines)
             data_path = os.getenv("CLINIC_DATA_PATH", "./clinic_data.json")
 
-            # Thực hiện đặt lịch (dùng model text 'gemini-2.5-flash' trong module booking.py như trước)
+            if not patient_name.strip():
+                patient_name = "(không rõ)"
+            if not PHONE_RE.match((phone or "").strip()):
+                phone = (phone or "").strip() or "(không rõ)"
+
             result = await asyncio.to_thread(
-                book_appointment, history, data_path, "gemini-2.5-pro"
+                book_appointment, history, data_path, os.getenv("BOOK_MODEL", "gemini-2.5-flash")
             )
 
-            # Lưu CSDL khách
             try:
                 cid, _ = get_or_create_customer(
-                    result.get("patient_name") or patient_name or "",
-                    result.get("phone") or phone or "",
+                    result.get("patient_name") or patient_name,
+                    result.get("phone") or phone,
                 )
                 result["customer_id"] = cid
                 await asyncio.to_thread(save_visit, cid, {"booking": result})
             except Exception:
-                pass
+                log.exception("save booking failed")
+
+            latest_booking = result
+            # CHƯA finalize ngay. Để model tự nói speak_text trước, rồi mới gọi tool finalize_visit.
+            allow_finalize = True
 
             return {
                 "ok": True,
                 "booking": result,
-                # Model sẽ đọc/diễn đạt phần speak_text này theo cách tự nhiên trong câu trả lời kế tiếp
-                "speak_text": result.get("speak_text") or "Tôi đã sắp xếp lịch phù hợp. Cảm ơn bạn."
+                "speak_text": result.get("speak_text")
+                    or "Tôi đã sắp xếp lịch phù hợp. Cảm ơn bạn.",
+                "note": "Hãy đọc speak_text cho bệnh nhân, sau đó nếu thông tin đã đủ thì gọi finalize_visit."
             }
+
 
         @function_tool
         async def finalize_visit(context: RunContext) -> dict:
             """
-            Tổng hợp hồ sơ, lưu vào CSDL và reset phiên làm việc để tiếp bệnh nhân kế tiếp.
-            Gọi tool này khi (model) đã thu thập đủ thông tin và đã đặt lịch thành công.
-            Sau khi tool trả về, hãy nói lời chào kết thúc ngắn gọn (ví dụ: 'Cảm ơn bạn đã đến khám. Chúc bạn mau khỏe!').
+            Tổng hợp & kết thúc phiên. Chỉ gọi sau khi đã thông báo speak_text xong.
             """
+            nonlocal latest_booking, allow_finalize, session
+
+            # Nếu tool được gọi khi agent vẫn đang nói: đợi nói xong rồi mới wrap-up
+            await context.wait_for_playout()
+
+            if not allow_finalize or latest_booking is None:
+                return {"ok": False, "message": "Chưa thể kết thúc: hãy xác nhận xong với bệnh nhân trước."}
+
             transcript_lines = list(state.lines)
             transcript = "\n".join(transcript_lines)
             user_only = "\n".join(
@@ -204,17 +249,15 @@ async def entrypoint(ctx: JobContext):
             )
             combined = transcript + "\n\n[USER_ONLY]\n" + (user_only or "(rỗng)")
 
-            clinic_defaults = {
-                "doctor_name": str(os.getenv("CLINIC_DOCTOR", "Bác sĩ trực")),
-                "appointment_time": "(không rõ)",
-                "diet_notes": "",
-            }
 
-            async def _do_wrap_up_and_reset():
+            async def _wrap_and_reset():
+                nonlocal latest_booking, allow_finalize
+                print(combined)
                 try:
-                    print("===== WRAP UP (snapshot) =====")
-                    print(combined)
-                    summary = await asyncio.to_thread(summarize_visit_json, combined, clinic_defaults)
+                    log.info("===== WRAP UP (snapshot) =====\n%s", combined)
+                    summary = await asyncio.to_thread(
+                        summarize_visit_json, combined, latest_booking
+                    )
                     patient_name = summary.get("patient_name") or ""
                     phone = summary.get("phone") or ""
                     cid, _ = await asyncio.to_thread(get_or_create_customer, patient_name, phone)
@@ -222,13 +265,19 @@ async def entrypoint(ctx: JobContext):
                     await asyncio.to_thread(save_visit, cid, summary)
                     log.info("visit saved: cid=%s", cid)
                 except Exception as e:
-                    fallback = {"error": str(e), "raw_transcript": transcript_lines, "user_only": user_only}
+                    fallback = {
+                        "error": str(e),
+                        "raw_transcript": transcript_lines,
+                        "user_only": user_only,
+                        "booking": latest_booking,
+                    }
                     with contextlib.suppress(Exception):
                         await asyncio.to_thread(save_visit, "UNKNOWN", fallback)
                     log.exception("Wrap-up error: %s", e)
                 finally:
-                    # Đợi ngắn để đảm bảo model đã nói xong lời chào
-                    await asyncio.sleep(1.2)
+                    allow_finalize = False
+                    latest_booking = None
+                    await asyncio.sleep(float(os.getenv("SESSION_CLOSE_DELAY", "2.0")))
                     with contextlib.suppress(Exception):
                         if session is not None:
                             await session.aclose()
@@ -236,9 +285,9 @@ async def entrypoint(ctx: JobContext):
                     await asyncio.sleep(0.6)
                     await start_new_session()
 
-            # Chạy wrap-up ở background để không chặn luồng tool-calling
-            asyncio.create_task(_do_wrap_up_and_reset())
+            asyncio.create_task(_wrap_and_reset())
             return {"ok": True, "message": "Visit finalized and session will reset."}
+
 
         # Cập nhật tool vào agent (đồng bộ với phiên realtime hiện tại)
         await talker.update_tools([schedule_appointment, finalize_visit])
@@ -249,7 +298,7 @@ async def entrypoint(ctx: JobContext):
             agent=talker,
             room_input_options=room_io,
             room_output_options=RoomOutputOptions(
-                transcription_enabled=True,
+                transcription_enabled=(os.getenv("LK_TRANSCRIPTION", "0") == "1"),
                 audio_enabled=True,
             ),
         )
@@ -264,5 +313,11 @@ async def entrypoint(ctx: JobContext):
     # Khởi động
     await start_new_session()
 
+
 if __name__ == "__main__":
-    agents.cli.run_app(WorkerOptions(entrypoint_fnc=entrypoint))
+    agents.cli.run_app(
+        WorkerOptions(
+            entrypoint_fnc=entrypoint,
+            agent_name=os.getenv("AGENT_NAME", "kiosk"),  # 👈 cho phép dispatch theo tên
+        )
+    )
