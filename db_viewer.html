@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8" />
+<title>Kiosk DB Viewer</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' font-size='90'>💾</text></svg>">
+<style>
+ body {font-family: system-ui, Arial, sans-serif; margin: 1.5rem; background:#f7f9fb;}
+ h1 {margin-top:0;}
+ table {border-collapse: collapse; width: 100%; margin-bottom:2rem; background:#fff;}
+ th, td {border:1px solid #ccc; padding:6px 8px; font-size:14px; vertical-align:top;}
+ th {background:#eef; position:sticky; top:0;}
+ code {background:#eee; padding:2px 4px; border-radius:3px;}
+ .json {white-space:pre-wrap; font-family:monospace; max-height:200px; overflow:auto;}
+ .section {box-shadow:0 1px 3px rgba(0,0,0,.1); padding:1rem; margin-bottom:2rem; border-radius:6px; background:#fff;}
+ .badge {display:inline-block; background:#0366d6; color:#fff; padding:2px 6px; border-radius:3px; font-size:12px;}
+ .filter-box {margin-bottom:1rem;}
+</style>
+</head>
+<body>
+<h1>📋 Kiosk Database Viewer</h1>
+<p>Tải file này bằng trình duyệt tại cùng thư mục <code>kiosk.db</code>. Không có backend; chỉ đọc SQLite qua WebAssembly.</p>
+<div class="filter-box">
+  Lọc khách hàng: <input id="customerFilter" placeholder="Nhập tên hoặc SĐT..." size="30" />
+  <button onclick="loadAll()">Reload</button>
+</div>
+<div class="section">
+  <h2>Khách hàng</h2>
+  <table id="customersTbl">
+    <thead><tr><th>ID</th><th>Tên</th><th>Phone</th><th>Số lượt khám</th></tr></thead>
+    <tbody></tbody>
+  </table>
+</div>
+<div class="section">
+  <h2>Lượt khám</h2>
+  <table id="visitsTbl">
+    <thead><tr><th>Visit ID</th><th>Customer ID</th><th>Thời gian</th><th>Tóm tắt</th></tr></thead>
+    <tbody></tbody>
+  </table>
+</div>
+document.getElementById('customerFilter').addEventListener('input', ()=> renderCustomers(globalDb));
+<!-- UMD build của sql.js cung cấp hàm toàn cục initSqlJs -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/sql-wasm.js" referrerpolicy="no-referrer"></script>
+<script>
+(function(){
+  let SQL_DB_INSTANCE = null;
+  let SQL_WASM = null;
+
+  async function openDb() {
+    if(!SQL_WASM) {
+      if(typeof initSqlJs !== 'function') throw new Error('Không tải được thư viện sql.js');
+      SQL_WASM = await initSqlJs({ locateFile: f => `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/${f}` });
+    }
+    const resp = await fetch('kiosk.db');
+    if(!resp.ok) throw new Error('Không tải được kiosk.db (hãy chạy qua HTTP server, không mở file:// nếu bị lỗi)');
+    const buf = await resp.arrayBuffer();
+    return new SQL_WASM.Database(new Uint8Array(buf));
+  }
+
+  function q(db, sql, params=[]) { return db.prepare(sql, params); }
+
+  function renderCustomers(db) {
+    const filter = document.getElementById('customerFilter').value.toLowerCase();
+    const stmt = q(db, `SELECT c.id, c.name, c.phone, COUNT(v.visit_id) AS cnt\n                      FROM customers c LEFT JOIN visits v ON v.customer_id=c.id\n                      GROUP BY c.id ORDER BY cnt DESC, c.name`);
+    const tbody = document.querySelector('#customersTbl tbody');
+    tbody.innerHTML='';
+    while(stmt.step()) {
+      const {id,name,phone,cnt} = stmt.getAsObject();
+      const text = `${name||''} ${phone||''}`.toLowerCase();
+      if(filter && !text.includes(filter)) continue;
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td>${id}</td><td>${name||''}</td><td>${phone||''}</td><td>${cnt}</td>`;
+      tr.onclick = ()=> highlightCustomer(id);
+      tbody.appendChild(tr);
+    }
+    stmt.free();
+  }
+
+  function renderVisits(db, customerId=null) {
+    let sql = `SELECT visit_id, customer_id, created_at, payload_json FROM visits ORDER BY created_at DESC LIMIT 500`;
+    if(customerId) sql = `SELECT visit_id, customer_id, created_at, payload_json FROM visits WHERE customer_id = '${customerId.replace(/'/g,"''")}' ORDER BY created_at DESC`;
+    const stmt = q(db, sql);
+    const tbody = document.querySelector('#visitsTbl tbody');
+    tbody.innerHTML='';
+    while(stmt.step()) {
+      const {visit_id, customer_id, created_at, payload_json} = stmt.getAsObject();
+      let pretty = '';
+      try { const o = JSON.parse(payload_json); pretty = JSON.stringify(o,null,2);} catch(e){ pretty = payload_json || ''; }
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td>${visit_id}</td><td>${customer_id}</td><td>${created_at}</td><td><div class='json'>${pretty}</div></td>`;
+      tbody.appendChild(tr);
+    }
+    stmt.free();
+  }
+
+  async function loadAll(){
+    try {
+      if(SQL_DB_INSTANCE) { try { SQL_DB_INSTANCE.close(); } catch(e){} }
+      SQL_DB_INSTANCE = await openDb();
+      renderCustomers(SQL_DB_INSTANCE);
+      renderVisits(SQL_DB_INSTANCE);
+    } catch(e) {
+      alert(e.message);
+    }
+  }
+
+  function highlightCustomer(id){
+    renderVisits(SQL_DB_INSTANCE, id);
+    [...document.querySelectorAll('#customersTbl tbody tr')].forEach(tr=>{
+      tr.style.background = tr.firstChild.textContent===id ? '#ffd' : '';
+    });
+  }
+
+  // Expose toàn cục cho onclick & debug
+  window.loadAll = loadAll;
+  window.highlightCustomer = highlightCustomer;
+
+  document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('customerFilter').addEventListener('input', ()=> renderCustomers(SQL_DB_INSTANCE));
+    loadAll();
+  });
+})();
+</script>
+</body>
+</html>
