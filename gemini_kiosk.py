@@ -120,6 +120,15 @@ async def entrypoint(ctx: JobContext):
     await ctx.connect(auto_subscribe=AutoSubscribe.AUDIO_ONLY)
     log.info("connected to room: %s", getattr(ctx.room, "name", "?"))
 
+    # 1b) Load clinic_defaults (cấu hình / thông tin tĩnh) dùng cho summarize_visit_json
+    clinic_defaults_path = os.getenv("CLINIC_DATA_PATH", "./clinic_data.json")
+    try:
+        with open(clinic_defaults_path, "r", encoding="utf-8") as f:
+            clinic_defaults = json.load(f)
+    except Exception as e:
+        log.warning("Không đọc được clinic defaults (%s): %s", clinic_defaults_path, e)
+        clinic_defaults = {}
+
     # 2) Gemini Live API (Realtime LLM có audio & tool calling)
     # Tên model theo docs: gemini-live-2.5-flash-preview (voice/video + tool calling)
     rt_model = os.getenv("GEMINI_RT_MODEL", "gemini-live-2.5-flash-preview")
@@ -232,7 +241,7 @@ async def entrypoint(ctx: JobContext):
         @function_tool
         async def finalize_visit(context: RunContext) -> dict:
             """
-            Tổng hợp & kết thúc phiên. Chỉ gọi sau khi đã thông báo speak_text xong.
+            Tổng hợp & kết thúc phiên. KHÔNG reset session mới.
             """
             nonlocal latest_booking, allow_finalize, session
 
@@ -249,45 +258,44 @@ async def entrypoint(ctx: JobContext):
             )
             combined = transcript + "\n\n[USER_ONLY]\n" + (user_only or "(rỗng)")
 
+            # Thêm block BOOKING rõ ràng để summarize dễ lấy
+            try:
+                combined += "\n\n[BOOKING_JSON]\n" + json.dumps(latest_booking, ensure_ascii=False)
+            except Exception:
+                pass
 
-            async def _wrap_and_reset():
-                nonlocal latest_booking, allow_finalize
-                print(combined)
-                try:
-                    log.info("===== WRAP UP (snapshot) =====\n%s", combined)
-                    summary = await asyncio.to_thread(
-                        summarize_visit_json, combined, latest_booking
-                    )
-                    patient_name = summary.get("patient_name") or ""
-                    phone = summary.get("phone") or ""
-                    cid, _ = await asyncio.to_thread(get_or_create_customer, patient_name, phone)
-                    summary["customer_id"] = cid
-                    await asyncio.to_thread(save_visit, cid, summary)
-                    log.info("visit saved: cid=%s", cid)
-                except Exception as e:
-                    fallback = {
-                        "error": str(e),
-                        "raw_transcript": transcript_lines,
-                        "user_only": user_only,
-                        "booking": latest_booking,
-                    }
-                    with contextlib.suppress(Exception):
-                        await asyncio.to_thread(save_visit, "UNKNOWN", fallback)
-                    log.exception("Wrap-up error: %s", e)
-                finally:
-                    allow_finalize = False
-                    latest_booking = None
-                    await asyncio.sleep(float(os.getenv("SESSION_CLOSE_DELAY", "2.0")))
-                    with contextlib.suppress(Exception):
-                        if session is not None:
-                            await session.aclose()
-                    state.clear()
-                    await asyncio.sleep(0.6)
-                    await start_new_session()
+            try:
+                log.info("===== WRAP UP (snapshot) =====\n%s", combined)
+                summary = await asyncio.to_thread(
+                    summarize_visit_json, combined, clinic_defaults, latest_booking
+                )
+                patient_name = summary.get("patient_name") or ""
+                phone = summary.get("phone") or ""
+                cid, _ = await asyncio.to_thread(get_or_create_customer, patient_name, phone)
+                summary["customer_id"] = cid
+                await asyncio.to_thread(save_visit, cid, summary)
+                log.info("visit saved: cid=%s", cid)
+            except Exception as e:
+                fallback = {
+                    "error": str(e),
+                    "raw_transcript": transcript_lines,
+                    "user_only": user_only,
+                    "booking": latest_booking,
+                }
+                with contextlib.suppress(Exception):
+                    await asyncio.to_thread(save_visit, "UNKNOWN", fallback)
+                log.exception("Wrap-up error: %s", e)
+            finally:
+                allow_finalize = False
+                latest_booking = None
+                # Đóng phiên và KHÔNG start session mới
+                await asyncio.sleep(float(os.getenv("SESSION_CLOSE_DELAY", "1.0")))
+                with contextlib.suppress(Exception):
+                    if session is not None:
+                        await session.aclose()
+                state.clear()
 
-            asyncio.create_task(_wrap_and_reset())
-            return {"ok": True, "message": "Visit finalized and session will reset."}
-
+            return {"ok": True, "message": "Visit finalized; session closed."}
 
         # Cập nhật tool vào agent (đồng bộ với phiên realtime hiện tại)
         await talker.update_tools([schedule_appointment, finalize_visit])

@@ -1,0 +1,7 @@
+{
+  "booking": {
+    "error": "empty_or_malformed_json",
+    "raw": "",
+    "customer_id": "CUS-3bc6fb07db"
+  }
+}
