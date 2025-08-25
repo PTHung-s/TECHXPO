@@ -1,0 +1,15 @@
+{
+  "booking": {
+    "department": "Tai Mũi Họng",
+    "doctor_name": "BS. Lê Khánh",
+    "slot_time": "2025-08-23 17:00",
+    "room": "TMH.201",
+    "queue_number": "A-051",
+    "patient_name": "Phạm Tuấn Hưng",
+    "phone": "0336018126",
+    "note": "Ho, sổ mũi 2 ngày, mức độ nhẹ.",
+    "speak_text": "Anh Phạm Tuấn Hưng đã đặt lịch khám khoa Tai Mũi Họng với BS. Lê Khánh vào lúc 17:00 ngày 23 tháng 08 năm 2025, tại phòng TMH.201, số thứ tự A-051. Vui lòng đến trước 15 phút để làm thủ tục.",
+    "symptoms": "Ho, sổ mũi mức độ nhẹ trong 2 ngày.",
+    "customer_id": "CUS-3bc6fb07db"
+  }
+}

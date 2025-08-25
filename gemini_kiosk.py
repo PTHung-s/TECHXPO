@@ -50,7 +50,8 @@ SYSTEM_PROMPT = (
     1) Hỏi và ghi nhận: họ tên, số điện thoại.
     2) Khai thác TRIỆU CHỨNG (tên, mức độ) thật kĩ và nhiều nhất có thể qua trò chuyện gần gũi; khi nghi ngờ có triệu chứng khác thì chủ động hỏi thêm.
     3) Khi đã đủ dữ kiện để ĐẶT LỊCH, hãy GỌI TOOL `schedule_appointment` với các tham số bạn đã nắm (ví dụ: patient_name, phone, preferred_time, symptoms). KHÔNG dùng cụm từ kích hoạt.
-    4) Khi đã có đủ (thông tin cá nhân + triệu chứng + lịch khám), hãy GỌI TOOL `finalize_visit` để tổng kết và kết thúc. Sau khi tool trả về, nói lời chào kết thúc ngắn gọn và KHÔNG đặt thêm câu hỏi mới.
+    4) Hỏi lại xem Booking có cần sự thay đổi gì không
+    5) Khi đã có đủ (thông tin cá nhân + triệu chứng + lịch khám được xác nhận), hãy GỌI TOOL `finalize_visit` để tổng kết và kết thúc. Sau khi tool trả về, nói lời chào kết thúc ngắn gọn và KHÔNG đặt thêm câu hỏi mới.
 
     QUY TẮC:
     - Luôn tuân thủ quy chuẩn y tế nội bộ (nếu có) được cung cấp trong hội thoại.
@@ -93,21 +94,41 @@ def _log_evt(tag: str, role: str, text: str, extra: str = ""):
 
 # ================== Talker (Agent) có RAG ==================
 class Talker(Agent):
-    def __init__(self, rag: MedicalRAG):
+    def __init__(self, rag: MedicalRAG, buf: SessionBuf):
         super().__init__(instructions=SYSTEM_PROMPT)
         self.rag = rag
+        self.buf = buf  # để ép lưu user transcript nếu realtime không push event user
 
     async def on_user_turn_completed(self, turn_ctx: ChatContext, new_message):
-        """Chèn RAG (quy chuẩn y tế) vào system trước khi LLM trả lời."""
+        """Chèn RAG + đảm bảo có ghi lại văn bản user vào bộ đệm.
+
+        Một số cấu hình realtime có thể không bắn sự kiện text user đầy đủ; ta gom fallback.
+        """
         user_text = (getattr(new_message, "text_content", "") or "").strip()
         if not user_text:
+            # Fallback: gom tất cả user_messages trong turn
+            collected = []
+            for m in getattr(turn_ctx, "user_messages", []) or []:
+                t = (getattr(m, "text_content", "") or "").strip()
+                if t:
+                    collected.append(t)
+            user_text = "\n".join(collected).strip()
+
+        # Nếu vẫn chưa có user_text thì bỏ qua phần RAG (không cần query)
+        if not user_text:
             return
-        ctx = self.rag.query(user_text, k=4, max_chars=900)  # gọn để giảm latency realtime
-        if not ctx:
+
+        # Cố gắng tránh nhân đôi: chỉ thêm nếu dòng cuối khác
+        if not self.buf.lines or not self.buf.lines[-1].endswith(user_text):
+            self.buf.add("user", user_text)
+
+        # RAG context
+        ctx_text = self.rag.query(user_text, k=4, max_chars=900)
+        if not ctx_text:
             return
         turn_ctx.add_message(
             role="system",
-            content=("Các quy chuẩn y tế nội bộ ưu tiên áp dụng (không đọc ra, chỉ tham khảo):\n" + ctx),
+            content=("Các quy chuẩn y tế nội bộ ưu tiên áp dụng (không đọc ra, chỉ tham khảo):\n" + ctx_text),
         )
         await self.update_chat_ctx(turn_ctx)
 
@@ -158,8 +179,7 @@ async def entrypoint(ctx: JobContext):
         if session is not None:
             with contextlib.suppress(Exception):
                 await session.aclose()
-
-        talker = Talker(rag=rag)
+        talker = Talker(rag=rag, buf=state)
         session = AgentSession(llm=llm)
 
         room_io = RoomInputOptions(
@@ -215,6 +235,13 @@ async def entrypoint(ctx: JobContext):
                 book_appointment, history, data_path, os.getenv("BOOK_MODEL", "gemini-2.5-flash")
             )
 
+            # Ghi lại triệu chứng vào lịch sử để phần tổng kết thấy được
+            if symptoms:
+                state.add("user", f"Triệu chứng khai báo: {symptoms}")
+            # Đảm bảo booking có field symptoms để wrap-up xuất hiện
+            if symptoms and isinstance(result, dict) and not result.get("symptoms"):
+                result["symptoms"] = symptoms
+
             try:
                 cid, _ = get_or_create_customer(
                     result.get("patient_name") or patient_name,
@@ -251,6 +278,14 @@ async def entrypoint(ctx: JobContext):
             if not allow_finalize or latest_booking is None:
                 return {"ok": False, "message": "Chưa thể kết thúc: hãy xác nhận xong với bệnh nhân trước."}
 
+            # Nếu booking có symptoms mà transcript chưa có, bổ sung vào bộ đệm trước khi snapshot
+            try:
+                bk_sym = latest_booking.get("symptoms") if isinstance(latest_booking, dict) else None
+                if isinstance(bk_sym, str) and bk_sym and not any("Triệu chứng" in l for l in state.lines):
+                    state.add("user", f"Triệu chứng (booking): {bk_sym}")
+            except Exception:
+                pass
+
             transcript_lines = list(state.lines)
             transcript = "\n".join(transcript_lines)
             user_only = "\n".join(
@@ -269,6 +304,7 @@ async def entrypoint(ctx: JobContext):
                 summary = await asyncio.to_thread(
                     summarize_visit_json, combined, clinic_defaults, latest_booking
                 )
+                log.debug("wrapup summary=%s", json.dumps(summary, ensure_ascii=False))
                 patient_name = summary.get("patient_name") or ""
                 phone = summary.get("phone") or ""
                 cid, _ = await asyncio.to_thread(get_or_create_customer, patient_name, phone)

@@ -159,7 +159,7 @@ Bạn là thư ký y khoa. Hãy trích xuất phiếu thăm khám (tiếng Việ
             config=types.GenerateContentConfig(
                 system_instruction=SYSTEM,
                 temperature=0.0,
-                max_output_tokens=1024,
+                max_output_tokens=4096,
                 response_mime_type="application/json",
                 response_schema=VisitSummary,   # Pydantic schema
                 # safety_settings=[ ... ]  # nới nếu cần

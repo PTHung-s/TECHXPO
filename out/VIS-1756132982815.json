@@ -1,0 +1,15 @@
+{
+  "booking": {
+    "department": "Tai Mũi Họng",
+    "doctor_name": "BS. Lê Khánh",
+    "slot_time": "2025-08-23 17:00",
+    "room": "TMH.201",
+    "queue_number": "A-051",
+    "patient_name": "Phạm Tuấn Hưng",
+    "phone": "0236018126",
+    "note": "Ho, sổ mũi, đau họng nhẹ",
+    "speak_text": "Đã cập nhật số điện thoại của anh Phạm Tuấn Hưng thành 0236018126.",
+    "symptoms": "Ho, sổ mũi, đau họng nhẹ",
+    "customer_id": "CUS-6540354965"
+  }
+}
