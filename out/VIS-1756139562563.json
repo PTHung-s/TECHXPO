@@ -1,0 +1,15 @@
+{
+  "booking": {
+    "department": "Nội tổng quát",
+    "doctor_name": "BS. Trần Minh",
+    "slot_time": "2025-08-23 16:00",
+    "room": "K.101",
+    "queue_number": "A-051",
+    "patient_name": "Phạm Tuấn Hưng",
+    "phone": "0236018126",
+    "note": "Ho, sốt nhẹ, mới một ngày",
+    "speak_text": "Đã cập nhật số điện thoại của anh Phạm Tuấn Hưng thành 0236018126. Lịch hẹn khám khoa Nội tổng quát với BS. Trần Minh vào lúc 16:00 ngày 23 tháng 08 năm 2025, tại phòng K.101, số thứ tự A-051.",
+    "symptoms": "Ho, sốt nhẹ, mới một ngày",
+    "customer_id": "CUS-6540354965"
+  }
+}

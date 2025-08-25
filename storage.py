@@ -4,6 +4,11 @@ from typing import Dict
 
 DB_PATH = os.getenv("KIOSK_DB", "kiosk.db")
 OUT_DIR = os.getenv("KIOSK_OUT", "out")
+# SAVE_VISIT_FILES modes:
+#  - "always" (default current behavior)
+#  - "final"  (only when explicitly flagged final=True)
+#  - "none"   (never write files, still store DB)
+SAVE_MODE = os.getenv("SAVE_VISIT_FILES", "always").lower()
 
 def _conn():
     conn = sqlite3.connect(DB_PATH)
@@ -56,17 +61,26 @@ def get_or_create_customer(name: str, phone: str):
     conn.commit(); conn.close()
     return cid, True
 
-def save_visit(customer_id: str, payload: Dict) -> str:
+def save_visit(customer_id: str, payload: Dict, *, final: bool = True) -> str:
     visit_id = f"VIS-{int(time.time()*1000)}"
     conn = _conn()
     conn.execute("INSERT INTO visits(visit_id,customer_id,created_at,payload_json) VALUES(?,?,datetime('now'),?)",
                  (visit_id, customer_id, json.dumps(payload, ensure_ascii=False)))
     conn.commit(); conn.close()
+    write_files = False
+    if SAVE_MODE == "always":
+        write_files = True
+    elif SAVE_MODE == "final" and final:
+        write_files = True
+    elif SAVE_MODE == "none":
+        write_files = False
 
-    with open(os.path.join(OUT_DIR, f"{visit_id}.json"), "w", encoding="utf-8") as f:
-        json.dump(payload, f, ensure_ascii=False, indent=2)
-    with open(os.path.join(OUT_DIR, f"{visit_id}.txt"), "w", encoding="utf-8") as f:
-        f.write(pretty_txt(payload))
+    if write_files:
+        os.makedirs(OUT_DIR, exist_ok=True)
+        with open(os.path.join(OUT_DIR, f"{visit_id}.json"), "w", encoding="utf-8") as f:
+            json.dump(payload, f, ensure_ascii=False, indent=2)
+        with open(os.path.join(OUT_DIR, f"{visit_id}.txt"), "w", encoding="utf-8") as f:
+            f.write(pretty_txt(payload))
     return visit_id
 
 def pretty_txt(p: Dict) -> str:
