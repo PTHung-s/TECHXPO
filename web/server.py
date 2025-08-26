@@ -58,6 +58,11 @@ def get_token(identity: Optional[str] = Query(None), room: Optional[str] = Query
 def healthz():
     return {"ok": True}
 
+# Avoid noisy 404 from Chrome DevTools (some embedded webviews probe this path)
+@app.get("/.well-known/appspecific/com.chrome.devtools.json")
+def chrome_devtools_probe():
+    return {"status": "ok", "description": "placeholder for chrome devtools probe"}
+
 # (tuỳ chọn) favicon để khỏi 404
 @app.get("/favicon.ico")
 def favicon():
