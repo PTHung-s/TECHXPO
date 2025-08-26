@@ -40,15 +40,22 @@
     #startBtn span.small { font-size:.65rem; opacity:.8; font-weight:400; letter-spacing:.5px; }
     @keyframes pulse { 0%{ box-shadow:0 0 0 0 rgba(59,130,246,.55);} 70%{ box-shadow:0 0 0 70px rgba(59,130,246,0);} 100%{ box-shadow:0 0 0 0 rgba(59,130,246,0);} }
     .hidden { display:none !important; }
-    #inCall { flex:1; display:flex; flex-direction:column; position:relative; padding:0 clamp(.75rem,2.8vw,2rem) clamp(1.2rem,3vw,2.5rem); }
-    #waveWrap { flex:1; display:flex; align-items:center; justify-content:center; position:relative; padding:1rem 0 2rem; }
-    #waveCanvas { width:100%; max-width:1000px; height:320px; background:linear-gradient(to bottom,#0f172a66,#0f172acc 60%,#0f172aee); border-radius:1.4rem; box-shadow:0 4px 32px -8px #1e3a8a; border:1px solid var(--border); position:relative; overflow:hidden; }
-    #waveCanvas:after { content:""; position:absolute; inset:0; background:linear-gradient(135deg,rgba(59,130,246,.08),rgba(139,92,246,.08)); pointer-events:none; }
-    #remoteAudio { display:none; }
-    .floating-panel { position:absolute; top:1.2rem; left:1rem; background:var(--panel); backdrop-filter:blur(14px) saturate(140%); padding:1rem 1.1rem 1.15rem; border-radius:1.1rem; width: clamp(260px, 48vw, 360px); border:1px solid var(--border); box-shadow:0 4px 28px -6px rgba(0,0,0,.6), 0 0 0 1px rgba(255,255,255,.04); opacity:0; transform:translateY(-10px); pointer-events:none; transition:.45s cubic-bezier(.4,.8,.25,1); }
-    .floating-panel.show { opacity:1; transform:translateY(0); pointer-events:all; }
-    .floating-panel h3 { margin:.1rem 0 .75rem; font-size:.85rem; font-weight:600; letter-spacing:.5px; display:flex; align-items:center; gap:.35rem; }
-    .grid-two { display:grid; grid-template-columns:1fr 1fr; gap:.55rem .9rem; font-size:.7rem; }
+  #inCall { flex:1; display:flex; flex-direction:column; position:relative; padding:0 clamp(.75rem,2.8vw,2rem) clamp(.8rem,2vw,1.2rem); gap:.75rem; }
+  #infoPanel { flex:1 1 auto; min-height:55vh; background:var(--panel); backdrop-filter:blur(18px) saturate(160%); border:1px solid var(--border); border-radius:1.3rem; padding:1.15rem 1.2rem 1.25rem; display:flex; flex-direction:column; box-shadow:0 4px 34px -6px rgba(0,0,0,.55), 0 0 0 1px rgba(255,255,255,.04); }
+  #infoPanel h3 { margin:.1rem 0 1rem; font-size:.9rem; font-weight:600; letter-spacing:.6px; }
+  #infoBody { flex:1; overflow:auto; scrollbar-width:thin; }
+  #infoBody::-webkit-scrollbar { width:8px; }
+  #infoBody::-webkit-scrollbar-track { background:rgba(255,255,255,0.03); }
+  #infoBody::-webkit-scrollbar-thumb { background:rgba(148,163,184,0.28); border-radius:20px; }
+  #waveBar { position:relative; height:140px; background:linear-gradient(to bottom,#0f172acc,#0f172aef); border:1px solid var(--border); border-radius:1.2rem; overflow:hidden; display:flex; align-items:center; justify-content:center; }
+  #waveCanvas { width:100%; height:100%; }
+  .hangup-btn { position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); width:96px; height:96px; border-radius:50%; border:none; cursor:pointer; display:flex; align-items:center; justify-content:center; background:linear-gradient(145deg,#dc2626,#991b1b); color:#fff; box-shadow:0 8px 26px -6px rgba(0,0,0,.65),0 0 0 6px rgba(239,68,68,0.25); transition:.3s; }
+  .hangup-btn img { width:72%; height:72%; object-fit:contain; filter:drop-shadow(0 2px 4px rgba(0,0,0,.55)); position:relative; left:-4px; top:3px; }
+  .hangup-btn:hover { box-shadow:0 8px 28px -6px rgba(0,0,0,.75),0 0 0 8px rgba(239,68,68,0.35); }
+  .hangup-btn:active { transform:translate(-50%,-50%) scale(.94); }
+  #waveBar:after { content:""; position:absolute; inset:0; background:linear-gradient(135deg,rgba(59,130,246,.07),rgba(139,92,246,.07)); pointer-events:none; }
+  #remoteAudio { display:none; }
+  .grid-two { display:grid; grid-template-columns:1fr 1fr; gap:.55rem .9rem; font-size:.7rem; }
     .grid-two label { display:block; text-transform:uppercase; font-size:.55rem; opacity:.6; letter-spacing:.6px; margin-bottom:.15rem; }
     .badge { display:inline-block; padding:.2rem .6rem; font-size:.55rem; font-weight:600; letter-spacing:.5px; border-radius:999px; background:#334155; text-transform:uppercase; }
     .badge.ok { background:var(--ok); color:#022c1a; }
@@ -69,10 +76,8 @@
       header { flex-direction:column; align-items:stretch; gap:.75rem; }
       #callBar { width:100%; justify-content:space-between; }
       #timer { order:2; flex:1; text-align:center; }
-      #waveCanvas { height:240px; border-radius:1rem; }
-      .floating-panel { width:calc(100% - 2rem); left:50%; transform:translate(-50%, -10px); }
-      .floating-panel.show { transform:translate(-50%,0); }
-      #bookingPanel { right:50%; left:auto; }
+  #infoPanel { min-height:52vh; }
+  #waveBar { height:120px; }
       #logPanel { width:calc(100% - 2rem); right:50%; transform:translate(50%,8px); }
       #logPanel.show { transform:translate(50%,0); }
       #startBtn { width:150px; height:150px; }
@@ -92,7 +97,6 @@
           <button id="btnMute" class="ghost">Tắt mic</button>
           <button id="btnUnmute" class="ghost hidden">Bật mic</button>
           <button id="btnLog" class="ghost" style="min-width:42px;">Log</button>
-          <button id="btnHangup" style="background:linear-gradient(135deg,#dc2626,#b91c1c);">Thoát</button>
         </div>
       </div>
     </header>
@@ -105,18 +109,21 @@
       </button>
     </section>
     <section id="inCall" class="hidden">
-      <div id="waveWrap">
+      <div id="infoPanel">
+        <h3 id="infoTitle">Thông tin</h3>
+        <div id="infoBody" style="font-size:.7rem; opacity:.85;">Đang nhận dữ liệu...</div>
+        <div class="actionsRow" id="infoActions" style="display:none;"></div>
+      </div>
+      <div id="waveBar">
         <canvas id="waveCanvas"></canvas>
         <audio id="remoteAudio" autoplay playsinline></audio>
-        <div id="infoPanel" class="floating-panel">
-          <h3 id="infoTitle">Thông tin</h3>
-          <div id="infoBody" style="font-size:.7rem; opacity:.85;">Đang nhận dữ liệu...</div>
-          <div class="actionsRow" id="infoActions" style="display:none;"></div>
-        </div>
-        <div id="logPanel">
-          <div id="logHeader">LOG HỆ THỐNG <button id="btnCloseLog" class="ghost" style="padding:.35rem .6rem; font-size:.55rem;">Đóng</button></div>
-          <ul id="log"></ul>
-        </div>
+        <button id="btnEndCall" aria-label="Kết thúc" title="Kết thúc" class="hangup-btn">
+          <img src="icons/phone_white.svg" alt="Kết thúc" />
+        </button>
+      </div>
+      <div id="logPanel">
+        <div id="logHeader">LOG HỆ THỐNG <button id="btnCloseLog" class="ghost" style="padding:.35rem .6rem; font-size:.55rem;">Đóng</button></div>
+        <ul id="log"></ul>
       </div>
     </section>
   </div>

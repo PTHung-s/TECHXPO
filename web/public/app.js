@@ -9,8 +9,9 @@ const statusDot = document.getElementById('statusDot')
 const timerEl = document.getElementById('timer')
 const remoteAudio = document.getElementById('remoteAudio')
 const waveCanvas = document.getElementById('waveCanvas')
-const ctx = waveCanvas.getContext('2d')
-const btnHangup = document.getElementById('btnHangup')
+const ctx = waveCanvas.getContext('2d',{alpha:true})
+// Old hangup removed, new button inside waveBar
+const btnHangup = document.getElementById('btnEndCall')
 const btnMute = document.getElementById('btnMute')
 const btnUnmute = document.getElementById('btnUnmute')
 const btnLog = document.getElementById('btnLog')
@@ -23,7 +24,7 @@ const infoTitle = document.getElementById('infoTitle')
 const infoBody = document.getElementById('infoBody')
 const infoActions = document.getElementById('infoActions')
 
-let room, localTrack, analyser, dataArray, audioCtx
+let room, localTrack, analyser, freqArray, audioCtx, remoteSource
 let identityConfirmed = false
 let callStart = 0, timerInterval
 
@@ -46,51 +47,133 @@ function showLanding(){ landing.classList.remove('hidden'); inCall.classList.add
 
 function sendData(obj){ if(!room) return; try { const payload = new TextEncoder().encode(JSON.stringify(obj)); room.localParticipant.publishData(payload) } catch(e){ log('Send data err '+ e.message) } }
 
-function initAudioAnalyser(){
-  if(audioCtx) return
-  audioCtx = new (window.AudioContext || window.webkitAudioContext)()
+function initAudioAnalyserFromMediaStreamTrack(msTrack){
+  if(!msTrack) return
+  if(!audioCtx){
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)()
+  }
+  // Always create new analyser for remote talker so we switch source cleanly
   try {
-    const source = audioCtx.createMediaElementSource(remoteAudio)
+    const ms = new MediaStream([msTrack])
+    remoteSource = audioCtx.createMediaStreamSource(ms)
     analyser = audioCtx.createAnalyser()
-    analyser.fftSize = 2048
-    dataArray = new Uint8Array(analyser.frequencyBinCount)
-    source.connect(analyser)
-    analyser.connect(audioCtx.destination)
-    drawWave()
+  analyser.fftSize = 2048
+  analyser.smoothingTimeConstant = 0.85
+  freqArray = new Uint8Array(analyser.frequencyBinCount)
+    remoteSource.connect(analyser)
+    // Do NOT connect analyser to destination (no duplication of audio)
+    if(audioCtx.state === 'suspended') { audioCtx.resume().catch(()=>{}) }
   } catch(e){ log('Analyser init fail '+ e.message) }
 }
 
+let _flatCounter = 0
 function drawWave(){
-  if(!analyser){ requestAnimationFrame(drawWave); return }
-  const W = waveCanvas.width = waveCanvas.clientWidth * window.devicePixelRatio
-  const H = waveCanvas.height = waveCanvas.clientHeight * window.devicePixelRatio
-  analyser.getByteTimeDomainData(dataArray)
+  const dpr = window.devicePixelRatio || 1
+  const cssW = waveCanvas.clientWidth || waveCanvas.parentElement.clientWidth || 300
+  const cssH = waveCanvas.clientHeight || waveCanvas.parentElement.clientHeight || 120
+  const W = waveCanvas.width = cssW * dpr
+  const H = waveCanvas.height = cssH * dpr
   ctx.clearRect(0,0,W,H)
-  const grad = ctx.createLinearGradient(0,0,W,H)
-  grad.addColorStop(0,'#60a5fa'); grad.addColorStop(.5,'#818cf8'); grad.addColorStop(1,'#a78bfa')
-  ctx.lineWidth = Math.max(2, W/1400*2)
-  ctx.strokeStyle = grad
-  ctx.beginPath()
-  const slice = W / dataArray.length
-  const mid = H/2
-  for(let i=0;i<dataArray.length;i++){
-    const v = (dataArray[i]-128)/128
-    const y = mid + v * (H*0.38)
-    const x = i * slice
-    i? ctx.lineTo(x,y): ctx.moveTo(x,y)
-  }
-  ctx.stroke()
-  ctx.globalCompositeOperation='lighter'
-  ctx.fillStyle='rgba(96,165,250,0.06)'
+
+  // Background subtle gradient
+  const bgGrad = ctx.createLinearGradient(0,0,W,H)
+  bgGrad.addColorStop(0,'rgba(30,58,138,0.15)')
+  bgGrad.addColorStop(1,'rgba(15,23,42,0.35)')
+  ctx.fillStyle = bgGrad
   ctx.fillRect(0,0,W,H)
-  ctx.globalCompositeOperation='source-over'
+
+  if(!analyser){
+    ctx.fillStyle='rgba(148,163,184,0.18)'
+    ctx.fillRect(0, H/2 - 1*dpr, W, 2*dpr)
+    requestAnimationFrame(drawWave)
+    return
+  }
+
+  analyser.getByteFrequencyData(freqArray)
+  if(!freqArray || !freqArray.length){ requestAnimationFrame(drawWave); return }
+  // Centered symmetric bars: compute half side and mirror
+  // Denser bars (roughly double): reduce slot base from 6px to ~3px (bar+gap)
+  const BAR_GAP = 1 * dpr
+  const maxBarsFull = Math.floor(W / (3 * dpr))
+  const fullCount = Math.min(maxBarsFull, 220)
+  const halfCount = Math.floor(fullCount / 2)
+  const binSize = Math.max(1, Math.floor(freqArray.length / fullCount))
+
+  const barGrad = ctx.createLinearGradient(0,0,0,H)
+  barGrad.addColorStop(0,'#a78bfa')
+  barGrad.addColorStop(.35,'#818cf8')
+  barGrad.addColorStop(1,'#60a5fa')
+  ctx.fillStyle = barGrad
+
+  let globalMax = 0
+  const barSlot = W / fullCount
+  const centerX = W / 2
+  for(let i=0;i<halfCount;i++){
+    let sumL=0, sumR=0
+    for(let j=0;j<binSize;j++){
+      sumL += freqArray[i*binSize + j] || 0
+      sumR += freqArray[(fullCount-1 - i)*binSize + j] || 0
+    }
+    const avgL = (sumL / binSize) / 255
+    const avgR = (sumR / binSize) / 255
+    const avg = (avgL + avgR)/2
+    if(avg>globalMax) globalMax = avg
+    const eased = Math.pow(avg, 0.65)
+    const barH = Math.max(2*dpr, eased * (H*0.75))
+    const barW = Math.max(3*dpr, barSlot - BAR_GAP)
+    const offset = (i+0.2) * barSlot
+    const xLeft = centerX - offset - barW/2
+    const xRight = centerX + offset - barW/2
+    const y = (H - barH)/2
+    const r = Math.min(4*dpr, barW/2)
+    function drawBar(x){
+      ctx.beginPath()
+      ctx.moveTo(x, y + barH)
+      ctx.lineTo(x, y + r)
+      ctx.quadraticCurveTo(x, y, x + r, y)
+      ctx.lineTo(x + barW - r, y)
+      ctx.quadraticCurveTo(x + barW, y, x + barW, y + r)
+      ctx.lineTo(x + barW, y + barH)
+      ctx.closePath()
+      ctx.globalAlpha = 0.55 + eased * 0.45
+      ctx.fill()
+    }
+    drawBar(xLeft)
+    drawBar(xRight)
+  }
+  // central minimal bar (if odd count) for aesthetic
+  if(fullCount % 2 === 1){
+    const midEnergy = globalMax * 0.9
+    const eased = Math.pow(midEnergy,0.65)
+    const barH = Math.max(2*dpr, eased * (H*0.75))
+    const barW = Math.max(3*dpr, barSlot - BAR_GAP)
+    const x = centerX - barW/2
+    const y = (H - barH)/2
+    const r = Math.min(4*dpr, barW/2)
+    ctx.beginPath()
+    ctx.moveTo(x, y + barH)
+    ctx.lineTo(x, y + r)
+    ctx.quadraticCurveTo(x, y, x + r, y)
+    ctx.lineTo(x + barW - r, y)
+    ctx.quadraticCurveTo(x + barW, y, x + barW, y + r)
+    ctx.lineTo(x + barW, y + barH)
+    ctx.closePath()
+    ctx.globalAlpha = 0.55 + Math.pow(midEnergy,0.65) * 0.45
+    ctx.fill()
+  }
+  ctx.globalAlpha = 1
+  const energy = globalMax
+  ctx.fillStyle = `rgba(96,165,250,${0.04 + energy*0.10})`
+  ctx.fillRect(0,0,W,H)
+  // Flat detection retained internally (no text overlay to maximize visual area)
+  if(energy < 0.02) { _flatCounter++; } else { _flatCounter = 0 }
   requestAnimationFrame(drawWave)
 }
 
 function showIdentity(data){
   infoPanel.classList.add('show')
   infoTitle.textContent = 'Thông tin bệnh nhân'
-  infoBody.innerHTML = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:.55rem .9rem;font-size:.65rem;">\n  <div><label style='display:block;font-size:.5rem;opacity:.55;text-transform:uppercase;letter-spacing:.5px;'>Họ tên</label>${data.patient_name || '<i>(chưa)</i>'}</div>\n  <div><label style='display:block;font-size:.5rem;opacity:.55;text-transform:uppercase;letter-spacing:.5px;'>SĐT</label>${data.phone || '<i>(chưa)</i>'}</div>\n</div>`
+  infoBody.innerHTML = `<div class="grid-two" style="display:grid;grid-template-columns:1fr 1fr;gap:.55rem .9rem;font-size:.65rem;">\n  <div><label style='display:block;font-size:.5rem;opacity:.55;text-transform:uppercase;letter-spacing:.5px;'>Họ tên</label>${data.patient_name || '<i>(chưa)</i>'}</div>\n  <div><label style='display:block;font-size:.5rem;opacity:.55;text-transform:uppercase;letter-spacing:.5px;'>SĐT</label>${data.phone || '<i>(chưa)</i>'}</div>\n</div>`
   infoActions.innerHTML = ''
   if(identityConfirmed){
     const btn = document.createElement('button')
@@ -137,7 +220,11 @@ function attachEvents(r){
   r.on(RoomEvent.TrackSubscribed, (track) => {
     if(track.kind==='audio'){
       track.attach(remoteAudio)
-      remoteAudio.addEventListener('play', ()=> initAudioAnalyser(), { once:true })
+      // Some browsers need explicit play call
+      remoteAudio.play().catch(()=>{})
+      // Build analyser directly from track media stream
+      const msTrack = track.mediaStreamTrack || (track._mediaStreamTrack) // fallback internal
+      initAudioAnalyserFromMediaStreamTrack(msTrack)
       log('Đã nhận audio từ agent')
     }
   })
@@ -192,12 +279,13 @@ function unmute(){ if(!localTrack) return; localTrack.unmute(); btnUnmute.classL
 
 btnMute.onclick = mute
 btnUnmute.onclick = unmute
-btnHangup.onclick = () => hangup()
+if(btnHangup) btnHangup.onclick = () => hangup()
 startBtn.addEventListener('click', startCall)
 btnLog.onclick = () => { logPanel.classList.toggle('show') }
 btnCloseLog.onclick = () => logPanel.classList.remove('show')
 
-const ro = new ResizeObserver(()=> drawWave())
-ro.observe(waveCanvas)
-// Kick off animation even before audio
+// Resize observer to keep canvas crisp
+const ro = new ResizeObserver(()=> { /* force a redraw next frame */ })
+ro.observe(waveCanvas.parentElement || waveCanvas)
+// Kick animation loop
 requestAnimationFrame(drawWave)
