@@ -10,7 +10,7 @@
     {"name": "BS. Nguyễn Hoa", "department": "Da liễu",
      "slots": ["2025-08-23 15:30", "2025-08-24 10:00"]},
     {"name": "BS. Lê Khánh", "department": "Tai Mũi Họng",
-     "slots": ["2025-08-23 17:00"]}
+     "slots": ["2025-08-23 17:00", "2025-08-23 18:00"]}
   ],
   "queue_prefix": "A-",
   "next_queue_number": 51

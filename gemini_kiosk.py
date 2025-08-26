@@ -25,12 +25,12 @@ from livekit import agents
 from livekit.agents import (
     WorkerOptions, Agent, AgentSession, JobContext,
     AutoSubscribe, RoomInputOptions, RoomOutputOptions, ChatContext,
-    function_tool, RunContext,
 )
 from livekit.plugins.google.beta import realtime
 from livekit.plugins import noise_cancellation
 
 from storage import init_db, get_or_create_customer, save_visit
+from function_calling_def import build_all_tools
 from clerk_wrapup import summarize_visit_json
 from med_rag import MedicalRAG
 from booking import book_appointment
@@ -47,9 +47,9 @@ SYSTEM_PROMPT = (
     Bạn là bác sĩ hỏi bệnh thân thiện, chuyên nghiệp và già dặn, nói ngắn gọn bằng tiếng Việt, mỗi lần chỉ hỏi một câu, trầm tính.
 
     Mục tiêu của 1 lượt khám:
-    1) Hỏi và ghi nhận: họ tên, số điện thoại. Sau khi nhận được thông tin thì phải hỏi confirm cho đến khi nào họ xác nhận đúng.
+    1) Hỏi và ghi nhận: họ tên, số điện thoại. Sau khi nhận được thông tin thì phải hỏi confirm cho đến khi nào họ xác nhận đúng, nếu sai thì gọi lại function và truyền tham số để sửa.
     2) Khai thác TRIỆU CHỨNG (tên, mức độ) thật kĩ và nhiều nhất có thể qua trò chuyện gần gũi; khi nghi ngờ có triệu chứng khác thì chủ động hỏi thêm.
-    3) Khi đã đủ dữ kiện để ĐẶT LỊCH, hãy GỌI TOOL `schedule_appointment` với các tham số bạn đã nắm (ví dụ: patient_name, phone, preferred_time, symptoms). KHÔNG dùng cụm từ kích hoạt.
+    3) Khi đã đủ dữ kiện để ĐẶT LỊCH, hãy GỌI TOOL `schedule_appointment` với các tham số bạn đã nắm.
     4) Hỏi lại xem Booking có cần sự thay đổi gì không.
     5) KHI ĐÃ ĐỦ dữ kiện (đủ danh tính + triệu chứng + booking đã xác nhận), THỰC HIỆN THỨ TỰ SAU: (a) Nói một LỜI CHÀO KẾT THÚC NGẮN GỌN bằng tiếng Việt (không hỏi thêm, không giới thiệu lại, không yêu cầu phản hồi), sau đó (b) NGAY LẬP TỨC GỌI TOOL `finalize_visit` để tổng kết và đóng phiên. KHÔNG nói thêm gì sau khi đã gọi tool.
 
@@ -57,6 +57,7 @@ SYSTEM_PROMPT = (
     - Luôn tuân thủ quy chuẩn y tế nội bộ (nếu có) được cung cấp trong hội thoại.
     - Tránh độc thoại dài; luôn hỏi-đáp theo lượt.
     - Nhắc rõ rằng đây chỉ là hỗ trợ sơ bộ, không thay thế chẩn đoán y khoa chính thức.
+    - QUY TẮC DANH TÍNH (TOOLS): Ngay khi bạn NGHĨ rằng đã nghe được một phần hoặc toàn bộ họ tên hoặc số điện thoại, hãy GỌI tool `propose_identity` (kể cả thiếu 1 trường) với confidence 0.0–1.0 và lý do ngắn (reason). Khi bệnh nhân xác nhận hoặc sửa, gọi `confirm_identity` (confirm=True nếu đúng, hoặc truyền bản sửa rồi confirm ở lượt kế). CHỈ ĐƯỢC gọi `schedule_appointment` sau khi `confirm_identity` trả về status=confirmed.
     """
     .strip()
 )
@@ -174,12 +175,16 @@ async def entrypoint(ctx: JobContext):
     latest_booking: Optional[dict] = None
     allow_finalize: bool = False
     closing: bool = False   # <--- thêm cờ
-    identity_confirmed: bool = False
-    patient_name: Optional[str] = None
-    patient_phone: Optional[str] = None
+    identity_state = {
+        "identity_confirmed": False,
+        "patient_name": None,
+        "patient_phone": None,
+        "draft_name": None,
+        "draft_phone": None,
+        "draft_conf": 0.0,
+    }
 
-    NAME_RE = re.compile(r"\b([A-ZÀ-ỴĐ][a-zà-ỹđ]+(?:\s+[A-ZÀ-ỴĐ][a-zà-ỹđ]+){1,4})\b")
-    PHONE_CAPTURE_RE = re.compile(r"\b0\d{9}\b")
+    # Heuristic patterns removed (identity extraction now fully via tools)
 
     async def _publish_data(obj: dict):
         try:
@@ -189,28 +194,6 @@ async def entrypoint(ctx: JobContext):
         except Exception:
             log.exception("publish data failed type=%s", obj.get("type"))
 
-    def _try_extract_identity():
-        nonlocal patient_name, patient_phone
-        if identity_confirmed:
-            return
-        window = " ".join(l for l in state.lines[-8:] if l.startswith("[user] "))
-        if not patient_phone:
-            mph = PHONE_CAPTURE_RE.search(window)
-            if mph:
-                patient_phone = mph.group(0)
-        if not patient_name:
-            # Heuristic: pick first multi-token capitalized sequence
-            for part in re.split(r"[,.\n]", window):
-                m = NAME_RE.search(part.strip())
-                if m and len(m.group(1).split()) >= 2:
-                    patient_name = m.group(1)
-                    break
-        if patient_name and patient_phone:
-            asyncio.create_task(_publish_data({
-                "type": "identity_captured",
-                "patient_name": patient_name,
-                "phone": patient_phone,
-            }))
 
     async def start_new_session():
         nonlocal session, latest_booking, allow_finalize, closing
@@ -219,10 +202,7 @@ async def entrypoint(ctx: JobContext):
                 await session.aclose()
         talker = Talker(rag=rag, buf=state)
         session = AgentSession(llm=llm)
-
-        room_io = RoomInputOptions(
-            noise_cancellation=noise_cancellation.BVC(),
-        )
+        room_io = RoomInputOptions(noise_cancellation=noise_cancellation.BVC())
 
         # ---------- Event handlers ----------
         @session.on("conversation_item_added")
@@ -235,8 +215,7 @@ async def entrypoint(ctx: JobContext):
             if text:
                 _log_evt("EVT conversation_item_added", role, text)
                 state.add_once(iid, role, text)
-                if role == "user":
-                    _try_extract_identity()
+                # (Heuristic identity extraction removed)
 
         @session.on("conversation_item_updated")
         def on_item_updated(ev):
@@ -245,215 +224,26 @@ async def entrypoint(ctx: JobContext):
             if text:
                 _log_evt("EVT conversation_item_updated", role, text)
 
-        # ---------- Tool definitions (function calling) ----------
-        PHONE_RE = re.compile(r"^(\+?84|0)(3|5|7|8|9)\d{8}$")
-
-        @function_tool
-        async def schedule_appointment(
-            context: RunContext,
-            patient_name: str,
-            phone: str,
-            preferred_time: Optional[str] = None,
-            symptoms: Optional[str] = None,
-        ) -> dict:
-            """
-            Đặt lịch khám (chạy nền). Trả về ngay trạng thái 'pending' để agent không bị "đóng băng".
-            Khi xử lý xong sẽ tự gửi một lượt assistant với speak_text và cập nhật allow_finalize.
-            """
-            nonlocal latest_booking, allow_finalize, identity_confirmed
-
-            # Gate: cần identity_confirmed
-            if not identity_confirmed:
-                return {"ok": False, "error": "identity_not_confirmed", "message": "Chưa xác nhận họ tên & SĐT."}
-
-            # Snapshot inputs (không tin cậy vào model arguments hoàn toàn)
-            raw_phone = (phone or "").strip()
-            raw_name = (patient_name or "").strip()
-            if not raw_name:
-                raw_name = "(không rõ)"
-            if not PHONE_RE.match(raw_phone):
-                raw_phone = raw_phone or "(không rõ)"
-
-            if symptoms:
-                state.add("user", f"Triệu chứng khai báo: {symptoms}")
-
-            history = "\n".join(state.lines)
-            data_path = os.getenv("CLINIC_DATA_PATH", "./clinic_data.json")
-            book_model = os.getenv("BOOK_MODEL", "gemini-2.5-flash")
-
-            async def _do_booking():
-                nonlocal latest_booking, allow_finalize
-                try:
-                    result = await asyncio.to_thread(
-                        book_appointment, history, data_path, book_model
-                    )
-                    if symptoms and not result.get("symptoms"):
-                        result["symptoms"] = symptoms
-                    try:
-                        cid, _ = get_or_create_customer(
-                            result.get("patient_name") or raw_name,
-                            result.get("phone") or raw_phone,
-                        )
-                        result["customer_id"] = cid
-                        await asyncio.to_thread(save_visit, cid, {"booking": result})
-                    except Exception:
-                        log.exception("save booking failed")
-                    latest_booking = result
-                    allow_finalize = True
-                    # Gửi booking_result qua data channel
-                    asyncio.create_task(_publish_data({
-                        "type": "booking_result",
-                        "booking": result,
-                    }))
-                    # Phát speak_text cho bệnh nhân: dùng generate_reply (không chặn booking tool ban đầu)
-                    speak_text = (result.get("speak_text") or "Tôi đã sắp xếp lịch phù hợp. Cảm ơn bạn.").strip()
-                    # SPEAK_TEXT reliability patch: ép model đọc NGUYÊN VĂN, tránh tự tóm tắt hay bỏ qua
-                    primary_instr = (
-                        "Hãy ĐỌC NGUYÊN VĂN (bắt buộc, không thêm bớt, không giải thích) thông báo lịch hẹn sau đây cho bệnh nhân,"
-                        " rồi dừng lại để họ có thể phản hồi. Thông báo: \n" + speak_text
-                    )
-                    try:
-                        if session is not None:
-                            handle = await session.generate_reply(instructions=primary_instr)
-                            await handle
-                            # Fallback: nếu buffer chưa ghi nhận dòng assistant chứa phần chính của speak_text, thử lại tối giản
-                            key_fragment = speak_text[:30]  # đoạn đầu để dò
-                            if not any(key_fragment in ln for ln in state.lines[-5:]):
-                                fallback_instr = "Đọc nguyên văn: " + speak_text
-                                try:
-                                    fh = await session.generate_reply(instructions=fallback_instr)
-                                    await fh
-                                except Exception:
-                                    log.exception("fallback speak_text failed")
-                    except Exception:
-                        log.exception("send speak_text failed")
-                except Exception:
-                    log.exception("async booking failed")
-
-            # Báo frontend đang xử lý
-            asyncio.create_task(_publish_data({
-                "type": "booking_pending",
-                "patient_name": raw_name,
-                "phone": raw_phone,
-                "preferred_time": preferred_time,
-            }))
-
-            # Khởi động booking ở background, trả kết quả pending ngay
-            asyncio.create_task(_do_booking())
-
-            return {
-                "ok": True,
-                "pending": True,
-                "message": "Đang kiểm tra lịch phù hợp, vui lòng đợi trong giây lát...",
-                "note": "Agent sẽ thông báo lịch và sau đó có thể finalize nếu đủ dữ kiện."
-            }
-
-
-        @function_tool
-        async def finalize_visit(context: RunContext) -> dict:
-            nonlocal latest_booking, allow_finalize, session, closing
-            if closing:
-                return {"ok": False, "message": "Đang đóng phiên."}
-
-            await context.wait_for_playout()
-
-            if not allow_finalize or latest_booking is None:
-                return {"ok": False, "message": "Chưa thể kết thúc: chưa có booking hợp lệ."}
-
-            transcript_lines = list(state.lines)
-            transcript = "\n".join(transcript_lines)
-            user_only = "\n".join(
-                line[len("[user] "):] for line in transcript_lines if line.startswith("[user] ")
-            )
-            combined = transcript + "\n\n[USER_ONLY]\n" + (user_only or "(rỗng)")
-
-            # Thêm block BOOKING rõ ràng để summarize dễ lấy
-            try:
-                combined += "\n\n[BOOKING_JSON]\n" + json.dumps(latest_booking, ensure_ascii=False)
-            except Exception:
-                pass
-
-            try:
-                log.info("===== WRAP UP (snapshot) =====\n%s", combined)
-                summary = await asyncio.to_thread(
-                    summarize_visit_json, combined, clinic_defaults, latest_booking
-                )
-                log.debug("wrapup summary=%s", json.dumps(summary, ensure_ascii=False))
-                patient_name = summary.get("patient_name") or ""
-                phone = summary.get("phone") or ""
-                cid, _ = await asyncio.to_thread(get_or_create_customer, patient_name, phone)
-                summary["customer_id"] = cid
-                await asyncio.to_thread(save_visit, cid, summary)
-                log.info("visit saved: cid=%s", cid)
-            except Exception as e:
-                fallback = {
-                    "error": str(e),
-                    "raw_transcript": transcript_lines,
-                    "user_only": user_only,
-                    "booking": latest_booking,
-                }
-                with contextlib.suppress(Exception):
-                    await asyncio.to_thread(save_visit, "UNKNOWN", fallback)
-                log.exception("Wrap-up error: %s", e)
-            finally:
-                allow_finalize = False
-                latest_booking = None
-                closing = True  # bật cờ đóng
-
-                async def _grace_close():
-                    # 1) gửi tín hiệu cho web
-                    try:
-                        payload = json.dumps({
-                            "type": "wrapup_done",
-                            "message": "Visit finalized; closing"
-                        }, ensure_ascii=False).encode("utf-8")
-                        with contextlib.suppress(Exception):
-                            await ctx.room.local_participant.publish_data(payload)
-                    except Exception:
-                        log.exception("publish wrapup_done failed")
-                    # 2) chờ cho web xử lý
-                    await asyncio.sleep(float(os.getenv("SESSION_CLOSE_DELAY", "1.0")))
-                    # 3) đóng session
-                    with contextlib.suppress(Exception):
-                        if session is not None:
-                            await session.aclose()
-                    # 4) rời phòng
-                    with contextlib.suppress(Exception):
-                        await ctx.room.disconnect()
-                    state.clear()
-                    log.info("Session & room disconnected after wrap-up.")
-
-                asyncio.create_task(_grace_close())
-
-            return {"ok": True, "message": "Visit finalized; closing."}
-
-        # Cập nhật tool vào agent (đồng bộ với phiên realtime hiện tại)
-        @function_tool
-        async def confirm_identity(
-            context: RunContext,
-            patient_name_input: Optional[str] = None,
-            phone_input: Optional[str] = None,
-            confirm: bool = True,
-        ) -> dict:
-            """Xác nhận hoặc chỉnh sửa họ tên & SĐT. confirm=True để chốt."""
-            nonlocal patient_name, patient_phone, identity_confirmed
-            if patient_name_input:
-                patient_name = patient_name_input.strip() or patient_name
-            if phone_input:
-                phone_candidate = phone_input.strip()
-                if PHONE_CAPTURE_RE.fullmatch(phone_candidate):
-                    patient_phone = phone_candidate
-            if confirm and patient_name and patient_phone:
-                identity_confirmed = True
-                await _publish_data({
-                    "type": "identity_confirmed",
-                    "patient_name": patient_name,
-                    "phone": patient_phone,
-                })
-                return {"status": "confirmed", "patient_name": patient_name, "phone": patient_phone}
-            return {"status": "pending", "patient_name": patient_name, "phone": patient_phone}
-
-        await talker.update_tools([confirm_identity, schedule_appointment, finalize_visit])
+        # ---------- Build all tools externally (identity + booking + finalize) ----------
+        shared = {
+            "latest_booking": latest_booking,
+            "allow_finalize": allow_finalize,
+            "closing": closing,
+            "session": session,
+            "ctx": ctx,
+        }
+        tools = build_all_tools(
+            lambda obj: asyncio.create_task(_publish_data(obj)),
+            identity_state,
+            shared,
+            state=state,
+            book_appointment=book_appointment,
+            get_or_create_customer=get_or_create_customer,
+            save_visit=save_visit,
+            summarize_visit_json=summarize_visit_json,
+            clinic_defaults=clinic_defaults,
+        )
+        await talker.update_tools(tools)
 
         # Khởi động phiên
         await session.start(
@@ -469,35 +259,31 @@ async def entrypoint(ctx: JobContext):
         # Lắng nghe data từ web (identity_confirmed_ui / identity_corrected)
         @ctx.room.on("data_received")
         def _on_data(pkt):
-            nonlocal patient_name, patient_phone, identity_confirmed
             try:
                 raw = pkt.data
                 msg = json.loads(raw.decode("utf-8"))
             except Exception:
                 return
             t = msg.get("type")
-            if t == "identity_confirmed_ui" and patient_name and patient_phone and not identity_confirmed:
-                asyncio.create_task(_publish_data({
-                    "type": "identity_confirmed",
-                    "patient_name": patient_name,
-                    "phone": patient_phone,
-                }))
-                identity_confirmed = True
+            if t == "identity_confirmed_ui":
+                # Deprecated: manual confirm button removed
+                pass
             elif t == "identity_corrected":
                 pn = (msg.get("patient_name") or "").strip()
                 ph = (msg.get("phone") or "").strip()
                 if pn:
-                    patient_name = pn
-                if PHONE_CAPTURE_RE.fullmatch(ph):
-                    patient_phone = ph
-                if patient_name and patient_phone:
-                    identity_confirmed = True
+                    identity_state["patient_name"] = pn
+                if ph and re.fullmatch(r"(\+?84|0)(3|5|7|8|9)\d{8}", ph):
+                    identity_state["patient_phone"] = ph
+                if identity_state.get("patient_name") and identity_state.get("patient_phone"):
+                    identity_state["identity_confirmed"] = True
                     asyncio.create_task(_publish_data({
                         "type": "identity_confirmed",
-                        "patient_name": patient_name,
-                        "phone": patient_phone,
+                        "patient_name": identity_state.get("patient_name"),
+                        "phone": identity_state.get("patient_phone"),
+                        "confidence": 0.9,
                     }))
-            # Có thể mở rộng các type khác
+        # Có thể mở rộng các type khác
 
         # Chào đầu
         try:

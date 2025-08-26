@@ -121,13 +121,11 @@
           <div><label>SĐT</label>${data.phone || '<i>(chưa)</i>'}</div>
         </div>
         <div style="margin-top:.55rem; display:flex; gap:.4rem;">
-          <button id="btnConfirmId" ${identityConfirmed?'disabled':''}>Xác nhận</button>
           <button id="btnEditId">Sửa</button>
         </div>
       `
-      identityBadge.textContent = identityConfirmed? 'ĐÃ XÁC NHẬN' : 'Chờ xác nhận'
+      identityBadge.textContent = identityConfirmed? 'ĐÃ XÁC NHẬN' : 'Đang nhận dạng'
       identityBadge.className = 'badge ' + (identityConfirmed? 'ok':'wait')
-      document.getElementById('btnConfirmId').onclick = () => sendData({type:'identity_confirmed_ui'})
       document.getElementById('btnEditId').onclick = () => {
         const n = prompt('Nhập tên (Enter để giữ nguyên)', data.patient_name)
         const p = prompt('Nhập SĐT (Enter để giữ nguyên)', data.phone)

@@ -1,0 +1,10 @@
+{
+  "booking": {
+    "error": "json_parse_error: Unterminated string starting at: line 1 column 76 (char 75)",
+    "raw": "{\"department\": \"Tai Mũi Họng\", \"doctor_name\": \"BS. Lê Khánh\", \"slot_time\": \"2025-08-2}",
+    "queue_number": "A-051",
+    "speak_text": "Tôi đã sắp xếp lịch tại khoa phù hợp, bác sĩ bác sĩ phụ trách, khung giờ . Nếu cần đổi, xin báo để tôi điều chỉnh.",
+    "symptoms": "Ho, sổ mũi nhẹ, đau họng nhẹ trong 2 ngày",
+    "customer_id": "CUS-3bc6fb07db"
+  }
+}
