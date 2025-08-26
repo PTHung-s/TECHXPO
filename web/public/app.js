@@ -181,7 +181,10 @@ function showIdentity(data){
     btn.onclick = () => {
       const n = prompt('Tên', data.patient_name || '')
       const p = prompt('SĐT', data.phone || '')
-      if(n||p) sendData({type:'identity_corrected', patient_name:n||data.patient_name, phone:p||data.phone})
+      if(n||p){
+        identityConfirmed = false; // force flow to reconfirm
+        sendData({type:'identity_corrected', patient_name:n||data.patient_name, phone:p||data.phone})
+      }
     }
     infoActions.appendChild(btn)
     infoActions.style.display='flex'
@@ -234,6 +237,7 @@ function attachEvents(r){
       switch(msg.type){
         case 'identity_captured': log('Identity đề xuất'); showIdentity(msg); break
         case 'identity_confirmed': log('Identity xác nhận'); identityConfirmed=true; showIdentity(msg); break
+  case 'identity_updated': log('Identity cập nhật'); identityConfirmed=true; showIdentity(msg); break
         case 'booking_pending': log('Đang đặt lịch'); showBookingPending(); break
         case 'booking_result': log('Đặt lịch xong'); showBooking(msg); break
         case 'wrapup_done': log('Kết thúc phiên'); hangup(); break

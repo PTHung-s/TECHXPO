@@ -1,0 +1,32 @@
+{
+  "patient_name": "Phạm Tiến Hưng",
+  "phone": "0336018126",
+  "customer_id": "CUS-3bc6fb07db",
+  "doctor_name": "(không rõ)",
+  "appointment_time": "(không rõ)",
+  "room": "",
+  "queue_number": "",
+  "symptoms": [
+    {
+      "name": "Ho",
+      "severity": "nhẹ",
+      "duration": "2 ngày"
+    },
+    {
+      "name": "Sổ mũi",
+      "severity": "nhẹ",
+      "duration": "2 ngày"
+    },
+    {
+      "name": "Đau họng",
+      "severity": "nhẹ",
+      "duration": "(không rõ)"
+    }
+  ],
+  "tentative_diagnoses": [],
+  "tests_recommended": [],
+  "medications_advised": [],
+  "diet_notes": "(không rõ)",
+  "follow_up": "(không rõ)",
+  "warnings": "(không rõ)"
+}

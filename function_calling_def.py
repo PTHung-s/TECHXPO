@@ -69,8 +69,34 @@ def build_all_tools(
         phone_input: Optional[str] = None,
         confirm: bool = True,
     ) -> dict:
+        # If identity already confirmed, allow a one-shot update (reconfirmation) BEFORE finalize/booking close.
+        # If user provides new name/phone different from stored, we treat as reconfirmation and reset booking state so a new booking can be created.
         if identity_state.get("identity_confirmed"):
-            return {"status": "already_confirmed", "patient_name": identity_state.get("patient_name"), "phone": identity_state.get("patient_phone")}
+            changed = False
+            current_name = identity_state.get("patient_name") or ""
+            current_phone = identity_state.get("patient_phone") or ""
+            new_name = patient_name_input.strip() if patient_name_input else None
+            new_phone = phone_input.strip() if phone_input else None
+            if new_name and new_name != current_name:
+                identity_state["patient_name"] = new_name
+                changed = True
+            if new_phone and PHONE_RE_FULL.match(new_phone) and new_phone != current_phone:
+                identity_state["patient_phone"] = new_phone
+                changed = True
+            if changed:
+                # Reset downstream booking / finalize gates so agent will re-book with corrected identity.
+                shared["latest_booking"] = None
+                shared["allow_finalize"] = False
+                payload = {
+                    "type": "identity_updated",
+                    "patient_name": identity_state.get("patient_name"),
+                    "phone": identity_state.get("patient_phone"),
+                    "confidence": identity_state.get("draft_conf", 1.0),
+                    "confirmed": True,
+                }
+                publish_data(payload)
+                return {"status": "reconfirmed", **payload}
+            return {"status": "already_confirmed", "patient_name": current_name, "phone": current_phone}
         if patient_name_input:
             identity_state["patient_name"] = patient_name_input.strip()
         elif identity_state.get("draft_name") and not identity_state.get("patient_name"):
@@ -107,6 +133,11 @@ def build_all_tools(
     ) -> dict:
         if not identity_state.get("identity_confirmed"):
             return {"ok": False, "error": "identity_not_confirmed", "message": "Chưa xác nhận họ tên & SĐT."}
+        # If a previous booking exists but identity got updated (latest_booking cleared) or user wants to re-book (preferred_time differs), allow new booking.
+        prev = shared.get("latest_booking")
+        if prev and preferred_time and prev.get("preferred_time") == preferred_time:
+            # Prevent duplicate identical booking spam
+            return {"ok": False, "error": "duplicate_booking", "message": "Lịch này đã được đặt, hãy chọn thời điểm khác hoặc yêu cầu chỉnh sửa."}
         raw_phone = (phone or "").strip()
         raw_name = (patient_name or "").strip() or "(không rõ)"
         if not PHONE_RE_BASIC.match(raw_phone):
