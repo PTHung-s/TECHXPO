@@ -136,13 +136,14 @@ def build_all_tools(
                         if talker is not None:
                             try:
                                 base_instr = getattr(talker, "instructions", "") or ""
-                                # Append personal context once to instructions so future turns see it.
-                                new_instr = base_instr + "\n\n# PERSONAL CONTEXT\n" + wrapped + "\n\nHướng dẫn: Không lặp lại nguyên văn; chỉ tham chiếu khi hỗ trợ chẩn đoán hoặc hỏi triệu chứng mới."
+                                new_instr = base_instr + "\n\n# PERSONAL CONTEXT\n" + wrapped + "\n\nHướng dẫn: Không lặp lại nguyên văn; chỉ tham chiếu khi hỗ trợ chẩn đoán hoặc hỏi triệu chứng mới. Nếu thấy bệnh nhân quen thuộc hãy chào hỏi phù hợp và hỏi vấn đề hiện tại."
                                 await talker.update_instructions(new_instr)
                                 publish_data({
                                     "type": "personal_context_injected",
                                     "has_facts": True,
                                 })
+                                # Đánh dấu cần gửi lời chào follow-up tự động
+                                shared["needs_personal_greet"] = True
                             except Exception:
                                 pass
                 except Exception:

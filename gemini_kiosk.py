@@ -48,7 +48,7 @@ SYSTEM_PROMPT = (
 
     Mục tiêu của 1 lượt khám:
     1) Hỏi và ghi nhận: họ tên, số điện thoại. Sau khi nhận được thông tin thì phải hỏi đúng chưa coi có sai thông tin không, nếu sai thì gọi lại function propose_identity và truyền tham số để sửa cho đến khi bệnh nhân kêu đúng rồi.
-    2) Nếu là khách quen và bạn từng trò chuyện rồi thì hỏi thăm vấn đề cũ, nếu không có thì thôi.
+    2) Nếu sau khi confirm thông tin mà phát hiện là khách quen và bạn từng trò chuyện rồi thì hỏi thăm vấn đề cũ.
     3) Khai thác TRIỆU CHỨNG (tên, mức độ) thật kĩ và nhiều nhất có thể qua trò chuyện gần gũi; khi nghi ngờ có triệu chứng khác thì chủ động hỏi thêm.
     4) Khi đã đủ dữ kiện để ĐẶT LỊCH, hãy GỌI TOOL `schedule_appointment` với các tham số bạn đã nắm.
     5) Hỏi lại xem Booking có cần sự thay đổi gì không.
@@ -57,6 +57,7 @@ SYSTEM_PROMPT = (
     QUY TẮC:
     - Luôn tuân thủ quy chuẩn y tế nội bộ (nếu có) được cung cấp trong hội thoại.
     - Tránh độc thoại dài; luôn hỏi-đáp theo lượt.
+    - Sau khi biết tên thì phải xưng hô đúng giới tính (anh hoặc chị) chứ không bao giờ được nói Anh/Chị
     - Nhắc rõ rằng đây chỉ là hỗ trợ sơ bộ, không thay thế chẩn đoán y khoa chính thức.
     - QUY TẮC DANH TÍNH (TOOLS): BẤT KỲ khi nào bạn NGHE hoặc NGHĨ rằng bệnh nhân vừa nêu MỚI hoặc SỬA họ tên / số điện thoại (kể cả sửa 1 phần), NGAY LẬP TỨC gọi tool `propose_identity` với phần bạn nghe được (cho phép thiếu trường).
         Sau đó hỏi xác nhận rõ ràng. Nếu bệnh nhân xác nhận thông tin đúng, gọi `confirm_identity` (confirm=True). Nếu bệnh nhân SỬA lại sau khi đã xác nhận trước đó, tiếp tục gọi `confirm_identity` với giá trị mới: hành vi này sẽ cập nhật danh tính và huỷ booking cũ để đặt lại.
@@ -203,6 +204,25 @@ async def entrypoint(ctx: JobContext):
                 _log_evt("EVT conversation_item_added", role, text)
                 state.add_once(iid, role, text)
                 # (Heuristic identity extraction removed)
+            # Sau khi model hoàn thành tool call (identity) sẽ trả 1-2 item assistant; nếu context vừa inject và chưa chào thì trigger
+            try:
+                if shared.get("needs_personal_greet") and not shared.get("personal_greet_done"):
+                    if role in ("assistant",):
+                        # Gửi lời chào cá nhân hoá 1 lần rồi tắt cờ
+                        async def _do_personal_greet():
+                            greet_instr = (
+                                "Dựa trên PERSONAL_HISTORY vừa được thêm, hãy chào thân thiện, thật là thân mật như gặp người quen (dùng tên nếu phù hợp) và thăm về sức khỏe, cuộc sống,..."
+                            )
+                            try:
+                                handle = await session.generate_reply(instructions=greet_instr)
+                                await handle
+                            except Exception:
+                                pass
+                        shared["personal_greet_done"] = True
+                        shared["needs_personal_greet"] = False
+                        asyncio.create_task(_do_personal_greet())
+            except Exception:
+                pass
 
         @session.on("conversation_item_updated")
         def on_item_updated(ev):
@@ -223,6 +243,7 @@ async def entrypoint(ctx: JobContext):
             "extract_facts_and_summary": extract_facts_and_summary,
             # marker flags
             "personal_context_injected": False,
+            "personal_greet_done": False,
         }
 
         tools = build_all_tools(
