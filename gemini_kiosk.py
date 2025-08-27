@@ -29,8 +29,9 @@ from livekit.agents import (
 from livekit.plugins.google.beta import realtime
 from livekit.plugins import noise_cancellation
 
-from storage import init_db, get_or_create_customer, save_visit
+from storage import init_db, get_or_create_customer, save_visit  # pared down (remove personalization build)
 from function_calling_def import build_all_tools
+from facts_extractor import extract_facts_and_summary  # for personalization injection & later finalize
 from clerk_wrapup import summarize_visit_json
 from med_rag import MedicalRAG
 from booking import book_appointment
@@ -43,14 +44,15 @@ WELCOME = (
 
 SYSTEM_PROMPT = (
     """
-    Bạn là bác sĩ hỏi bệnh thân thiện, chuyên nghiệp và già dặn, nói ngắn gọn bằng tiếng Việt, mỗi lần chỉ hỏi một câu, trầm tính.
+    Bạn là bác sĩ hỏi bệnh thân thiện, chuyên nghiệp và già dặn, nói ngắn gọn bằng tiếng Việt, mỗi lần chỉ hỏi một câu, trầm tính, không bịa thông tin nếu không biết.
 
     Mục tiêu của 1 lượt khám:
     1) Hỏi và ghi nhận: họ tên, số điện thoại. Sau khi nhận được thông tin thì phải hỏi đúng chưa coi có sai thông tin không, nếu sai thì gọi lại function propose_identity và truyền tham số để sửa cho đến khi bệnh nhân kêu đúng rồi.
-    2) Khai thác TRIỆU CHỨNG (tên, mức độ) thật kĩ và nhiều nhất có thể qua trò chuyện gần gũi; khi nghi ngờ có triệu chứng khác thì chủ động hỏi thêm.
-    3) Khi đã đủ dữ kiện để ĐẶT LỊCH, hãy GỌI TOOL `schedule_appointment` với các tham số bạn đã nắm.
-    4) Hỏi lại xem Booking có cần sự thay đổi gì không.
-    5) KHI bệnh nhân đã đồng ý chốt về lịch khám, hãy dựa vào triệu chứng để đưa ra lời dặn dò phù hợp, chúc bệnh nhân phù hợp rồi xin chào và kết thúc phiên gọi.
+    2) Nếu là khách quen và bạn từng trò chuyện rồi thì hỏi thăm vấn đề cũ, nếu không có thì thôi.
+    3) Khai thác TRIỆU CHỨNG (tên, mức độ) thật kĩ và nhiều nhất có thể qua trò chuyện gần gũi; khi nghi ngờ có triệu chứng khác thì chủ động hỏi thêm.
+    4) Khi đã đủ dữ kiện để ĐẶT LỊCH, hãy GỌI TOOL `schedule_appointment` với các tham số bạn đã nắm.
+    5) Hỏi lại xem Booking có cần sự thay đổi gì không.
+    6) KHI bệnh nhân đã đồng ý chốt về lịch khám, hãy dựa vào triệu chứng để đưa ra lời dặn dò phù hợp, chúc bệnh nhân phù hợp rồi xin chào và kết thúc phiên gọi bằng cách gọi hàm finalize_visit.
 
     QUY TẮC:
     - Luôn tuân thủ quy chuẩn y tế nội bộ (nếu có) được cung cấp trong hội thoại.
@@ -62,6 +64,7 @@ SYSTEM_PROMPT = (
     """
     .strip()
 )
+
 
 # Logging
 logging.basicConfig(level=getattr(logging, os.getenv("KIOSK_LOG_LEVEL", "DEBUG").upper(), logging.INFO))
@@ -96,43 +99,24 @@ def _log_evt(tag: str, role: str, text: str, extra: str = ""):
 
 # ================== Talker (Agent) có RAG ==================
 class Talker(Agent):
+    """Đơn giản hoá: bỏ toàn bộ cơ chế personal memory injection."""
     def __init__(self, rag: MedicalRAG, buf: SessionBuf):
         super().__init__(instructions=SYSTEM_PROMPT)
         self.rag = rag
-        self.buf = buf  # để ép lưu user transcript nếu realtime không push event user
+        self.buf = buf
 
     async def on_user_turn_completed(self, turn_ctx: ChatContext, new_message):
-        """Chèn RAG + đảm bảo có ghi lại văn bản user vào bộ đệm.
-
-        Một số cấu hình realtime có thể không bắn sự kiện text user đầy đủ; ta gom fallback.
-        """
+        # Ghi lại user để summarize (giữ logic nhẹ)
         user_text = (getattr(new_message, "text_content", "") or "").strip()
         if not user_text:
-            # Fallback: gom tất cả user_messages trong turn
             collected = []
             for m in getattr(turn_ctx, "user_messages", []) or []:
                 t = (getattr(m, "text_content", "") or "").strip()
                 if t:
                     collected.append(t)
             user_text = "\n".join(collected).strip()
-
-        # Nếu vẫn chưa có user_text thì bỏ qua phần RAG (không cần query)
-        if not user_text:
-            return
-
-        # Cố gắng tránh nhân đôi: chỉ thêm nếu dòng cuối khác
-        if not self.buf.lines or not self.buf.lines[-1].endswith(user_text):
+        if user_text and (not self.buf.lines or not self.buf.lines[-1].endswith(user_text)):
             self.buf.add("user", user_text)
-
-        # RAG context
-        ctx_text = self.rag.query(user_text, k=4, max_chars=900)
-        if not ctx_text:
-            return
-        turn_ctx.add_message(
-            role="system",
-            content=("Các quy chuẩn y tế nội bộ ưu tiên áp dụng (không đọc ra, chỉ tham khảo):\n" + ctx_text),
-        )
-        await self.update_chat_ctx(turn_ctx)
 
 # ================== Entrypoint ==================
 async def entrypoint(ctx: JobContext):
@@ -179,7 +163,7 @@ async def entrypoint(ctx: JobContext):
     identity_state = {
         "identity_confirmed": False,
         "patient_name": None,
-        "patient_phone": None,
+        "phone": None,  # unified key
         "draft_name": None,
         "draft_phone": None,
         "draft_conf": 0.0,
@@ -195,6 +179,8 @@ async def entrypoint(ctx: JobContext):
         except Exception:
             log.exception("publish data failed type=%s", obj.get("type"))
 
+
+    # Removed _inject_personal_context: personalization disabled
 
     async def start_new_session():
         nonlocal session, latest_booking, allow_finalize, closing
@@ -232,7 +218,13 @@ async def entrypoint(ctx: JobContext):
             "closing": closing,
             "session": session,
             "ctx": ctx,
+            "rag": rag,
+            "talker": talker,
+            "extract_facts_and_summary": extract_facts_and_summary,
+            # marker flags
+            "personal_context_injected": False,
         }
+
         tools = build_all_tools(
             lambda obj: asyncio.create_task(_publish_data(obj)),
             identity_state,
@@ -271,19 +263,23 @@ async def entrypoint(ctx: JobContext):
                 pass
             elif t == "identity_corrected":
                 pn = (msg.get("patient_name") or "").strip()
-                ph = (msg.get("phone") or "").strip()
+                ph_raw = (msg.get("phone") or "").strip()
+                ph_digits = re.sub(r"\D", "", ph_raw)
                 if pn:
                     identity_state["patient_name"] = pn
-                if ph and re.fullmatch(r"(\+?84|0)(3|5|7|8|9)\d{8}", ph):
-                    identity_state["patient_phone"] = ph
-                if identity_state.get("patient_name") and identity_state.get("patient_phone"):
+                if len(ph_digits) == 10 and ph_digits.startswith("0"):
+                    identity_state["phone"] = ph_digits
+                if identity_state.get("patient_name") and identity_state.get("phone"):
                     identity_state["identity_confirmed"] = True
                     asyncio.create_task(_publish_data({
                         "type": "identity_confirmed",
                         "patient_name": identity_state.get("patient_name"),
-                        "phone": identity_state.get("patient_phone"),
+                        "phone": identity_state.get("phone"),
                         "confidence": 0.9,
                     }))
+            elif t == "identity_confirmed":
+                # No-op: personalization injected via confirm_identity callback
+                pass
         # Có thể mở rộng các type khác
 
         # Chào đầu

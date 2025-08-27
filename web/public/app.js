@@ -236,7 +236,22 @@ function attachEvents(r){
       const msg = JSON.parse(new TextDecoder().decode(payload))
       switch(msg.type){
         case 'identity_captured': log('Identity đề xuất'); showIdentity(msg); break
-        case 'identity_confirmed': log('Identity xác nhận'); identityConfirmed=true; showIdentity(msg); break
+        case 'identity_confirmed': 
+          log('Identity xác nhận'); identityConfirmed=true; showIdentity(msg); 
+          break
+        case 'identity_updated': 
+          log('Identity cập nhật'); identityConfirmed=true; showIdentity(msg); 
+          break
+        case 'personal_context_loaded':
+          log('Personal context loaded: ' + (msg.visits_count || 0) + ' visits')
+          if (msg.visits_count > 0 && infoTitle.textContent === 'Thông tin bệnh nhân') {
+            const badge = document.createElement('div')
+            badge.className = 'returning-patient-badge'
+            badge.style.cssText = 'margin-top:.4rem;color:#10b981;font-size:.6rem;font-weight:500;'
+            badge.textContent = `Khách quen • ${msg.visits_count} lần khám`
+            infoBody.appendChild(badge)
+          }
+          break
   case 'identity_updated': log('Identity cập nhật'); identityConfirmed=true; showIdentity(msg); break
         case 'booking_pending': log('Đang đặt lịch'); showBookingPending(); break
         case 'booking_result': log('Đặt lịch xong'); showBooking(msg); break

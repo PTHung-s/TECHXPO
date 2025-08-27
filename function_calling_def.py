@@ -3,33 +3,34 @@ import os
 import json
 import asyncio
 import contextlib
-from typing import Optional, Callable, Dict, Any, List
+from typing import Optional, Callable, Dict, Any
 from livekit.agents import function_tool, RunContext
+from storage import get_customer_by_phone, build_personal_context, get_recent_visits
 
-# Regex helpers
-NAME_RE = re.compile(r"\b([A-ZÀ-ỴĐ][a-zà-ỹđ]+(?:\s+[A-ZÀ-ỴĐ][a-zà-ỹđ]+){1,5})\b")
-PHONE_RE_FULL = re.compile(r"^(\+?84|0)(3|5|7|8|9)\d{8}$")
-PHONE_RE_BASIC = re.compile(r"^(\+?84|0)(3|5|7|8|9)\d{8}$")
+# Regex helpers (Vietnam local mobile carriers starting 03/05/07/08/09)
+PHONE_RE_FULL = re.compile(r"^0(3|5|7|8|9)\d{8}$")
+PHONE_RE_BASIC = PHONE_RE_FULL
+
 
 def build_all_tools(
     publish_data: Callable[[Dict[str, Any]], asyncio.Task],
     identity_state: Dict[str, Any],
     shared: Dict[str, Any],
     *,
-    state,  # SessionBuf
+    state,  # SessionBuf instance
     book_appointment,
     get_or_create_customer,
     save_visit,
     summarize_visit_json,
     clinic_defaults: Dict[str, Any],
 ):
-    """Build all function-calling tools (identity + booking + finalize).
+    """Return list of function tools (identity, booking, finalize).
 
-    shared keys expected: latest_booking, allow_finalize, closing, session, ctx
-    identity_state keys: patient_name, patient_phone, draft_name, draft_phone, draft_conf, identity_confirmed
+    identity_state keys expected: patient_name, phone, draft_name, draft_phone, draft_conf, identity_confirmed
+    shared expected: latest_booking, allow_finalize, closing, session, ctx, rag, extract_facts_and_summary
     """
 
-    # -------- Identity Tools --------
+    # ---------------- Identity Tools ----------------
     @function_tool
     async def propose_identity(
         context: RunContext,
@@ -69,60 +70,92 @@ def build_all_tools(
         phone_input: Optional[str] = None,
         confirm: bool = True,
     ) -> dict:
-        # If identity already confirmed, allow a one-shot update (reconfirmation) BEFORE finalize/booking close.
-        # If user provides new name/phone different from stored, we treat as reconfirmation and reset booking state so a new booking can be created.
+        # Allow reconfirmation (update) when already confirmed
         if identity_state.get("identity_confirmed"):
             changed = False
             current_name = identity_state.get("patient_name") or ""
-            current_phone = identity_state.get("patient_phone") or ""
+            current_phone = identity_state.get("phone") or ""
             new_name = patient_name_input.strip() if patient_name_input else None
             new_phone = phone_input.strip() if phone_input else None
             if new_name and new_name != current_name:
                 identity_state["patient_name"] = new_name
                 changed = True
             if new_phone and PHONE_RE_FULL.match(new_phone) and new_phone != current_phone:
-                identity_state["patient_phone"] = new_phone
+                identity_state["phone"] = new_phone
                 changed = True
             if changed:
-                # Reset downstream booking / finalize gates so agent will re-book with corrected identity.
                 shared["latest_booking"] = None
                 shared["allow_finalize"] = False
                 payload = {
                     "type": "identity_updated",
                     "patient_name": identity_state.get("patient_name"),
-                    "phone": identity_state.get("patient_phone"),
+                    "phone": identity_state.get("phone"),
                     "confidence": identity_state.get("draft_conf", 1.0),
                     "confirmed": True,
                 }
                 publish_data(payload)
                 return {"status": "reconfirmed", **payload}
             return {"status": "already_confirmed", "patient_name": current_name, "phone": current_phone}
+
+        # First-time confirm flow
         if patient_name_input:
             identity_state["patient_name"] = patient_name_input.strip()
         elif identity_state.get("draft_name") and not identity_state.get("patient_name"):
             identity_state["patient_name"] = identity_state.get("draft_name")
+
         if phone_input and PHONE_RE_FULL.match(phone_input.strip()):
-            identity_state["patient_phone"] = phone_input.strip()
-        elif identity_state.get("draft_phone") and not identity_state.get("patient_phone"):
-            identity_state["patient_phone"] = identity_state.get("draft_phone")
-        if confirm and identity_state.get("patient_name") and identity_state.get("patient_phone"):
+            identity_state["phone"] = phone_input.strip()
+        elif identity_state.get("draft_phone") and not identity_state.get("phone"):
+            identity_state["phone"] = identity_state.get("draft_phone")
+
+        if confirm and identity_state.get("patient_name") and identity_state.get("phone"):
             identity_state["identity_confirmed"] = True
             payload = {
                 "type": "identity_confirmed",
                 "patient_name": identity_state.get("patient_name"),
-                "phone": identity_state.get("patient_phone"),
+                "phone": identity_state.get("phone"),
                 "confidence": identity_state.get("draft_conf", 1.0),
                 "confirmed": True,
             }
             publish_data(payload)
+            # Inject personal context (facts + last summary) exactly once
+            if not shared.get("personal_context_injected"):
+                try:
+                    # try lookup existing customer (by phone), build context
+                    cid = get_customer_by_phone(identity_state.get("phone"))
+                    personal_blocks = ""
+                    if cid:
+                        visits = get_recent_visits(cid, limit=3)
+                        personal_blocks = build_personal_context(customer_id=cid, visits=visits)
+                    if personal_blocks:
+                        wrapped = f"[PERSONAL_HISTORY]\n{personal_blocks}\n[/PERSONAL_HISTORY]"
+                        shared["personal_context_injected"] = True
+                        # Keep for transcript
+                        state.add("system", "PERSONAL_CONTEXT_INJECTED")
+                        talker = shared.get("talker")
+                        if talker is not None:
+                            try:
+                                base_instr = getattr(talker, "instructions", "") or ""
+                                # Append personal context once to instructions so future turns see it.
+                                new_instr = base_instr + "\n\n# PERSONAL CONTEXT\n" + wrapped + "\n\nHướng dẫn: Không lặp lại nguyên văn; chỉ tham chiếu khi hỗ trợ chẩn đoán hoặc hỏi triệu chứng mới."
+                                await talker.update_instructions(new_instr)
+                                publish_data({
+                                    "type": "personal_context_injected",
+                                    "has_facts": True,
+                                })
+                            except Exception:
+                                pass
+                except Exception:
+                    pass
             return {"status": "confirmed", **payload}
+
         return {
             "status": "pending",
             "patient_name": identity_state.get("patient_name") or identity_state.get("draft_name"),
-            "phone": identity_state.get("patient_phone") or identity_state.get("draft_phone"),
+            "phone": identity_state.get("phone") or identity_state.get("draft_phone"),
         }
 
-    # -------- Booking Tool --------
+    # ---------------- Booking Tool ----------------
     @function_tool
     async def schedule_appointment(
         context: RunContext,
@@ -133,18 +166,25 @@ def build_all_tools(
     ) -> dict:
         if not identity_state.get("identity_confirmed"):
             return {"ok": False, "error": "identity_not_confirmed", "message": "Chưa xác nhận họ tên & SĐT."}
-        # If a previous booking exists but identity got updated (latest_booking cleared) or user wants to re-book (preferred_time differs), allow new booking.
         prev = shared.get("latest_booking")
         if prev and preferred_time and prev.get("preferred_time") == preferred_time:
-            # Prevent duplicate identical booking spam
-            return {"ok": False, "error": "duplicate_booking", "message": "Lịch này đã được đặt, hãy chọn thời điểm khác hoặc yêu cầu chỉnh sửa."}
+            return {"ok": False, "error": "duplicate_booking", "message": "Lịch này đã được đặt, hãy chọn thời điểm khác."}
         raw_phone = (phone or "").strip()
         raw_name = (patient_name or "").strip() or "(không rõ)"
         if not PHONE_RE_BASIC.match(raw_phone):
             raw_phone = raw_phone or "(không rõ)"
         if symptoms:
             state.add("user", f"Triệu chứng khai báo: {symptoms}")
+        
+        # Get RAG guidelines context for booking decision
         history = "\n".join(state.lines)
+        rag = shared.get("rag")
+        if rag and symptoms:
+            # Query guidelines for symptom-specific booking advice
+            guideline_ctx = rag.query(symptoms, k=3, max_chars=600)
+            if guideline_ctx and "[GUIDELINES]" in guideline_ctx:
+                history += f"\n\n[MEDICAL_GUIDELINES]\n{guideline_ctx}\n[/MEDICAL_GUIDELINES]"
+        
         data_path = os.getenv("CLINIC_DATA_PATH", "./clinic_data.json")
         book_model = os.getenv("BOOK_MODEL", "gemini-2.5-flash")
 
@@ -153,12 +193,7 @@ def build_all_tools(
                 result = await asyncio.to_thread(book_appointment, history, data_path, book_model)
                 if symptoms and not result.get("symptoms"):
                     result["symptoms"] = symptoms
-                try:
-                    cid, _ = get_or_create_customer(result.get("patient_name") or raw_name, result.get("phone") or raw_phone)
-                    result["customer_id"] = cid
-                    await asyncio.to_thread(save_visit, cid, {"booking": result}, final=False)
-                except Exception:
-                    pass
+                # Remove early visit creation - only create at finalize
                 shared["latest_booking"] = result
                 shared["allow_finalize"] = True
                 publish_data({"type": "booking_result", "booking": result})
@@ -180,9 +215,9 @@ def build_all_tools(
             "preferred_time": preferred_time,
         })
         asyncio.create_task(_do_booking())
-        return {"ok": True, "pending": True, "message": "Đang kiểm tra lịch phù hợp hãy chờ một chút nhé."}
+        return {"ok": True, "pending": True, "message": "Đang kiểm tra lịch phù hợp, xin chờ."}
 
-    # -------- Finalize Tool --------
+    # ---------------- Finalize Tool ----------------
     @function_tool
     async def finalize_visit(context: RunContext) -> dict:
         if shared.get("closing"):
@@ -195,19 +230,61 @@ def build_all_tools(
         latest_booking = shared.get("latest_booking")
         transcript_lines = list(state.lines)
         transcript = "\n".join(transcript_lines)
-        user_only = "\n".join(line[len("[user] "):] for line in transcript_lines if line.startswith("[user] "))
+        user_only = "\n".join(line[len("[user] "): ] for line in transcript_lines if line.startswith("[user] "))
         combined = transcript + "\n\n[USER_ONLY]\n" + (user_only or "(rỗng)")
         try:
             combined += "\n\n[BOOKING_JSON]\n" + json.dumps(latest_booking, ensure_ascii=False)
         except Exception:
             pass
+        
         try:
             summary = await asyncio.to_thread(summarize_visit_json, combined, clinic_defaults, latest_booking)
-            patient_name = summary.get("patient_name") or ""
-            phone = summary.get("phone") or ""
+            patient_name = summary.get("patient_name") or identity_state.get("patient_name") or ""
+            phone = summary.get("phone") or identity_state.get("phone") or ""
             cid, _ = await asyncio.to_thread(get_or_create_customer, patient_name, phone)
             summary["customer_id"] = cid
-            await asyncio.to_thread(save_visit, cid, summary)
+            
+            # Extract facts and summary using facts_extractor
+            extract_facts_fn = shared.get("extract_facts_and_summary")
+            if extract_facts_fn:
+                try:
+                    # Get existing facts and summary
+                    from storage import get_customer_facts_summary, update_customer_facts_summary
+                    existing_data = await asyncio.to_thread(get_customer_facts_summary, cid)
+                    
+                    # Extract new facts and summary
+                    facts_result = await asyncio.to_thread(
+                        extract_facts_fn,
+                        combined,  # new conversation
+                        existing_data.get("facts", ""),  # existing facts
+                        existing_data.get("last_summary", "")  # existing summary
+                    )
+                    
+                    new_facts = facts_result.get("facts", "")
+                    new_summary = facts_result.get("summary", "")
+
+                    if os.getenv("KIOSK_DEBUG_PERSONAL", "0") == "1":
+                        def _trunc(txt: str, lim: int = 600):
+                            return txt if len(txt) <= lim else txt[:lim] + " ...[TRUNCATED]"
+                        print(f"[Facts Extraction DEBUG cid={cid}] NEW_FACTS=\n{_trunc(new_facts)}")
+                        print(f"[Facts Extraction DEBUG cid={cid}] NEW_SUMMARY=\n{_trunc(new_summary)}")
+                    
+                    # Update customer facts and summary
+                    await asyncio.to_thread(update_customer_facts_summary, cid, new_facts, new_summary)
+                    
+                    # Save visit with extracted facts and summary
+                    await asyncio.to_thread(save_visit, cid, summary, final=True, summary=new_summary, facts=new_facts)
+                    
+                    print(f"[Facts Extraction] Updated customer {cid} facts_len={len(new_facts)} summary_len={len(new_summary)}")
+                    
+                except Exception as e:
+                    print(f"[Facts Extraction] Error: {e}")
+                    # Fallback to regular save
+                    await asyncio.to_thread(save_visit, cid, summary)
+            else:
+                # Fallback if extract_facts_and_summary not available
+                await asyncio.to_thread(save_visit, cid, summary)
+                
         except Exception:
             with contextlib.suppress(Exception):
                 await asyncio.to_thread(save_visit, "UNKNOWN", {"raw_transcript": transcript_lines, "booking": latest_booking})
@@ -215,6 +292,8 @@ def build_all_tools(
             shared["allow_finalize"] = False
             shared["latest_booking"] = None
             shared["closing"] = True
+
+            # Personalization reset removed (feature disabled)
 
             async def _grace_close():
                 try:

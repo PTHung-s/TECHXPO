@@ -1,0 +1,39 @@
+{
+  "patient_name": "Phạm Tuấn Hưng",
+  "phone": "0336018126",
+  "customer_id": "CUS-3bc6fb07db",
+  "doctor_name": "BS. Lê Khánh",
+  "appointment_time": "2025-08-23 17:00",
+  "room": "TMH.201",
+  "queue_number": "A-051",
+  "symptoms": [
+    {
+      "name": "Ho",
+      "severity": "nặng hơn một chút",
+      "duration": "một tuần"
+    },
+    {
+      "name": "Đau họng",
+      "severity": "nặng hơn một chút",
+      "duration": "một tuần"
+    },
+    {
+      "name": "Sổ mũi",
+      "severity": "nặng hơn một chút",
+      "duration": "một tuần"
+    },
+    {
+      "name": "Sốt",
+      "severity": null,
+      "duration": "từ hôm qua"
+    }
+  ],
+  "tentative_diagnoses": [
+    "Viêm họng cấp tái phát"
+  ],
+  "tests_recommended": [],
+  "medications_advised": [],
+  "diet_notes": "Hạn chế ăn đồ lạnh, đồ cay nóng.",
+  "follow_up": "(không rõ)",
+  "warnings": "Tái khám ngay nếu có dấu hiệu khó thở hoặc sốt cao không hạ."
+}

@@ -1,0 +1,34 @@
+{
+  "patient_name": "Phạm Tuấn Hưng",
+  "phone": "0336018126",
+  "customer_id": "CUS-3bc6fb07db",
+  "doctor_name": "BS. Lê Khánh",
+  "appointment_time": "2025-08-23 17:00",
+  "room": "TMH.201",
+  "queue_number": "A-051",
+  "symptoms": [
+    {
+      "name": "Ho",
+      "severity": "nhẹ",
+      "duration": "2 ngày"
+    },
+    {
+      "name": "Sổ mũi",
+      "severity": "nhẹ",
+      "duration": "2 ngày"
+    },
+    {
+      "name": "Đau họng",
+      "severity": "nhẹ",
+      "duration": "2 ngày"
+    }
+  ],
+  "tentative_diagnoses": [
+    "Theo dõi viêm mũi họng cấp"
+  ],
+  "tests_recommended": [],
+  "medications_advised": [],
+  "diet_notes": "Uống nhiều nước ấm, ăn thức ăn mềm, dễ tiêu, tránh đồ ăn cay nóng và nước đá lạnh.",
+  "follow_up": "Tái khám nếu các triệu chứng không thuyên giảm sau 3-5 ngày hoặc có dấu hiệu nặng hơn.",
+  "warnings": "Đến ngay cơ sở y tế gần nhất nếu có dấu hiệu khó thở, sốt cao không hạ, ho ra máu hoặc mệt lả."
+}
