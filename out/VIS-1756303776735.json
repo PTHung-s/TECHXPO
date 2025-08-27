@@ -1,0 +1,26 @@
+{
+  "patient_name": "Nguyễn Đình Nghị",
+  "phone": "0975111814",
+  "customer_id": "CUS-06bf2f32ef",
+  "doctor_name": "(không rõ)",
+  "appointment_time": "2025-08-24 15:00",
+  "room": "",
+  "queue_number": "",
+  "symptoms": [
+    {
+      "name": "Đau rát vùng thượng vị",
+      "severity": null,
+      "duration": null
+    }
+  ],
+  "tentative_diagnoses": [
+    "Đau dạ dày"
+  ],
+  "tests_recommended": [
+    "Nội soi dạ dày (nếu bác sĩ chỉ định)"
+  ],
+  "medications_advised": [],
+  "diet_notes": "Nên ăn nhẹ, tránh đồ ăn cay nóng, nhiều dầu mỡ. Giữ ấm bụng và hạn chế căng thẳng.",
+  "follow_up": "Tái khám theo lịch hẹn vào 3 giờ chiều mai để bác sĩ chuyên khoa tiêu hóa thăm khám.",
+  "warnings": "Nếu có bất kỳ thay đổi nào về tình trạng sức khỏe, hãy báo lại cho bác sĩ."
+}

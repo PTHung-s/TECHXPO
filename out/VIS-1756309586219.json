@@ -1,0 +1,37 @@
+{
+  "patient_name": "Phạm Tuấn Hưng",
+  "phone": "0336018126",
+  "customer_id": "CUS-3bc6fb07db",
+  "doctor_name": "BS. Trần Minh",
+  "appointment_time": "2025-08-23 16:00",
+  "room": "K.101",
+  "queue_number": "A-051",
+  "symptoms": [
+    {
+      "name": "Té xe",
+      "severity": null,
+      "duration": "từ sáng"
+    },
+    {
+      "name": "Trầy xước tay",
+      "severity": null,
+      "duration": "từ sáng"
+    },
+    {
+      "name": "Sưng đỏ tay",
+      "severity": null,
+      "duration": "từ sáng"
+    },
+    {
+      "name": "Chảy máu tay",
+      "severity": null,
+      "duration": "từ sáng"
+    }
+  ],
+  "tentative_diagnoses": [],
+  "tests_recommended": [],
+  "medications_advised": [],
+  "diet_notes": "(không có)",
+  "follow_up": "(không có)",
+  "warnings": "(không có)"
+}

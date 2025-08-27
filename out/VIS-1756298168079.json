@@ -1,0 +1,24 @@
+{
+  "patient_name": "Phạm Tuấn Hưng",
+  "phone": "0336018126",
+  "customer_id": "CUS-3bc6fb07db",
+  "doctor_name": "BS. Trần Minh",
+  "appointment_time": "2025-08-23 16:00",
+  "room": "K.101",
+  "queue_number": "A-051",
+  "symptoms": [
+    {
+      "name": "Đau dạ dày khi đói",
+      "severity": null,
+      "duration": null
+    }
+  ],
+  "tentative_diagnoses": [
+    "(chưa có chẩn đoán sơ bộ)"
+  ],
+  "tests_recommended": [],
+  "medications_advised": [],
+  "diet_notes": "(không rõ)",
+  "follow_up": "(không rõ)",
+  "warnings": "(không rõ)"
+}
