@@ -1,0 +1,52 @@
+{
+  "hospital_name": "Bệnh Viện Thành Phố B",
+  "departments": [
+    { "name": "Da Liễu", "code": "DERM" },
+    { "name": "Nội Thần Kinh", "code": "NEU" },
+    { "name": "Cơ Xương Khớp", "code": "RHEUM" },
+    { "name": "Nội Tổng Quát", "code": "INT" },
+    { "name": "Tim Mạch", "code": "CARD" },
+    { "name": "Tai Mũi Họng", "code": "ENT" },
+    { "name": "Hô Hấp", "code": "RESP" },
+    { "name": "Nội Tiêu Hóa", "code": "GAST" },
+    { "name": "Chấn Thương Chỉnh Hình", "code": "ORTHO" }
+  ],
+  "doctors": [
+    { "name": "BS. Phạm Dũng", "department": "Da Liễu", "room": "B112" },
+    { "name": "BS. Hồ Em", "department": "Nội Thần Kinh", "room": "B210" },
+    { "name": "BS. Võ Giang", "department": "Cơ Xương Khớp", "room": "B305" },
+    { "name": "BS. Lâm Hiếu", "department": "Nội Tổng Quát", "room": "B101" },
+    { "name": "BS. Đặng Kha", "department": "Tim Mạch", "room": "B202" },
+    { "name": "BS. Mai Lan", "department": "Tai Mũi Họng", "room": "B318" },
+    { "name": "BS. Tôn Minh", "department": "Hô Hấp", "room": "B403" },
+    { "name": "BS. Quách Ngọc", "department": "Nội Tiêu Hóa", "room": "B415" },
+    { "name": "BS. Sử Phú", "department": "Chấn Thương Chỉnh Hình", "room": "B509" },
+    { "name": "BS. Văn Quỳnh", "department": "Da Liễu", "room": "B113" },
+    { "name": "BS. La Sơn", "department": "Nội Thần Kinh", "room": "B211" }
+  ],
+  "slots": [
+    { "doctor": "BS. Phạm Dũng", "time": "2025-08-28 08:45" },
+    { "doctor": "BS. Phạm Dũng", "time": "2025-08-28 09:30" },
+    { "doctor": "BS. Phạm Dũng", "time": "2025-08-29 14:15" },
+    { "doctor": "BS. Văn Quỳnh", "time": "2025-08-28 10:05" },
+    { "doctor": "BS. Văn Quỳnh", "time": "2025-08-29 11:20" },
+    { "doctor": "BS. Hồ Em", "time": "2025-08-28 13:30" },
+    { "doctor": "BS. Hồ Em", "time": "2025-08-28 15:00" },
+    { "doctor": "BS. La Sơn", "time": "2025-08-29 09:40" },
+    { "doctor": "BS. La Sơn", "time": "2025-08-30 16:10" },
+    { "doctor": "BS. Võ Giang", "time": "2025-08-28 10:30" },
+    { "doctor": "BS. Võ Giang", "time": "2025-08-28 16:00" },
+    { "doctor": "BS. Lâm Hiếu", "time": "2025-08-28 08:10" },
+    { "doctor": "BS. Lâm Hiếu", "time": "2025-08-29 10:45" },
+    { "doctor": "BS. Đặng Kha", "time": "2025-08-28 11:30" },
+    { "doctor": "BS. Đặng Kha", "time": "2025-08-30 08:55" },
+    { "doctor": "BS. Mai Lan", "time": "2025-08-28 14:20" },
+    { "doctor": "BS. Mai Lan", "time": "2025-08-29 15:35" },
+    { "doctor": "BS. Tôn Minh", "time": "2025-08-28 11:05" },
+    { "doctor": "BS. Tôn Minh", "time": "2025-08-29 16:25" },
+    { "doctor": "BS. Quách Ngọc", "time": "2025-08-28 09:50" },
+    { "doctor": "BS. Quách Ngọc", "time": "2025-08-29 13:15" },
+    { "doctor": "BS. Sử Phú", "time": "2025-08-28 14:55" },
+    { "doctor": "BS. Sử Phú", "time": "2025-08-29 15:10" }
+  ]
+}

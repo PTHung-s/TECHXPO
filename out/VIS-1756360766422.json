@@ -1,0 +1,29 @@
+{
+  "patient_name": "Phạm Tuấn Hưng",
+  "phone": "0336018126",
+  "customer_id": "CUS-3bc6fb07db",
+  "doctor_name": "BS. Võ Hạnh",
+  "appointment_time": "2025-08-28 13:30",
+  "room": "A210",
+  "queue_number": "",
+  "symptoms": [
+    {
+      "name": "Đau nửa đầu bên trái",
+      "severity": "nhói",
+      "duration": "khoảng một buổi"
+    },
+    {
+      "name": "Sợ ánh sáng",
+      "severity": null,
+      "duration": "khoảng một buổi"
+    }
+  ],
+  "tentative_diagnoses": [
+    "(chưa có)"
+  ],
+  "tests_recommended": [],
+  "medications_advised": [],
+  "diet_notes": "Nghỉ ngơi nhiều, tránh làm việc quá sức và tránh tiếp xúc trực tiếp với ánh sáng mạnh trước khi đi khám.",
+  "follow_up": "Tái khám theo lịch hẹn ngày 28/08/2025 lúc 13:30 với BS. Võ Hạnh.",
+  "warnings": "Đây là lời khuyên sơ bộ, cần chẩn đoán chính xác từ bác sĩ khi thăm khám trực tiếp."
+}

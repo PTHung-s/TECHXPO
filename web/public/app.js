@@ -202,15 +202,41 @@ function showBookingPending(){
 function showBooking(result){
   infoPanel.classList.add('show')
   infoTitle.textContent='Lịch hẹn'
-  const b = result.booking || result
-  infoBody.innerHTML = `<div style='display:grid;gap:.35rem;font-size:.65rem;'>
-    ${b.department?`<div><b>Khoa:</b> ${b.department}</div>`:''}
-    ${b.doctor_name?`<div><b>Bác sĩ:</b> ${b.doctor_name}</div>`:''}
-    ${(b.slot_time||b.appointment_time)?`<div><b>Thời gian:</b> ${b.slot_time||b.appointment_time}</div>`:''}
-    ${b.room?`<div><b>Phòng:</b> ${b.room}</div>`:''}
-    ${b.queue_number?`<div><b>STT:</b> ${b.queue_number}</div>`:''}
-    ${b.symptoms?`<div><b>Triệu chứng:</b> ${Array.isArray(b.symptoms)? b.symptoms.map(s=>s.name||s).join(', '): b.symptoms}</div>`:''}
-  </div>`
+  const payload = result.booking || result
+  const multi = !!payload.options
+  if(multi){
+    // Render multiple options + highlight chosen if available
+    const chosen = payload.chosen || payload.options[0]
+    const cards = payload.options.map((opt,idx)=>{
+      const isChosen = chosen && (opt.slot_time===chosen.slot_time && opt.doctor_name===chosen.doctor_name && opt.hospital===chosen.hospital)
+      return `<div class='bk-card' data-idx='${idx}' style="border:1px solid ${isChosen?'#3b82f6':'var(--border)'};background:rgba(255,255,255,0.04);padding:.55rem .6rem;border-radius:.75rem;display:flex;flex-direction:column;gap:.25rem;position:relative;">
+        ${isChosen?`<div style='position:absolute;top:4px;right:6px;font-size:.5rem;background:#3b82f6;color:#fff;padding:.2rem .4rem;border-radius:.5rem;'>Chọn</div>`:''}
+        <div style='font-size:.65rem;line-height:1.35;'>
+          <b>${opt.hospital||'Bệnh viện'}</b><br/>
+          ${opt.department?`Khoa: ${opt.department}<br/>`:''}
+          ${opt.doctor_name?`BS: ${opt.doctor_name}<br/>`:''}
+          ${opt.slot_time?`Giờ: ${opt.slot_time}<br/>`:''}
+          ${opt.room?`Phòng: ${opt.room}<br/>`:''}
+          ${opt.score?`<span style='opacity:.7'>Score: ${opt.score.toFixed(2)}</span>`:''}
+        </div>
+      </div>`
+    }).join('')
+    infoBody.innerHTML = `<div style='display:flex;flex-direction:column;gap:.6rem;'>
+      <div style='font-size:.6rem;opacity:.75;'>Đề xuất tối đa 4 lựa chọn. Hệ thống sẽ tự chọn tối ưu (agent). Nếu muốn đổi bạn có thể yêu cầu.</div>
+      <div class='bk-grid' style='display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:.55rem;'>${cards}</div>
+      <div style='font-size:.6rem;opacity:.75;'>${payload.speak_text||''}</div>
+    </div>`
+  } else {
+    const b = payload
+    infoBody.innerHTML = `<div style='display:grid;gap:.35rem;font-size:.65rem;'>
+      ${b.department?`<div><b>Khoa:</b> ${b.department}</div>`:''}
+      ${b.doctor_name?`<div><b>Bác sĩ:</b> ${b.doctor_name}</div>`:''}
+      ${(b.slot_time||b.appointment_time)?`<div><b>Thời gian:</b> ${b.slot_time||b.appointment_time}</div>`:''}
+      ${b.room?`<div><b>Phòng:</b> ${b.room}</div>`:''}
+      ${b.queue_number?`<div><b>STT:</b> ${b.queue_number}</div>`:''}
+      ${b.symptoms?`<div><b>Triệu chứng:</b> ${Array.isArray(b.symptoms)? b.symptoms.map(s=>s.name||s).join(', '): b.symptoms}</div>`:''}
+    </div>`
+  }
   infoActions.style.display='none'
 }
 
@@ -255,6 +281,7 @@ function attachEvents(r){
   case 'identity_updated': log('Identity cập nhật'); identityConfirmed=true; showIdentity(msg); break
         case 'booking_pending': log('Đang đặt lịch'); showBookingPending(); break
         case 'booking_result': log('Đặt lịch xong'); showBooking(msg); break
+  case 'booking_option_chosen': log('Đã chọn 1 phương án'); showBooking(msg.booking || msg); break
         case 'wrapup_done': log('Kết thúc phiên'); hangup(); break
         default: log('DATA '+ JSON.stringify(msg))
       }

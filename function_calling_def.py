@@ -188,35 +188,99 @@ def build_all_tools(
         
         data_path = os.getenv("CLINIC_DATA_PATH", "./clinic_data.json")
         book_model = os.getenv("BOOK_MODEL", "gemini-2.5-flash")
+        # Multi-hospital support: CLINIC_DATA_PATHS env (comma separated) OR default known sample files
+        extra_paths_env = os.getenv("CLINIC_DATA_PATHS", "")
+        extra_paths = []
+        if extra_paths_env.strip():
+            extra_paths = [p.strip() for p in extra_paths_env.split(",") if p.strip() and p.strip() != data_path]
+        else:
+            # Auto-detect common multi hospital sample files co-located with primary
+            defaults = [
+                "./clinic_data_hospitalA.json",
+                "./clinic_data_hospitalB.json",
+                "./clinic_data_hospitalC.json",
+            ]
+            for p in defaults:
+                if os.path.exists(p) and p != data_path:
+                    extra_paths.append(p)
 
-        async def _do_booking():
-            try:
-                result = await asyncio.to_thread(book_appointment, history, data_path, book_model)
-                if symptoms and not result.get("symptoms"):
-                    result["symptoms"] = symptoms
-                # Remove early visit creation - only create at finalize
-                shared["latest_booking"] = result
-                shared["allow_finalize"] = True
-                publish_data({"type": "booking_result", "booking": result})
-                speak_text = (result.get("speak_text") or "Tôi đã sắp xếp lịch phù hợp. Cảm ơn bạn.").strip()
-                session = shared.get("session")
-                if session is not None:
-                    try:
-                        handle = await session.generate_reply(instructions=(speak_text))
-                        await handle
-                    except Exception:
-                        pass
-            except Exception:
-                pass
-
+        # Thay vì chạy nền (model không thấy kết quả), ta làm đồng bộ để tool result chứa toàn bộ options.
         publish_data({
             "type": "booking_pending",
             "patient_name": raw_name,
             "phone": raw_phone,
             "preferred_time": preferred_time,
         })
-        asyncio.create_task(_do_booking())
-        return {"ok": True, "pending": True, "message": "Đang kiểm tra lịch phù hợp, xin chờ."}
+        try:
+            result = await asyncio.to_thread(
+                book_appointment,
+                history,
+                data_path,
+                book_model,
+                extra_paths,
+            )
+        except Exception as e:
+            return {"ok": False, "error": "booking_failed", "message": str(e)}
+
+        if symptoms and not result.get("symptoms"):
+            result["symptoms"] = symptoms
+        shared["latest_booking"] = result
+        shared["allow_finalize"] = True
+        publish_data({
+            "type": "booking_result",
+            "booking": result,
+            "multi": bool(result.get("options")),
+        })
+        # Trả về đầy đủ để LLM đọc được tất cả option (options + chosen + speak_text)
+        return {
+            "ok": True,
+            "booking": result,
+            "multi": bool(result.get("options")),
+            "speak_text": result.get("speak_text"),
+            "message": "Đã lấy danh sách lựa chọn lịch (có thể dùng choose_booking_option để đổi).",
+        }
+
+    @function_tool
+    async def choose_booking_option(
+        context: RunContext,
+        option_index: int,
+        reason: Optional[str] = None,
+    ) -> dict:
+        """Chọn 1 option trong kết quả đặt lịch đa lựa chọn (0-based). Dùng sau khi model đã hiển thị các phương án.
+
+        Nếu index không hợp lệ sẽ trả về danh sách hiện có (nếu có)."""
+        latest = shared.get("latest_booking")
+        if not latest:
+            return {"ok": False, "error": "no_booking_options"}
+        options = latest.get("options") or []
+        if not options:
+            return {"ok": False, "error": "no_options"}
+        if option_index < 0 or option_index >= len(options):
+            return {"ok": False, "error": "invalid_index", "count": len(options)}
+        chosen = options[option_index]
+        latest["chosen"] = chosen
+        # regenerate speak_text concise
+        try:
+            from booking import _build_speak_text  # reuse helper
+            latest["speak_text"] = _build_speak_text(chosen)
+        except Exception:
+            latest["speak_text"] = f"Đã chọn lịch với {chosen.get('doctor_name')} tại {chosen.get('hospital')} lúc {chosen.get('slot_time')}"
+        shared["latest_booking"] = latest
+        shared["allow_finalize"] = True
+        publish_data({
+            "type": "booking_option_chosen",
+            "booking": latest,
+            "chosen_index": option_index,
+            "reason": reason,
+        })
+        return {
+            "ok": True,
+            "chosen_index": option_index,
+            "chosen": chosen,
+            "options": options,
+            "speak_text": latest.get("speak_text"),
+            "message": "Đã chọn phương án đặt lịch.",
+        }
 
     # ---------------- Finalize Tool ----------------
     @function_tool
@@ -312,4 +376,4 @@ def build_all_tools(
             asyncio.create_task(_grace_close())
         return {"ok": True, "message": "Visit finalized; closing."}
 
-    return [propose_identity, confirm_identity, schedule_appointment, finalize_visit]
+    return [propose_identity, confirm_identity, schedule_appointment, choose_booking_option, finalize_visit]

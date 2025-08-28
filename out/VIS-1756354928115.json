@@ -1,0 +1,34 @@
+{
+  "patient_name": "Phạm Tuấn Hưng",
+  "phone": "0336018126",
+  "customer_id": "CUS-3bc6fb07db",
+  "doctor_name": "BS. Phạm Dũng",
+  "appointment_time": "2025-08-28 08:45",
+  "room": "B112",
+  "queue_number": "",
+  "symptoms": [
+    {
+      "name": "Nổi mẩn đỏ ở tay và ngực",
+      "severity": "Chưa ngứa rát hay khó chịu",
+      "duration": "Từ hôm qua"
+    },
+    {
+      "name": "Không sốt",
+      "severity": null,
+      "duration": null
+    },
+    {
+      "name": "Không mệt mỏi",
+      "severity": null,
+      "duration": null
+    }
+  ],
+  "tentative_diagnoses": [
+    "Theo dõi phát ban da"
+  ],
+  "tests_recommended": [],
+  "medications_advised": [],
+  "diet_notes": "(không rõ)",
+  "follow_up": "Tái khám theo lịch hẹn ngày 28/08/2025 để bác sĩ chẩn đoán và đưa ra hướng điều trị.",
+  "warnings": "Theo dõi thêm các triệu chứng. Nếu mẩn đỏ lan rộng, ngứa nhiều hoặc xuất hiện các dấu hiệu bất thường khác như sốt, khó thở, cần đi khám ngay."
+}
