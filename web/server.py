@@ -23,6 +23,12 @@ if origins:
 
 STATIC_DIR = os.path.join(os.path.dirname(__file__), "public")
 os.makedirs(STATIC_DIR, exist_ok=True)
+IMAGES_DIR = os.path.join(os.path.dirname(__file__), "images")
+if not os.path.exists(IMAGES_DIR):
+    # allow user to keep images inside public/images alternatively
+    alt = os.path.join(STATIC_DIR, "images")
+    if os.path.isdir(alt):
+        IMAGES_DIR = alt
 
 class TokenResponse(BaseModel):
     url: str
@@ -73,3 +79,6 @@ def favicon():
 
 # 2) --- STATIC (mount SAU để không chặn /api/*) ---
 app.mount("/", StaticFiles(directory=STATIC_DIR, html=True), name="static")
+if os.path.isdir(IMAGES_DIR) and IMAGES_DIR != STATIC_DIR:
+    # mount explicit images route if images folder is sibling of public
+    app.mount("/images", StaticFiles(directory=IMAGES_DIR), name="images")

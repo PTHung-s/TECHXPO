@@ -9,7 +9,7 @@
 ENV: GOOGLE_API_KEY (hoặc GEMINI_API_KEY)
 """
 
-import os, json, re, datetime
+import os, json, re, datetime, unicodedata
 from typing import Dict, Any, Optional, Tuple, List
 
 from dotenv import load_dotenv
@@ -36,7 +36,9 @@ def _load_clinic_data(path: str) -> Dict[str, Any]:
         raw = f.read()
     ext = os.path.splitext(ap)[1].lower()
     data = yaml.safe_load(raw) if ext in [".yaml", ".yml"] and yaml is not None else json.loads(raw)
-    data["hospital_name"] = data.get("hospital_name") or os.path.splitext(os.path.basename(ap))[0]
+    base_code = os.path.splitext(os.path.basename(ap))[0]
+    data["hospital_name"] = data.get("hospital_name") or base_code
+    data["hospital_code"] = base_code  # dùng để map ảnh
     return data
 
 def _merge_multi(data_list: List[Dict[str, Any]]) -> Dict[str, Any]:
@@ -328,4 +330,32 @@ def book_appointment(
     # Build speak_text if missing
     if not result_dict.get("speak_text"):
         result_dict["speak_text"] = _build_speak_text(chosen)
+
+    # ---- Gắn image_url dựa vào hospital_code đã load ----
+    try:
+        # Tạo map normalised name -> code
+        def _norm(s: str) -> str:
+            s2 = unicodedata.normalize("NFD", s or "")
+            s2 = "".join(ch for ch in s2 if unicodedata.category(ch) != "Mn")
+            return re.sub(r"[^a-z0-9]+", "", s2.lower())
+        hosp_map = {}
+        for h in data.get("hospitals", []):
+            hn = h.get("hospital_name") or h.get("name") or h.get("hospital") or ""
+            code = h.get("hospital_code") or os.path.splitext(os.path.basename(hn))[0]
+            hosp_map[_norm(hn)] = code
+        def _attach(opt: Dict[str, Any]):
+            if not isinstance(opt, dict):
+                return
+            key = _norm(opt.get("hospital") or opt.get("hospital_name") or "")
+            code = hosp_map.get(key)
+            if code:
+                opt["hospital_code"] = code
+                # Ảnh frontend phục vụ từ /images/<CODE>.png
+                opt["image_url"] = f"/images/{code}.png"
+        for opt in result_dict.get("options", []) or []:
+            _attach(opt)
+        if isinstance(result_dict.get("chosen"), dict):
+            _attach(result_dict["chosen"])
+    except Exception:
+        pass
     return result_dict

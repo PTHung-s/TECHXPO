@@ -191,6 +191,20 @@ def build_all_tools(
         # Multi-hospital support: CLINIC_DATA_PATHS env (comma separated) OR default known sample files
         extra_paths_env = os.getenv("CLINIC_DATA_PATHS", "")
         extra_paths = []
+        # Fallback: nếu file chính không tồn tại thì quét thư mục Booking_data lấy các JSON
+        if not os.path.exists(data_path):
+            bd_dir = os.getenv("CLINIC_DATA_DIR", "./Booking_data")
+            if os.path.isdir(bd_dir):
+                try:
+                    files = [os.path.join(bd_dir, f) for f in os.listdir(bd_dir) if f.lower().endswith('.json')]
+                    files.sort()
+                    if files:
+                        data_path = files[0]
+                        # tạm lấy tối đa 5 file còn lại làm extra
+                        auto_extra = files[1:]
+                        extra_paths.extend([p for p in auto_extra if p != data_path])
+                except Exception:
+                    pass
         if extra_paths_env.strip():
             extra_paths = [p.strip() for p in extra_paths_env.split(",") if p.strip() and p.strip() != data_path]
         else:
@@ -203,6 +217,13 @@ def build_all_tools(
             for p in defaults:
                 if os.path.exists(p) and p != data_path:
                     extra_paths.append(p)
+        # Merge any duplicates away
+        seen = set()
+        _dedup = []
+        for p in extra_paths:
+            if p not in seen:
+                seen.add(p); _dedup.append(p)
+        extra_paths = _dedup
 
         # Thay vì chạy nền (model không thấy kết quả), ta làm đồng bộ để tool result chứa toàn bộ options.
         publish_data({

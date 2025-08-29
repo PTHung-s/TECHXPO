@@ -1,0 +1,27 @@
+{
+  "patient_name": "Phạm Tuấn Hưng",
+  "phone": "0336018126",
+  "customer_id": "CUS-3bc6fb07db",
+  "doctor_name": "BS. Võ Hạnh",
+  "appointment_time": "2025-08-28 13:30",
+  "room": "A210",
+  "queue_number": "",
+  "symptoms": [
+    {
+      "name": "Đau đầu vùng thái dương",
+      "severity": null,
+      "duration": "3 ngày"
+    },
+    {
+      "name": "Mỏi mắt khi nhìn màn hình",
+      "severity": null,
+      "duration": "3 ngày"
+    }
+  ],
+  "tentative_diagnoses": [],
+  "tests_recommended": [],
+  "medications_advised": [],
+  "diet_notes": "(không rõ)",
+  "follow_up": "(không rõ)",
+  "warnings": "(không rõ)"
+}
