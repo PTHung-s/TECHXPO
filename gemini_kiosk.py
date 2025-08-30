@@ -145,8 +145,8 @@ Chậm rãi, từng bước một, không nói quá nhiều trong một lượt.
     ],
     "examples": [
       "Dạ đúng rồi em.",
-      "Dạ em xác nhận thông tin của mình là đúng, em gọi lại cho bác sĩ luôn ạ.",
-      "Dạ lần trước mình có nhắc tới đau lưng, nay còn đau nhiều không anh/chị?"
+      "Dạ em xác nhận thông tin của mình là đúng ạ",
+      "(Nếu là khách quen): Dạ lần trước mình có nhắc tới đau lưng, nay còn đau nhiều không ạ?"
     ],
     "transitions": [
       {

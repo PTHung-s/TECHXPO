@@ -24,7 +24,7 @@ def _get_gemini_client():
     """Tạo client Gemini"""
     api_key = os.getenv("GOOGLE_API_KEY2")
     if not api_key:
-        raise ValueError("GEMINI_API_KEY not found in environment")
+        raise ValueError("GEMINI_API_KEY2 not found in environment")
     return genai.Client(api_key=api_key)
 
 EXTRACTION_PROMPT = """
@@ -117,16 +117,15 @@ def extract_facts_and_summary(
             if hasattr(candidate, 'content') and candidate.content.parts:
                 content_text = candidate.content.parts[0].text
                 try:
-                    # Try to parse as JSON first
                     result = json.loads(content_text)
-                    return {
-                        "facts": result.get("facts", existing_facts),
-                        "summary": result.get("summary", "")
-                    }
+                    facts_out = result.get("facts", existing_facts)
+                    summary_out = result.get("summary", "")
+                    print(f"[FactsExtractor] parsed JSON facts_len={len(facts_out)} summary_len={len(summary_out)}")
+                    return {"facts": facts_out, "summary": summary_out}
                 except json.JSONDecodeError:
-                    # Fallback: extract from text response
                     facts = _extract_section(content_text, "facts") or existing_facts
                     summary = _extract_section(content_text, "summary") or ""
+                    print(f"[FactsExtractor] fallback parse facts_len={len(facts)} summary_len={len(summary)}")
                     return {"facts": facts, "summary": summary}
         
         # Fallback if no valid response

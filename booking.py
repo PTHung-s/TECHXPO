@@ -210,7 +210,7 @@ class BookingOption(BaseModel):
     score: Optional[float] = None
 
 class BookingResult(BaseModel):
-    options: List[BookingOption] = Field(..., description="Danh sách tối đa 4 lựa chọn")
+    options: List[BookingOption] = Field(..., description="Danh sách tối đa 3 lựa chọn")
     chosen: BookingOption = Field(..., description="Lựa chọn cuối cùng agent chọn")
     rationale: Optional[str] = None
     patient_name: Optional[str] = None

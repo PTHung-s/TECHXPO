@@ -3,6 +3,8 @@ import os
 import json
 import asyncio
 import contextlib
+import threading
+import time
 from typing import Optional, Callable, Dict, Any
 from livekit.agents import function_tool, RunContext
 from storage import get_customer_by_phone, build_personal_context, get_recent_visits
@@ -368,9 +370,7 @@ def build_all_tools(
     async def finalize_visit(context: RunContext) -> dict:
         if shared.get("closing"):
             return {"ok": False, "message": "Đang đóng phiên."}
-        # Không chờ playout nữa để đóng nhanh; assume câu chào đã phát trước khi gọi tool.
         if not shared.get("allow_finalize") or shared.get("latest_booking") is None:
-            # Cho phép vẫn đóng (force) nhưng đánh dấu partial
             pass
         session = shared.get("session")
         ctx = shared.get("ctx")
@@ -384,50 +384,181 @@ def build_all_tools(
         except Exception:
             pass
 
-        # Snapshot identity for background task
         ident_name = identity_state.get("patient_name") or ""
         ident_phone = identity_state.get("phone") or ""
-
         extract_facts_fn = shared.get("extract_facts_and_summary")
+        loop = asyncio.get_running_loop()
 
-        async def _bg_finalize():
+        def _bg_finalize_thread():
+            start_t = time.time()
+            print("[FinalizeThread] start")
+            def _coerce_text(val):
+                if isinstance(val, (str, type(None))):
+                    return val or ""
+                try:
+                    return json.dumps(val, ensure_ascii=False)
+                except Exception:
+                    return str(val)
+            def _pretty_jsonish(text: str) -> str:
+                """Convert a JSON-looking string to bullet list; else return original."""
+                if not text or not isinstance(text, str):
+                    return text
+                s = text.strip()
+                if not (s.startswith('{') and s.endswith('}')):
+                    return text
+                try:
+                    obj = json.loads(s)
+                except Exception:
+                    return text
+                lines = []
+                def emit(prefix, value, indent=0):
+                    pad = '  ' * indent
+                    if isinstance(value, dict):
+                        if prefix:
+                            lines.append(f"{pad}- {prefix}:")
+                        for k,v in value.items():
+                            emit(k, v, indent+1 if prefix else indent)
+                    elif isinstance(value, list):
+                        if prefix:
+                            lines.append(f"{pad}- {prefix}:")
+                        for i, item in enumerate(value, start=1):
+                            emit(f"{i}", item, indent+1)
+                    else:
+                        if prefix:
+                            lines.append(f"{pad}- {prefix}: {value}")
+                        else:
+                            lines.append(f"{pad}- {value}")
+                if isinstance(obj, dict):
+                    for k,v in obj.items():
+                        emit(k, v)
+                    pretty = '\n'.join(lines)
+                    return pretty if pretty else text
+                return text
             try:
+                # 1) Summary
                 try:
-                    summary = await asyncio.to_thread(summarize_visit_json, combined, clinic_defaults, latest_booking)
-                except Exception:
-                    summary = {"raw_transcript": transcript_lines, "booking": latest_booking}
-                patient_name = summary.get("patient_name") or ident_name
-                phone = summary.get("phone") or ident_phone
+                    summary_obj = summarize_visit_json(combined, clinic_defaults, latest_booking)
+                except Exception as e:
+                    print(f"[FinalizeThread] summarize_visit_json error: {e}")
+                    summary_obj = {"raw_transcript": transcript_lines, "booking": latest_booking}
+                # 2) Normalize
+                normalized_summary_obj = {}
+                if isinstance(summary_obj, dict):
+                    for k, v in summary_obj.items():
+                        if isinstance(v, (dict, list)):
+                            normalized_summary_obj[k] = json.dumps(v, ensure_ascii=False)
+                        else:
+                            normalized_summary_obj[k] = v
+                else:
+                    normalized_summary_obj = {"summary_raw": _coerce_text(summary_obj)}
+                patient_name = normalized_summary_obj.get("patient_name") or ident_name
+                phone = normalized_summary_obj.get("phone") or ident_phone
+                # 3) Customer
                 try:
-                    cid, _ = await asyncio.to_thread(get_or_create_customer, patient_name, phone)
-                except Exception:
+                    cid, _ = get_or_create_customer(patient_name, phone)
+                except Exception as e:
+                    print(f"[FinalizeThread] get_or_create_customer error: {e}")
                     cid = "UNKNOWN"
-                summary["customer_id"] = cid
+                # 4) Facts + summary advanced
                 if extract_facts_fn:
                     try:
                         from storage import get_customer_facts_summary, update_customer_facts_summary
-                        existing_data = await asyncio.to_thread(get_customer_facts_summary, cid)
-                        facts_result = await asyncio.to_thread(
-                            extract_facts_fn,
-                            combined,
-                            existing_data.get("facts", ""),
-                            existing_data.get("last_summary", ""),
-                        )
-                        new_facts = facts_result.get("facts", "")
-                        new_summary = facts_result.get("summary", "")
-                        await asyncio.to_thread(update_customer_facts_summary, cid, new_facts, new_summary)
-                        await asyncio.to_thread(save_visit, cid, summary, final=True, summary=new_summary, facts=new_facts)
-                        if os.getenv("KIOSK_DEBUG_PERSONAL", "0") == "1":
-                            print(f"[Facts Extraction] cid={cid} facts_len={len(new_facts)} summary_len={len(new_summary)}")
+                        try:
+                            existing_data = get_customer_facts_summary(cid)
+                        except Exception as e:
+                            print(f"[FinalizeThread] get_customer_facts_summary error: {e}")
+                            existing_data = {}
+                        existing_facts = existing_data.get("facts", "") if isinstance(existing_data, dict) else ""
+                        existing_summary_text = existing_data.get("last_summary", "") if isinstance(existing_data, dict) else ""
+                        try:
+                            facts_result = extract_facts_fn(combined, existing_facts, existing_summary_text)
+                        except Exception as e:
+                            print(f"[FinalizeThread] extract_facts_fn error: {e}")
+                            facts_result = {}
+                        print(f"[Facts Extraction] raw_result keys: {list(facts_result.keys()) if isinstance(facts_result, dict) else type(facts_result)}")
+                        new_facts = facts_result.get("facts", "") if isinstance(facts_result, dict) else ""
+                        new_summary = facts_result.get("summary", "") if isinstance(facts_result, dict) else ""
+                        # Coerce non-string facts/summary to JSON text early
+                        if not isinstance(new_facts, (str, type(None))):
+                            try:
+                                new_facts = json.dumps(new_facts, ensure_ascii=False)
+                            except Exception:
+                                new_facts = str(new_facts)
+                        if not isinstance(new_summary, (str, type(None))):
+                            try:
+                                new_summary = json.dumps(new_summary, ensure_ascii=False)
+                            except Exception:
+                                new_summary = str(new_summary)
+                        def _preview(txt):
+                            try:
+                                return txt[:400] if isinstance(txt, str) else str(txt)[:400]
+                            except Exception:
+                                return "(preview_err)"
+                        print(f"[Facts Extraction] facts len={len(new_facts)} preview={_preview(new_facts)}")
+                        print(f"[Facts Extraction] summary len={len(new_summary)} preview={_preview(new_summary)}")
+                        cfacts = _coerce_text(new_facts)
+                        csummary = _coerce_text(new_summary)
+                        # Pretty formatting (for storage & later injection)
+                        cfacts_pretty = _pretty_jsonish(cfacts)
+                        csummary_pretty = _pretty_jsonish(csummary)
+                        try:
+                            update_customer_facts_summary(cid, cfacts_pretty, csummary_pretty)
+                        except Exception as e:
+                            print(f"[Facts Extraction] update_customer_facts_summary error: {e} types: facts={type(cfacts_pretty)} summary={type(csummary_pretty)}")
+                        try:
+                            base_payload = normalized_summary_obj if isinstance(normalized_summary_obj, dict) else {"summary_raw": _coerce_text(normalized_summary_obj)}
+                            # Build final payload structure (avoid accidental string)
+                            final_payload = {
+                                "patient_name": patient_name,
+                                "phone": phone,
+                                "booking": latest_booking,
+                                "summary_struct": base_payload,
+                                "facts_pretty": cfacts_pretty,
+                                "summary_pretty": csummary_pretty,
+                            }
+                            # Extra fields from base_payload pulled up for convenience
+                            for k in ("doctor_name","appointment_time","slot_time","preferred_time"):
+                                if k in base_payload and k not in final_payload:
+                                    final_payload[k] = base_payload[k]
+                            print(f"[FinalizeThread] save_visit final_payload keys={list(final_payload.keys())}")
+                            save_visit(
+                                cid,
+                                final_payload,
+                                final=True,
+                                summary=csummary_pretty,
+                                facts=cfacts_pretty,
+                            )
+                        except Exception as e:
+                            print(f"[FinalizeThread] save_visit (final) error: {e}")
+                            try:
+                                fallback_payload = {
+                                    "patient_name": patient_name,
+                                    "phone": phone,
+                                    "summary_raw": _coerce_text(normalized_summary_obj),
+                                    "booking": latest_booking,
+                                }
+                                print(f"[FinalizeThread] save_visit fallback payload type={type(fallback_payload)}")
+                                save_visit(cid, fallback_payload)
+                            except Exception as ee:
+                                print(f"[FinalizeThread] save_visit fallback error: {ee}")
                     except Exception as e:
-                        print(f"[Facts Extraction] BG error: {e}")
-                        await asyncio.to_thread(save_visit, cid, summary)
+                        print(f"[FinalizeThread] facts pipeline error: {e}")
+                        try:
+                            base_payload = normalized_summary_obj if isinstance(normalized_summary_obj, dict) else {"summary_raw": _coerce_text(normalized_summary_obj)}
+                            save_visit(cid, {"patient_name": patient_name, "phone": phone, "booking": latest_booking, "summary_struct": base_payload})
+                        except Exception as ee:
+                            print(f"[FinalizeThread] save_visit (no facts) error: {ee}")
                 else:
-                    await asyncio.to_thread(save_visit, cid, summary)
+                    try:
+                            base_payload = normalized_summary_obj if isinstance(normalized_summary_obj, dict) else {"summary_raw": _coerce_text(normalized_summary_obj)}
+                            save_visit(cid, {"patient_name": patient_name, "phone": phone, "booking": latest_booking, "summary_struct": base_payload})
+                    except Exception as e:
+                        print(f"[FinalizeThread] save_visit (no extractor) error: {e}")
             except Exception as e:
-                print(f"[Finalize BG] error: {e}")
+                print(f"[FinalizeThread] error: {e}")
             finally:
-                # Đóng session/room sau khi hoàn tất lưu để tránh hủy executor sớm
+                dur = time.time() - start_t
+                print(f"[FinalizeThread] done in {dur:.2f}s")
                 async def _late_close():
                     with contextlib.suppress(Exception):
                         if session is not None:
@@ -436,17 +567,17 @@ def build_all_tools(
                         if ctx and ctx.room:
                             await ctx.room.disconnect()
                     state.clear()
-                asyncio.create_task(_late_close())
+                try:
+                    asyncio.run_coroutine_threadsafe(_late_close(), loop)
+                except Exception:
+                    pass
 
-        # Mark closing & clear finalize gate
+        th = threading.Thread(target=_bg_finalize_thread, name="FinalizeThread", daemon=True)
+        shared["finalize_thread"] = th
+        th.start()
         shared["allow_finalize"] = False
         shared["latest_booking"] = None
         shared["closing"] = True
-
-        # Fire background finalize
-        asyncio.create_task(_bg_finalize())
-
-        # Thông báo wrapup_done ngay để UI đóng, giữ session lại cho đến khi background kết thúc
         try:
             publish_data({"type": "wrapup_done", "message": "Visit finalized; background saving"})
         except Exception:
