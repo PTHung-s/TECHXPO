@@ -42,6 +42,14 @@
     .hidden { display:none !important; }
   #inCall { flex:1; display:flex; flex-direction:column; position:relative; padding:0 clamp(.75rem,2.8vw,2rem) clamp(.8rem,2vw,1.2rem); gap:.75rem; }
   #infoPanel { flex:1 1 auto; min-height:55vh; background:var(--panel); backdrop-filter:blur(18px) saturate(160%); border:1px solid var(--border); border-radius:1.3rem; padding:1.15rem 1.2rem 1.25rem; display:flex; flex-direction:column; box-shadow:0 4px 34px -6px rgba(0,0,0,.55), 0 0 0 1px rgba(255,255,255,.04); }
+  /* Glow states */
+  #infoPanel.glow-blue { box-shadow:0 0 0 2px rgba(59,130,246,.8),0 0 18px 4px rgba(59,130,246,.45),0 4px 34px -6px rgba(0,0,0,.55); transition:box-shadow .45s; animation:glowPulse 3.2s ease-in-out infinite; }
+  #infoPanel.glow-green { box-shadow:0 0 0 2px rgba(16,185,129,.85),0 0 18px 4px rgba(16,185,129,.45),0 4px 34px -6px rgba(0,0,0,.55); transition:box-shadow .45s; animation:glowPulse 3.2s ease-in-out infinite; }
+  #infoPanel.glow-purple { box-shadow:0 0 0 2px rgba(139,92,246,.85),0 0 18px 4px rgba(139,92,246,.45),0 4px 34px -6px rgba(0,0,0,.55); transition:box-shadow .45s; animation:glowPulse 3.2s ease-in-out infinite; }
+  /* Stronger slower pulse ONLY while booking_pending (amber) */
+  #infoPanel.glow-amber { box-shadow:0 0 0 2px rgba(245,158,11,.9),0 0 20px 6px rgba(245,158,11,.55),0 4px 34px -6px rgba(0,0,0,.55); transition:box-shadow .45s; animation:amberPulse 2.4s ease-in-out infinite; }
+  @keyframes glowPulse { 0%,100%{ filter:brightness(1);} 50%{ filter:brightness(1.13);} }
+  @keyframes amberPulse { 0%{ filter:brightness(1); box-shadow:0 0 0 2px rgba(245,158,11,.75),0 0 14px 3px rgba(245,158,11,.35),0 4px 34px -6px rgba(0,0,0,.55);} 50%{ filter:brightness(1.28); box-shadow:0 0 0 3px rgba(245,158,11,1),0 0 28px 10px rgba(245,158,11,.75),0 4px 40px -4px rgba(0,0,0,.65);} 100%{ filter:brightness(1); box-shadow:0 0 0 2px rgba(245,158,11,.75),0 0 14px 3px rgba(245,158,11,.35),0 4px 34px -6px rgba(0,0,0,.55);} }
   #infoPanel h3 { margin:.1rem 0 1rem; font-size:.9rem; font-weight:600; letter-spacing:.6px; }
   #infoBody { flex:1; overflow:auto; scrollbar-width:thin; }
   #infoBody::-webkit-scrollbar { width:8px; }

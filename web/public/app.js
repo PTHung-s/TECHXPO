@@ -172,6 +172,7 @@ function drawWave(){
 
 function showIdentity(data){
   infoPanel.classList.add('show')
+  // Visual glow for propose / confirm handled externally by caller
   infoTitle.textContent = 'Thông tin bệnh nhân'
   infoBody.innerHTML = `<div class="grid-two" style="display:grid;grid-template-columns:1fr 1fr;gap:.55rem .9rem;font-size:.65rem;">\n  <div><label style='display:block;font-size:.5rem;opacity:.55;text-transform:uppercase;letter-spacing:.5px;'>Họ tên</label>${data.patient_name || '<i>(chưa)</i>'}</div>\n  <div><label style='display:block;font-size:.5rem;opacity:.55;text-transform:uppercase;letter-spacing:.5px;'>SĐT</label>${data.phone || '<i>(chưa)</i>'}</div>\n</div>`
   infoActions.innerHTML = ''
@@ -263,12 +264,22 @@ function attachEvents(r){
     try {
       const msg = JSON.parse(new TextDecoder().decode(payload))
       switch(msg.type){
-        case 'identity_captured': log('Identity đề xuất'); showIdentity(msg); break
-        case 'identity_confirmed': 
-          log('Identity xác nhận'); identityConfirmed=true; showIdentity(msg); 
+        case 'identity_captured':
+          log('Identity đề xuất');
+          showIdentity(msg);
+          infoPanel.classList.remove('glow-green','glow-amber','glow-purple')
+          infoPanel.classList.add('glow-blue') // propose -> blue
+          break
+        case 'identity_confirmed':
+          log('Identity xác nhận');
+          identityConfirmed=true; showIdentity(msg);
+          infoPanel.classList.remove('glow-blue','glow-amber','glow-purple')
+          infoPanel.classList.add('glow-green') // confirm -> green
           break
         case 'identity_updated': 
           log('Identity cập nhật'); identityConfirmed=true; showIdentity(msg); 
+          infoPanel.classList.remove('glow-blue','glow-amber','glow-purple')
+          infoPanel.classList.add('glow-green')
           break
         case 'personal_context_loaded':
           log('Personal context loaded: ' + (msg.visits_count || 0) + ' visits')
@@ -281,9 +292,26 @@ function attachEvents(r){
           }
           break
   case 'identity_updated': log('Identity cập nhật'); identityConfirmed=true; showIdentity(msg); break
-        case 'booking_pending': log('Đang đặt lịch'); showBookingPending(); break
-        case 'booking_result': log('Đặt lịch xong'); showBooking(msg); break
-  case 'booking_option_chosen': log('Đã chọn 1 phương án'); showBooking(msg.booking || msg); break
+        case 'booking_pending':
+          log('Đang đặt lịch');
+          showBookingPending();
+          infoPanel.classList.remove('glow-green','glow-purple')
+          infoPanel.classList.add('glow-amber') // searching -> amber
+          break
+        case 'booking_result':
+          log('Đặt lịch xong');
+          showBooking(msg);
+          // list options -> purple highlight
+          infoPanel.classList.remove('glow-amber','glow-green')
+          infoPanel.classList.add('glow-purple')
+          break
+        case 'booking_option_chosen':
+          log('Đã chọn 1 phương án');
+          showBooking(msg.booking || msg);
+          // finalize chosen -> green
+          infoPanel.classList.remove('glow-amber','glow-blue','glow-purple')
+          infoPanel.classList.add('glow-green')
+          break
   case 'booking_error': log('Lỗi đặt lịch'); infoTitle.textContent='Đặt lịch'; infoBody.innerHTML='<span style="color:#dc2626;font-size:.65rem;">Không đặt được lịch, sẽ thử lại sau.</span>'; break
         case 'wrapup_done': log('Kết thúc phiên'); hangup(); break
         default: log('DATA '+ JSON.stringify(msg))

@@ -219,7 +219,7 @@ class BookingResult(BaseModel):
 
 
 SYSTEM = (
-    "Bạn là trợ lý gợi ý lịch khám đa bệnh viện. Tạo <=4 options (đa dạng nếu có thể), mỗi option hợp lệ từ dữ liệu. Chọn 1 final vào 'chosen'. Không bịa. Không thêm text ngoài JSON."
+    "Bạn là trợ lý gợi ý lịch khám đa bệnh viện. Tạo <=3 options (đa dạng nếu có thể), mỗi option hợp lệ từ dữ liệu. Chọn 1 final vào 'chosen'. Không bịa. Không thêm text ngoài JSON."
 )
 
 
@@ -262,7 +262,7 @@ def book_appointment(
         "# TRANSCRIPT HỘI THOẠI\n"
         f"{history_text}\n\n"
         "# YÊU CẦU\n"
-        "1) Phân tích nhu cầu. 2) Sinh tối đa 4 options tốt nhất (ưu tiên phù hợp triệu chứng). 3) Chọn 1 final trong 'chosen'. 4) speak_text ngắn các options có."
+        "1) Phân tích nhu cầu. 2) Sinh tối đa 3 options tốt nhất (ưu tiên phù hợp triệu chứng). 3) Chọn 1 final trong 'chosen'. 4) speak_text ngắn các options có nhưng chú ý khi thông báo thời gian, không được nói năm nha, chỉ cần nói giờ và ngày tháng thôi)."
     )
 
     try:
@@ -327,9 +327,7 @@ def book_appointment(
         result_dict = {"options": [opt], "chosen": opt}
 
     chosen = result_dict.get("chosen") or (result_dict.get("options") or [{}])[0]
-    # Build speak_text if missing
-    if not result_dict.get("speak_text"):
-        result_dict["speak_text"] = _build_speak_text(chosen)
+    # Không tự động tạo speak_text nữa -> để realtime agent tự diễn đạt tự nhiên
 
     # ---- Gắn image_url dựa vào hospital_code đã load ----
     try:

@@ -342,12 +342,13 @@ def build_all_tools(
             return {"ok": False, "error": "invalid_index", "count": len(options)}
         chosen = options[option_index]
         latest["chosen"] = chosen
-        # regenerate speak_text concise
+        # Không ép generate speak_text cố định nữa; để model tự nói.
+        latest.pop("speak_text", None)
         try:
-            from booking import _build_speak_text  # reuse helper
-            latest["speak_text"] = _build_speak_text(chosen)
+            # Thêm system line mô tả option đã chọn để model quan sát
+            state.add("system", f"BOOKING_CHOSEN doctor={chosen.get('doctor_name')} hospital={chosen.get('hospital')} time={chosen.get('slot_time')}")
         except Exception:
-            latest["speak_text"] = f"Đã chọn lịch với {chosen.get('doctor_name')} tại {chosen.get('hospital')} lúc {chosen.get('slot_time')}"
+            pass
         shared["latest_booking"] = latest
         shared["allow_finalize"] = True
         publish_data({
@@ -361,7 +362,7 @@ def build_all_tools(
             "chosen_index": option_index,
             "chosen": chosen,
             "options": options,
-            "speak_text": latest.get("speak_text"),
+            "speak_text": latest.get("speak_text"),  # likely None now
             "message": "Đã chọn phương án đặt lịch.",
         }
 
