@@ -20,7 +20,7 @@ def _to_jsonable(x):
     return x
 
 def _client():
-    api_key = (os.getenv("GOOGLE_API_KEY2") or os.getenv("GEMINI_API_KEY2"))
+    api_key = (os.getenv("GOOGLE_API_KEY2"))
     return genai.Client(api_key=api_key) if api_key else genai.Client()
 
 def _json_dumps(x) -> str:

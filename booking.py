@@ -46,7 +46,7 @@ def _merge_multi(data_list: List[Dict[str, Any]]) -> Dict[str, Any]:
 
 
 def _pick_api_key() -> str:
-    return os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY") or ""
+    return os.getenv("GOOGLE_API_KEY2")
 
 
 # ---------------- Debug helpers ----------------

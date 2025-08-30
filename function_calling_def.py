@@ -167,31 +167,39 @@ def build_all_tools(
     ) -> dict:
         if not identity_state.get("identity_confirmed"):
             return {"ok": False, "error": "identity_not_confirmed", "message": "Chưa xác nhận họ tên & SĐT."}
+        # Ngăn spam khi đang chạy
+        if shared.get("booking_in_progress"):
+            return {"ok": False, "error": "booking_in_progress", "message": "Đang tra cứu lịch, vui lòng chờ."}
+        # Đảm bảo không chồng tiếng trước khi tool bắt đầu (tránh timeout realtime)
+        with contextlib.suppress(Exception):
+            await context.wait_for_playout()
         prev = shared.get("latest_booking")
         if prev and preferred_time and prev.get("preferred_time") == preferred_time:
             return {"ok": False, "error": "duplicate_booking", "message": "Lịch này đã được đặt, hãy chọn thời điểm khác."}
+
         raw_phone = (phone or "").strip()
         raw_name = (patient_name or "").strip() or "(không rõ)"
         if not PHONE_RE_BASIC.match(raw_phone):
             raw_phone = raw_phone or "(không rõ)"
         if symptoms:
             state.add("user", f"Triệu chứng khai báo: {symptoms}")
-        
-        # Get RAG guidelines context for booking decision
+
+        # Snapshot history (không chặn user tiếp tục nói)
         history = "\n".join(state.lines)
         rag = shared.get("rag")
         if rag and symptoms:
-            # Query guidelines for symptom-specific booking advice
-            guideline_ctx = rag.query(symptoms, k=3, max_chars=600)
-            if guideline_ctx and "[GUIDELINES]" in guideline_ctx:
-                history += f"\n\n[MEDICAL_GUIDELINES]\n{guideline_ctx}\n[/MEDICAL_GUIDELINES]"
-        
+            try:
+                guideline_ctx = rag.query(symptoms, k=3, max_chars=600)
+                if guideline_ctx and "[GUIDELINES]" in guideline_ctx:
+                    history += f"\n\n[MEDICAL_GUIDELINES]\n{guideline_ctx}\n[/MEDICAL_GUIDELINES]"
+            except Exception:
+                pass
+
+        # Lấy cấu hình datasources
         data_path = os.getenv("CLINIC_DATA_PATH", "./clinic_data.json")
         book_model = os.getenv("BOOK_MODEL", "gemini-2.5-flash")
-        # Multi-hospital support: CLINIC_DATA_PATHS env (comma separated) OR default known sample files
         extra_paths_env = os.getenv("CLINIC_DATA_PATHS", "")
         extra_paths = []
-        # Fallback: nếu file chính không tồn tại thì quét thư mục Booking_data lấy các JSON
         if not os.path.exists(data_path):
             bd_dir = os.getenv("CLINIC_DATA_DIR", "./Booking_data")
             if os.path.isdir(bd_dir):
@@ -200,65 +208,114 @@ def build_all_tools(
                     files.sort()
                     if files:
                         data_path = files[0]
-                        # tạm lấy tối đa 5 file còn lại làm extra
                         auto_extra = files[1:]
                         extra_paths.extend([p for p in auto_extra if p != data_path])
                 except Exception:
                     pass
         if extra_paths_env.strip():
             extra_paths = [p.strip() for p in extra_paths_env.split(",") if p.strip() and p.strip() != data_path]
-        else:
-            # Auto-detect common multi hospital sample files co-located with primary
-            defaults = [
-                "./clinic_data_hospitalA.json",
-                "./clinic_data_hospitalB.json",
-                "./clinic_data_hospitalC.json",
-            ]
-            for p in defaults:
-                if os.path.exists(p) and p != data_path:
-                    extra_paths.append(p)
-        # Merge any duplicates away
-        seen = set()
-        _dedup = []
+        seen = set(); _dedup = []
         for p in extra_paths:
             if p not in seen:
                 seen.add(p); _dedup.append(p)
         extra_paths = _dedup
 
-        # Thay vì chạy nền (model không thấy kết quả), ta làm đồng bộ để tool result chứa toàn bộ options.
+        shared["booking_in_progress"] = True
+        # Báo UI đang xử lý
         publish_data({
             "type": "booking_pending",
             "patient_name": raw_name,
             "phone": raw_phone,
             "preferred_time": preferred_time,
         })
-        try:
-            result = await asyncio.to_thread(
-                book_appointment,
-                history,
-                data_path,
-                book_model,
-                extra_paths,
-            )
-        except Exception as e:
-            return {"ok": False, "error": "booking_failed", "message": str(e)}
 
-        if symptoms and not result.get("symptoms"):
-            result["symptoms"] = symptoms
-        shared["latest_booking"] = result
-        shared["allow_finalize"] = True
-        publish_data({
-            "type": "booking_result",
-            "booking": result,
-            "multi": bool(result.get("options")),
-        })
-        # Trả về đầy đủ để LLM đọc được tất cả option (options + chosen + speak_text)
+        session = shared.get("session")
+        talker = shared.get("talker")
+
+        # Guard chống bịa lịch trước khi có booking_result
+        if not shared.get("booking_guard_added"):
+            state.add("system", "BOOKING_GUARD: ĐANG TRA CỨU LỊCH - KHÔNG ĐƯỢC NÊU GIỜ/BÁC SĨ/BỆNH VIỆN CỤ THỂ TRƯỚC KHI NHẬN booking_result.")
+            shared["booking_guard_added"] = True
+
+        async def _run_booking():
+            try:
+                result = await asyncio.to_thread(
+                    book_appointment,
+                    history,
+                    data_path,
+                    book_model,
+                    extra_paths,
+                )
+                if symptoms and not result.get("symptoms"):
+                    result["symptoms"] = symptoms
+                shared["latest_booking"] = result
+                shared["allow_finalize"] = True
+                publish_data({
+                    "type": "booking_result",
+                    "booking": result,
+                    "multi": bool(result.get("options")),
+                })
+                # Kết thúc guard
+                if shared.get("booking_guard_added"):
+                    state.add("system", "BOOKING_GUARD_END")
+                    shared["booking_guard_added"] = False
+                # Sau khi có kết quả, tự động tạo 1 câu nói để trình bày
+                try:
+                    # Tạo đoạn tóm tắt options
+                    opts = result.get("options") or []
+                    # Lưu JSON vào transcript (truncate để tránh quá dài)
+                    try:
+                        _json_short = json.dumps(result, ensure_ascii=False)
+                        if len(_json_short) > 1800:
+                            _json_short = _json_short[:1800] + "...TRUNCATED"
+                        state.add("system", f"BOOKING_JSON { _json_short }")
+                    except Exception:
+                        pass
+                    base_txt = result.get("speak_text")
+                    if opts:
+                        lines = []
+                        for i, o in enumerate(opts, start=1):
+                            frag = f"[{i}] {o.get('hospital','?')} - BS {o.get('doctor_name','?')} {o.get('slot_time','?')}"
+                            lines.append(frag)
+                        listing = "; ".join(lines)
+                        if not base_txt:
+                            base_txt = f"Em đã tìm được {len(opts)} lịch: {listing}. Em đề xuất ưu tiên lịch số 1. Mình thấy ổn không ạ hay muốn chọn lịch khác?"
+                        else:
+                            base_txt += f" Hiện có {len(opts)} lựa chọn: {listing}. Mình muốn lịch nào ạ?"
+                    else:
+                        if not base_txt:
+                            base_txt = "Em đã đặt được một lịch khám phù hợp. Mình xem thử có cần điều chỉnh gì không ạ?"
+                    if session is not None and base_txt:
+                        handle = await session.generate_reply(instructions=base_txt)
+                        await handle
+                except Exception:
+                    pass
+            except Exception as e:
+                publish_data({
+                    "type": "booking_error",
+                    "error": str(e),
+                })
+                if shared.get("booking_guard_added"):
+                    state.add("system", "BOOKING_GUARD_END")
+                    shared["booking_guard_added"] = False
+                try:
+                    if session is not None:
+                        handle = await session.generate_reply(instructions="Em xin lỗi, hiện tại hệ thống đặt lịch gặp lỗi, mình có muốn thử lại một lát nữa không ạ?")
+                        await handle
+                except Exception:
+                    pass
+            finally:
+                shared["booking_in_progress"] = False
+
+        # chạy nền
+        asyncio.create_task(_run_booking())
+
+        # Trả về ngay để LLM có thể tiếp tục nói câu giữ chân
         return {
             "ok": True,
-            "booking": result,
-            "multi": bool(result.get("options")),
-            "speak_text": result.get("speak_text"),
-            "message": "Đã lấy danh sách lựa chọn lịch (có thể dùng choose_booking_option để đổi).",
+            "pending": True,
+            "speak_text": "Dạ em đang tìm lịch phù hợp cho mình ạ, xin vui lòng đợi và giữ máy một chút nhé. Em sẽ thông báo lịch khám ngay ạ",
+            "instruction": "Không được cung cấp lịch khám cụ thể cho tới khi nhận booking_result. Nếu cần nói gì thêm chỉ nhắc bệnh nhân chờ.",
         }
 
     @function_tool

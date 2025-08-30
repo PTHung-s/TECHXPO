@@ -247,7 +247,7 @@ Chậm rãi, từng bước một, không nói quá nhiều trong một lượt.
 
 
 # Logging
-logging.basicConfig(level=getattr(logging, os.getenv("KIOSK_LOG_LEVEL", "DEBUG").upper(), logging.INFO))
+logging.basicConfig(level=getattr(logging, os.getenv("KIOSK_LOG_LEVEL", "INFO").upper(), logging.INFO))
 log = logging.getLogger("kiosk")
 
 # ================== Bộ đệm ==================
@@ -420,6 +420,8 @@ async def entrypoint(ctx: JobContext):
             "rag": rag,
             "talker": talker,
             "extract_facts_and_summary": extract_facts_and_summary,
+            # booking async flag
+            "booking_in_progress": False,
             # marker flags
             "personal_context_injected": False,
             "personal_greet_done": False,

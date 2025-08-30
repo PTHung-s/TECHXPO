@@ -284,6 +284,7 @@ function attachEvents(r){
         case 'booking_pending': log('Đang đặt lịch'); showBookingPending(); break
         case 'booking_result': log('Đặt lịch xong'); showBooking(msg); break
   case 'booking_option_chosen': log('Đã chọn 1 phương án'); showBooking(msg.booking || msg); break
+  case 'booking_error': log('Lỗi đặt lịch'); infoTitle.textContent='Đặt lịch'; infoBody.innerHTML='<span style="color:#dc2626;font-size:.65rem;">Không đặt được lịch, sẽ thử lại sau.</span>'; break
         case 'wrapup_done': log('Kết thúc phiên'); hangup(); break
         default: log('DATA '+ JSON.stringify(msg))
       }
