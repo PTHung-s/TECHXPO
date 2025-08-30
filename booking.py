@@ -262,7 +262,7 @@ def book_appointment(
         "# TRANSCRIPT HỘI THOẠI\n"
         f"{history_text}\n\n"
         "# YÊU CẦU\n"
-        "1) Phân tích nhu cầu. 2) Sinh tối đa 4 options tốt nhất (ưu tiên phù hợp triệu chứng). 3) Chọn 1 final trong 'chosen'. 4) speak_text ngắn."
+        "1) Phân tích nhu cầu. 2) Sinh tối đa 4 options tốt nhất (ưu tiên phù hợp triệu chứng). 3) Chọn 1 final trong 'chosen'. 4) speak_text ngắn các options có."
     )
 
     try:

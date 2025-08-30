@@ -22,7 +22,7 @@ class FactsAndSummary(BaseModel):
 
 def _get_gemini_client():
     """Tạo client Gemini"""
-    api_key = os.getenv("GOOGLE_API_KEY")
+    api_key = os.getenv("GOOGLE_API_KEY2")
     if not api_key:
         raise ValueError("GEMINI_API_KEY not found in environment")
     return genai.Client(api_key=api_key)

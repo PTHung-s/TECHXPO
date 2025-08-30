@@ -261,33 +261,36 @@ def build_all_tools(
                     shared["booking_guard_added"] = False
                 # Sau khi có kết quả, tự động tạo 1 câu nói để trình bày
                 try:
-                    # Tạo đoạn tóm tắt options
+                    # Inject JSON (truncate) + options list as system context, không ép câu thoại cố định
+                    _json_short = json.dumps(result, ensure_ascii=False)
+                    if len(_json_short) > 1800:
+                        _json_short = _json_short[:1800] + "...TRUNCATED"
+                    state.add("system", f"BOOKING_JSON {_json_short}")
                     opts = result.get("options") or []
-                    # Lưu JSON vào transcript (truncate để tránh quá dài)
-                    try:
-                        _json_short = json.dumps(result, ensure_ascii=False)
-                        if len(_json_short) > 1800:
-                            _json_short = _json_short[:1800] + "...TRUNCATED"
-                        state.add("system", f"BOOKING_JSON { _json_short }")
-                    except Exception:
-                        pass
-                    base_txt = result.get("speak_text")
                     if opts:
                         lines = []
                         for i, o in enumerate(opts, start=1):
-                            frag = f"[{i}] {o.get('hospital','?')} - BS {o.get('doctor_name','?')} {o.get('slot_time','?')}"
-                            lines.append(frag)
-                        listing = "; ".join(lines)
-                        if not base_txt:
-                            base_txt = f"Em đã tìm được {len(opts)} lịch: {listing}. Em đề xuất ưu tiên lịch số 1. Mình thấy ổn không ạ hay muốn chọn lịch khác?"
-                        else:
-                            base_txt += f" Hiện có {len(opts)} lựa chọn: {listing}. Mình muốn lịch nào ạ?"
-                    else:
-                        if not base_txt:
-                            base_txt = "Em đã đặt được một lịch khám phù hợp. Mình xem thử có cần điều chỉnh gì không ạ?"
-                    if session is not None and base_txt:
-                        handle = await session.generate_reply(instructions=base_txt)
-                        await handle
+                            lines.append(f"BOOKING_OPT[{i}] hospital={o.get('hospital','?')} doctor={o.get('doctor_name','?')} time={o.get('slot_time','?')}")
+                        state.add("system", "\n".join(lines))
+                    # Phát speak_text (ngắn gọn) cho bệnh nhân nghe
+                    speak_text = (result.get("speak_text") or "").strip()
+                    if speak_text:
+                        try:
+                            # Chờ âm thanh trước (nếu còn) để tránh chồng tiếng
+                            with contextlib.suppress(Exception):
+                                await session.wait_for_playout()
+                        except Exception:
+                            pass
+                        try:
+                            # Dùng chỉ dẫn mạnh để model đọc nguyên văn, tránh tự paraphrase hoặc hỏi lại
+                            force_instr = (
+                                "ĐỌC NGUYÊN VĂN lịch khám vừa đặt cho bệnh nhân, không thêm câu hỏi hay diễn giải khác. "
+                                "Sau khi đọc xong thì dừng lại chờ bệnh nhân xác nhận. Câu cần đọc: \n" + speak_text
+                            )
+                            handle = await session.generate_reply(instructions=force_instr)
+                            await handle  # đợi tạo xong (âm thanh sẽ phát tiếp theo)
+                        except Exception:
+                            pass
                 except Exception:
                     pass
             except Exception as e:
@@ -314,7 +317,7 @@ def build_all_tools(
         return {
             "ok": True,
             "pending": True,
-            "speak_text": "Dạ em đang tìm lịch phù hợp cho mình ạ, xin vui lòng đợi và giữ máy một chút nhé. Em sẽ thông báo lịch khám ngay ạ",
+            "speak_text": "Dạ em đang tìm lịch phù hợp cho mình ạ, xin vui lòng đợi và giữ máy một chút nhé. Em sẽ thông báo lịch khám ngay khi có kết quả ạ",
             "instruction": "Không được cung cấp lịch khám cụ thể cho tới khi nhận booking_result. Nếu cần nói gì thêm chỉ nhắc bệnh nhân chờ.",
         }
 
@@ -365,9 +368,10 @@ def build_all_tools(
     async def finalize_visit(context: RunContext) -> dict:
         if shared.get("closing"):
             return {"ok": False, "message": "Đang đóng phiên."}
-        await context.wait_for_playout()
+        # Không chờ playout nữa để đóng nhanh; assume câu chào đã phát trước khi gọi tool.
         if not shared.get("allow_finalize") or shared.get("latest_booking") is None:
-            return {"ok": False, "message": "Chưa thể kết thúc: chưa có booking hợp lệ."}
+            # Cho phép vẫn đóng (force) nhưng đánh dấu partial
+            pass
         session = shared.get("session")
         ctx = shared.get("ctx")
         latest_booking = shared.get("latest_booking")
@@ -379,79 +383,74 @@ def build_all_tools(
             combined += "\n\n[BOOKING_JSON]\n" + json.dumps(latest_booking, ensure_ascii=False)
         except Exception:
             pass
-        
-        try:
-            summary = await asyncio.to_thread(summarize_visit_json, combined, clinic_defaults, latest_booking)
-            patient_name = summary.get("patient_name") or identity_state.get("patient_name") or ""
-            phone = summary.get("phone") or identity_state.get("phone") or ""
-            cid, _ = await asyncio.to_thread(get_or_create_customer, patient_name, phone)
-            summary["customer_id"] = cid
-            
-            # Extract facts and summary using facts_extractor
-            extract_facts_fn = shared.get("extract_facts_and_summary")
-            if extract_facts_fn:
+
+        # Snapshot identity for background task
+        ident_name = identity_state.get("patient_name") or ""
+        ident_phone = identity_state.get("phone") or ""
+
+        extract_facts_fn = shared.get("extract_facts_and_summary")
+
+        async def _bg_finalize():
+            try:
                 try:
-                    # Get existing facts and summary
-                    from storage import get_customer_facts_summary, update_customer_facts_summary
-                    existing_data = await asyncio.to_thread(get_customer_facts_summary, cid)
-                    
-                    # Extract new facts and summary
-                    facts_result = await asyncio.to_thread(
-                        extract_facts_fn,
-                        combined,  # new conversation
-                        existing_data.get("facts", ""),  # existing facts
-                        existing_data.get("last_summary", "")  # existing summary
-                    )
-                    
-                    new_facts = facts_result.get("facts", "")
-                    new_summary = facts_result.get("summary", "")
-
-                    if os.getenv("KIOSK_DEBUG_PERSONAL", "0") == "1":
-                        def _trunc(txt: str, lim: int = 600):
-                            return txt if len(txt) <= lim else txt[:lim] + " ...[TRUNCATED]"
-                        print(f"[Facts Extraction DEBUG cid={cid}] NEW_FACTS=\n{_trunc(new_facts)}")
-                        print(f"[Facts Extraction DEBUG cid={cid}] NEW_SUMMARY=\n{_trunc(new_summary)}")
-                    
-                    # Update customer facts and summary
-                    await asyncio.to_thread(update_customer_facts_summary, cid, new_facts, new_summary)
-                    
-                    # Save visit with extracted facts and summary
-                    await asyncio.to_thread(save_visit, cid, summary, final=True, summary=new_summary, facts=new_facts)
-                    
-                    print(f"[Facts Extraction] Updated customer {cid} facts_len={len(new_facts)} summary_len={len(new_summary)}")
-                    
-                except Exception as e:
-                    print(f"[Facts Extraction] Error: {e}")
-                    # Fallback to regular save
-                    await asyncio.to_thread(save_visit, cid, summary)
-            else:
-                # Fallback if extract_facts_and_summary not available
-                await asyncio.to_thread(save_visit, cid, summary)
-                
-        except Exception:
-            with contextlib.suppress(Exception):
-                await asyncio.to_thread(save_visit, "UNKNOWN", {"raw_transcript": transcript_lines, "booking": latest_booking})
-        finally:
-            shared["allow_finalize"] = False
-            shared["latest_booking"] = None
-            shared["closing"] = True
-
-            # Personalization reset removed (feature disabled)
-
-            async def _grace_close():
-                try:
-                    publish_data({"type": "wrapup_done", "message": "Visit finalized; closing"})
+                    summary = await asyncio.to_thread(summarize_visit_json, combined, clinic_defaults, latest_booking)
                 except Exception:
-                    pass
-                await asyncio.sleep(float(os.getenv("SESSION_CLOSE_DELAY", "1.0")))
-                with contextlib.suppress(Exception):
-                    if session is not None:
-                        await session.aclose()
-                with contextlib.suppress(Exception):
-                    if ctx and ctx.room:
-                        await ctx.room.disconnect()
-                state.clear()
-            asyncio.create_task(_grace_close())
-        return {"ok": True, "message": "Visit finalized; closing."}
+                    summary = {"raw_transcript": transcript_lines, "booking": latest_booking}
+                patient_name = summary.get("patient_name") or ident_name
+                phone = summary.get("phone") or ident_phone
+                try:
+                    cid, _ = await asyncio.to_thread(get_or_create_customer, patient_name, phone)
+                except Exception:
+                    cid = "UNKNOWN"
+                summary["customer_id"] = cid
+                if extract_facts_fn:
+                    try:
+                        from storage import get_customer_facts_summary, update_customer_facts_summary
+                        existing_data = await asyncio.to_thread(get_customer_facts_summary, cid)
+                        facts_result = await asyncio.to_thread(
+                            extract_facts_fn,
+                            combined,
+                            existing_data.get("facts", ""),
+                            existing_data.get("last_summary", ""),
+                        )
+                        new_facts = facts_result.get("facts", "")
+                        new_summary = facts_result.get("summary", "")
+                        await asyncio.to_thread(update_customer_facts_summary, cid, new_facts, new_summary)
+                        await asyncio.to_thread(save_visit, cid, summary, final=True, summary=new_summary, facts=new_facts)
+                        if os.getenv("KIOSK_DEBUG_PERSONAL", "0") == "1":
+                            print(f"[Facts Extraction] cid={cid} facts_len={len(new_facts)} summary_len={len(new_summary)}")
+                    except Exception as e:
+                        print(f"[Facts Extraction] BG error: {e}")
+                        await asyncio.to_thread(save_visit, cid, summary)
+                else:
+                    await asyncio.to_thread(save_visit, cid, summary)
+            except Exception as e:
+                print(f"[Finalize BG] error: {e}")
+            finally:
+                # Đóng session/room sau khi hoàn tất lưu để tránh hủy executor sớm
+                async def _late_close():
+                    with contextlib.suppress(Exception):
+                        if session is not None:
+                            await session.aclose()
+                    with contextlib.suppress(Exception):
+                        if ctx and ctx.room:
+                            await ctx.room.disconnect()
+                    state.clear()
+                asyncio.create_task(_late_close())
+
+        # Mark closing & clear finalize gate
+        shared["allow_finalize"] = False
+        shared["latest_booking"] = None
+        shared["closing"] = True
+
+        # Fire background finalize
+        asyncio.create_task(_bg_finalize())
+
+        # Thông báo wrapup_done ngay để UI đóng, giữ session lại cho đến khi background kết thúc
+        try:
+            publish_data({"type": "wrapup_done", "message": "Visit finalized; background saving"})
+        except Exception:
+            pass
+        return {"ok": True, "message": "Finalizing in background."}
 
     return [propose_identity, confirm_identity, schedule_appointment, choose_booking_option, finalize_visit]

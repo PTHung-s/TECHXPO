@@ -99,17 +99,17 @@ Chậm rãi, từng bước một, không nói quá nhiều trong một lượt.
     "instructions": [
       "Luôn bắt đầu bằng: 'Dạ Alo! Nhân viên của bệnh viện xin nghe ạ. Dạ em có thể hỗ trợ gì ạ.'",
       "Sau đó đợi người ta phản hồi lại rồi nói tiếp",
-      "Sau đó hỏi tên bệnh nhân: 'Dạ, cho em xin họ tên mình được không ạ?'"
+      "Sau đó hỏi tên bệnh nhân: 'Dạ, cho em xin họ tên và số điện thoại mình được không ạ?'"
     ],
     "examples": [
       "Dạ Alo! Nhân viên của bệnh viện xin nghe ạ. Dạ em có thể hỗ trợ gì ạ.",
       "Sau đó đợi người ta phản hồi lại rồi nói tiếp",
-      "Dạ, cho em xin họ tên mình được không ạ?"
+      "Dạ, cho em xin họ tên và số điện thoại  mình được không ạ?"
     ],
     "transitions": [
       {
         "next_step": "2_get_identity",
-        "condition": "Khi người dùng cung cấp họ tên hoặc số điện thoại."
+        "condition": "Khi người dùng cung cấp họ tên và số điện thoại."
       }
     ]
   },
