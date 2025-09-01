@@ -1,7 +1,10 @@
 python-dotenv>=1.0.0,<2.0
 # google-genai needs pydantic >=2,<3
 google-genai>=0.8.0,<0.9.0
-livekit-plugins-google
+# Need newer agents for llm.function_context + Google realtime plugin
+livekit-agents>=0.11.0,<0.12.0
+# Google plugin (namespace livekit.plugins.google.*)
+livekit-plugins-google>=0.2.0,<0.3.0
 PyYAML>=6.0
 pydantic>=2.4,<3.0
 scikit-learn>=1.4.0
