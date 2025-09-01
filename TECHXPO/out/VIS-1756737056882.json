@@ -1,0 +1,72 @@
+{
+  "patient_name": "Phạm Tuấn Hưng",
+  "phone": "0336018126",
+  "booking": {
+    "options": [
+      {
+        "hospital": "Bệnh Viện Đà Nẵng",
+        "department": "Hô Hấp",
+        "doctor_name": "BS. Tôn Minh",
+        "slot_time": "2025-08-28 11:05",
+        "room": "B403",
+        "score": null,
+        "hospital_code": "BV_DANANG",
+        "image_url": "/images/BV_DANANG.png"
+      },
+      {
+        "hospital": "Bệnh Viện Bình Dân",
+        "department": "Hô Hấp",
+        "doctor_name": "BS. Tạ Lam",
+        "slot_time": "2025-08-28 11:15",
+        "room": "A502",
+        "score": null,
+        "hospital_code": "BV_BINHDAN",
+        "image_url": "/images/BV_BINHDAN.png"
+      },
+      {
+        "hospital": "Bệnh Viện Nhiệt Đới",
+        "department": "Hô Hấp",
+        "doctor_name": "BS. Nguyễn Loan",
+        "slot_time": "2025-08-28 11:15",
+        "room": "C204",
+        "score": null,
+        "hospital_code": "BV_NHIETDOI",
+        "image_url": "/images/BV_NHIETDOI.png"
+      }
+    ],
+    "chosen": {
+      "hospital": "Bệnh Viện Nhiệt Đới",
+      "department": "Hô Hấp",
+      "doctor_name": "BS. Nguyễn Loan",
+      "slot_time": "2025-08-28 11:15",
+      "room": "C204",
+      "score": null,
+      "hospital_code": "BV_NHIETDOI",
+      "image_url": "/images/BV_NHIETDOI.png"
+    },
+    "rationale": "Người dùng yêu cầu đổi sang lịch khám buổi sáng. Các triệu chứng ho khan, sổ mũi trong và đau họng nhẹ phù hợp nhất với khoa Hô Hấp hoặc Tai Mũi Họng. Tôi đã tìm được 3 lựa chọn buổi sáng tại khoa Hô Hấp từ các bệnh viện khác nhau, tất cả đều vào ngày 28 tháng 8 và có thời gian gần nhau. Lựa chọn tại Bệnh Viện Đà Nẵng với BS. Tôn Minh vào 11:05 là lịch sớm nhất trong số các lựa chọn phù hợp.",
+    "patient_name": "Phạm Tuấn Hưng",
+    "phone": "0336018126",
+    "symptoms": "Ho khan, sổ mũi trong, đau họng nhẹ, kéo dài 2 ngày, không ảnh hưởng sinh hoạt."
+  },
+  "summary_struct": {
+    "patient_name": "Phạm Tuấn Hưng",
+    "phone": "0336018126",
+    "customer_id": "(không rõ)",
+    "doctor_name": "BS. Nguyễn Loan",
+    "appointment_time": "2025-08-28 11:15",
+    "room": "C204",
+    "queue_number": "",
+    "symptoms": "[{\"name\": \"Ho khan\", \"severity\": \"Nhẹ, không ảnh hưởng sinh hoạt\", \"duration\": \"2 ngày\"}, {\"name\": \"Sổ mũi trong\", \"severity\": \"Nhẹ, không ảnh hưởng sinh hoạt\", \"duration\": \"2 ngày\"}, {\"name\": \"Đau họng\", \"severity\": \"Nhẹ\", \"duration\": \"2 ngày\"}]",
+    "tentative_diagnoses": "[\"Viêm đường hô hấp trên\"]",
+    "tests_recommended": "[]",
+    "medications_advised": "[]",
+    "diet_notes": "Hạn chế ăn đồ lạnh, đồ cay nóng. Uống nhiều nước ấm.",
+    "follow_up": "Tái khám theo lịch hẹn ngày 2025-08-28 lúc 11:15.",
+    "warnings": "Súc miệng bằng nước muối sinh lý thường xuyên. Đến cơ sở y tế nếu triệu chứng trở nặng."
+  },
+  "facts_pretty": "Thông tin cá nhân cơ bản: Tên: Phạm Tuấn Hưng, Số điện thoại: 0336018126. Tiền sử bệnh: Viêm họng cấp (tái phát), Đau đầu và mỏi mắt (lần khám trước). Thói quen sinh hoạt quan trọng: Hay ăn đồ lạnh, đồ cay nóng. Các triệu chứng mạn tính/tái phát: Các triệu chứng đường hô hấp trên (ho, đau họng, sổ mũi) có xu hướng tái phát. Sở thích, phong cách, thái độ nói chuyện: Trực tiếp, rõ ràng, có sửa đổi thông tin khi cần.",
+  "summary_pretty": "Lý do khám chính: Đặt lịch khám lại vì các triệu chứng ho và sổ mũi. Triệu chứng hiện tại và thời gian xuất hiện: Ho khan, sổ mũi trong, đau họng nhẹ, kéo dài 2 ngày, không ảnh hưởng đến sinh hoạt. Chẩn đoán sơ bộ: Chưa có. Kế hoạch điều trị/xét nghiệm: Đặt lịch khám tại Bệnh Viện Nhiệt Đới, khoa Hô Hấp với bác sĩ Nguyễn Loan vào 11 giờ 15 phút ngày 28 tháng 8. Lưu ý đặc biệt: Hạn chế ăn đồ lạnh, đồ cay nóng; uống nước ấm nhiều và súc miệng bằng nước muối sinh lý thường xuyên.",
+  "doctor_name": "BS. Nguyễn Loan",
+  "appointment_time": "2025-08-28 11:15"
+}
