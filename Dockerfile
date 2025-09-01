@@ -11,15 +11,13 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential curl ca-certificates && rm -rf /var/lib/apt/lists/*
 
-ARG APP_DIR=TECHXPO
 WORKDIR /app
 
-# Copy requirements from subfolder
-COPY ${APP_DIR}/requirements.txt ./requirements.txt
-RUN pip install --no-cache-dir -r requirements.txt
+# Copy entire app subtree first so build platform that pre-parses COPY won't fail
+COPY TECHXPO/ /app/
 
-# Copy only needed app subtree (speeds up cache if repo large)
-COPY ${APP_DIR}/ ./
+# Install deps
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Non-root user
 RUN useradd -m appuser && chown -R appuser /app
@@ -30,7 +28,7 @@ ENV AGENT_NAME=kiosk \
     RUN_AGENT=1 \
     PORT=8080
 
-# Ensure entrypoint present
+# Fallback entrypoint if missing (should exist already after COPY)
 RUN [ -f entrypoint.sh ] || (echo '#!/usr/bin/env bash\nset -e\npython gemini_kiosk.py & exec uvicorn web.server:app --host 0.0.0.0 --port ${PORT:-8080}' > entrypoint.sh && chmod +x entrypoint.sh)
 
 EXPOSE 8080
