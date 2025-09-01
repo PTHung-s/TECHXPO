@@ -10,14 +10,17 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /app
 
-# Copy dependency manifests first (better layer cache if code changes)
-COPY requirements.txt ./
+# Copy requirements first for layer caching
+COPY TECHXPO/requirements.txt ./requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy rest of application
-COPY . ./
+# Copy application code
+COPY TECHXPO/ ./
 
-# Create non-root user for runtime
+# Ensure scripts have LF endings
+RUN find . -maxdepth 1 -name '*.sh' -exec sed -i 's/\r$//' {} + -exec chmod 755 {} + || true
+
+# Create non-root user
 RUN useradd -m appuser && chown -R appuser /app
 USER appuser
 
@@ -29,5 +32,5 @@ ENV AGENT_NAME=kiosk \
 EXPOSE 8080
 HEALTHCHECK --interval=30s --timeout=5s --start-period=40s --retries=3 CMD curl -f http://localhost:${PORT}/healthz || exit 1
 
-# Run worker (background) + uvicorn in one container (simple). If RUN_AGENT=0 skip worker.
-CMD ["bash","-lc","set -e; echo '[docker] starting (RUN_AGENT='${RUN_AGENT}')'; if [ \"$RUN_AGENT\" = \"1\" ]; then python gemini_kiosk.py start & fi; exec uvicorn web.server:app --host 0.0.0.0 --port ${PORT}"]
+# Single CMD runs worker (if enabled) then uvicorn
+CMD ["bash","-lc","echo '[docker] start RUN_AGENT='${RUN_AGENT}; if [ '$RUN_AGENT' = '1' ]; then python gemini_kiosk.py start & fi; exec uvicorn web.server:app --host 0.0.0.0 --port ${PORT}"]
