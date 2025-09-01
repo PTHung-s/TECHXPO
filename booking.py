@@ -9,8 +9,8 @@
 ENV: GOOGLE_API_KEY (hoặc GEMINI_API_KEY)
 """
 
-import os, json, re, datetime
-from typing import Dict, Any, Optional, Tuple
+import os, json, re, datetime, unicodedata
+from typing import Dict, Any, Optional, Tuple, List
 
 from dotenv import load_dotenv
 load_dotenv(".env.local") or load_dotenv()
@@ -36,16 +36,17 @@ def _load_clinic_data(path: str) -> Dict[str, Any]:
         raw = f.read()
     ext = os.path.splitext(ap)[1].lower()
     data = yaml.safe_load(raw) if ext in [".yaml", ".yml"] and yaml is not None else json.loads(raw)
-
-    # debug nhẹ để yên tâm file đã đọc được
-    dept_cnt = len(data.get("departments", [])) if isinstance(data, dict) else 0
-    doc_cnt = len(data.get("doctors", [])) if isinstance(data, dict) else 0
-    print(f"[booking] loaded clinic_data: path={ap} departments={dept_cnt} doctors={doc_cnt}")
+    base_code = os.path.splitext(os.path.basename(ap))[0]
+    data["hospital_name"] = data.get("hospital_name") or base_code
+    data["hospital_code"] = base_code  # dùng để map ảnh
     return data
+
+def _merge_multi(data_list: List[Dict[str, Any]]) -> Dict[str, Any]:
+    return {"hospitals": [d for d in data_list if isinstance(d, dict)]}
 
 
 def _pick_api_key() -> str:
-    return os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY") or ""
+    return os.getenv("GOOGLE_API_KEY2")
 
 
 # ---------------- Debug helpers ----------------
@@ -200,24 +201,25 @@ def _build_speak_text(result: Dict[str, Any]) -> str:
 
 
 # ---------------- Structured Output schema (Pydantic) ----------------
-class BookingResult(BaseModel):
+class BookingOption(BaseModel):
+    hospital: str = Field(..., description="Tên bệnh viện")
     department: str = Field(..., description="Tên khoa")
     doctor_name: str = Field(..., description="Tên bác sĩ")
-    slot_time: str = Field(..., description="ISO 8601 hoặc 'YYYY-MM-DD HH:MM'")
-    room: Optional[str] = Field(None, description="Mã phòng, ví dụ 'K.101'")
-    queue_number: Optional[str] = Field(None, description="Số thứ tự, ví dụ 'A-051'")
+    slot_time: str = Field(..., description="YYYY-MM-DD HH:MM")
+    room: Optional[str] = None
+    score: Optional[float] = None
+
+class BookingResult(BaseModel):
+    options: List[BookingOption] = Field(..., description="Danh sách tối đa 3 lựa chọn")
+    chosen: BookingOption = Field(..., description="Lựa chọn cuối cùng agent chọn")
+    rationale: Optional[str] = None
     patient_name: Optional[str] = None
     phone: Optional[str] = None
-    note: Optional[str] = None
-    # Không bắt buộc speak_text để JSON ngắn gọn; sẽ tự build ở code
     speak_text: Optional[str] = None
 
 
 SYSTEM = (
-    "Bạn là trợ lý đặt lịch khám bệnh, TUÂN THỦ DỮ LIỆU đầu vào (khoa/bác sĩ/slots). "
-    "Chỉ chọn slot có trong dữ liệu và gần nhất với thời điểm yêu cầu. "
-    "KHÔNG diễn giải, KHÔNG tóm tắt transcript, KHÔNG thêm câu chữ ngoài JSON. "
-    "Chỉ xuất JSON theo schema đã cấu hình."
+    "Bạn là trợ lý gợi ý lịch khám đa bệnh viện. Tạo <=3 options (đa dạng nếu có thể), mỗi option hợp lệ từ dữ liệu. Chọn 1 final vào 'chosen'. Không bịa. Không thêm text ngoài JSON."
 )
 
 
@@ -225,6 +227,7 @@ def book_appointment(
     history_text: str,
     clinic_data_path: str,
     model: str = "gemini-2.5-flash",
+    extra_paths: Optional[List[str]] = None,
 ) -> Dict[str, Any]:
     """
     Input:
@@ -232,7 +235,20 @@ def book_appointment(
       - clinic_data_path: đường dẫn file dữ liệu lịch/khoa/bác sĩ
     Output JSON (theo BookingResult)
     """
-    data = _load_clinic_data(clinic_data_path)
+    paths = [clinic_data_path]
+    if extra_paths:
+        for p in extra_paths:
+            if p and p not in paths:
+                paths.append(p)
+    loaded = []
+    for p in paths:
+        try:
+            loaded.append(_load_clinic_data(p))
+        except Exception as e:
+            print(f"[booking] warn cannot load {p}: {e}")
+    if not loaded:
+        return {"error": "no_data"}
+    data = _merge_multi(loaded)
     api_key = _pick_api_key()
     if not api_key:
         raise RuntimeError("Thiếu GOOGLE_API_KEY/GEMINI_API_KEY")
@@ -241,14 +257,12 @@ def book_appointment(
 
     # Prompt gọn; schema đặt ở config theo đúng hướng dẫn (không lặp trong prompt).
     user_prompt = (
-        "# DỮ LIỆU LỊCH/BS (JSON)\n"
+        "# DỮ LIỆU LỊCH ĐA BỆNH VIỆN (JSON)\n"
         f"{json.dumps(data, ensure_ascii=False)}\n\n"
         "# TRANSCRIPT HỘI THOẠI\n"
         f"{history_text}\n\n"
         "# YÊU CẦU\n"
-        "- Chọn khoa, bác sĩ và slot HỢP LỆ gần nhất có trong dữ liệu trên.\n"
-        "- Trả JSON đúng schema đã cấu hình. Không thêm lời giải thích.\n"
-        "- Các giá trị ngắn gọn; không viết thành câu dài."
+        "1) Phân tích nhu cầu. 2) Sinh tối đa 3 options tốt nhất (ưu tiên phù hợp triệu chứng). 3) Chọn 1 final trong 'chosen'. 4) speak_text ngắn các options có nhưng chú ý khi thông báo thời gian, không được nói năm nha, chỉ cần nói giờ và ngày tháng thôi)."
     )
 
     try:
@@ -258,10 +272,10 @@ def book_appointment(
             config=genai_types.GenerateContentConfig(
                 system_instruction=SYSTEM,
                 temperature=0.0,                 # ổn định JSON
-                max_output_tokens=1068,          # nới theo nhu cầu
+                max_output_tokens=10068,          # nới theo nhu cầu
                 # NOTE: Structured Output (official)
                 response_mime_type="application/json",
-                response_schema=BookingResult,   # Pydantic schema
+                response_schema=BookingResult,
                 # Safety có thể khiến text rỗng nếu bị block; cân chỉnh nếu cần.
                 # safety_settings=[genai_types.SafetySetting(category="HARM_CATEGORY_HARASSMENT", threshold="BLOCK_ONLY_HIGH")],
             ),
@@ -306,29 +320,40 @@ def book_appointment(
         return {"error": "empty_or_malformed_json", "raw": resp.text or ""}
 
     # --- Hậu xử lý để đủ field hệ thống dùng ---
-    dep_name = (result_dict.get("department") or "").strip()
+    # Ensure schema shape: options + chosen
+    if "options" not in result_dict and all(k in result_dict for k in ("department","doctor_name","slot_time")):
+        # backward fallback wrap single
+        opt = {"hospital": "(unknown)", **{k: result_dict[k] for k in ("department","doctor_name","slot_time") if k in result_dict}}
+        result_dict = {"options": [opt], "chosen": opt}
 
-    # room mặc định theo khoa nếu thiếu
-    if not result_dict.get("room"):
-        try:
-            dep = next((d for d in data.get("departments", []) if d.get("name") == dep_name), None)
-            rooms = dep.get("rooms", []) if dep else []
-            if rooms:
-                result_dict["room"] = rooms[0]
-        except Exception:
-            pass
+    chosen = result_dict.get("chosen") or (result_dict.get("options") or [{}])[0]
+    # Không tự động tạo speak_text nữa -> để realtime agent tự diễn đạt tự nhiên
 
-    # cấp số thứ tự hàng chờ nếu thiếu -> 3 chữ số như "A-051"
-    if not result_dict.get("queue_number") and data.get("queue_prefix") and data.get("next_queue_number") is not None:
-        try:
-            qn = f'{data["queue_prefix"]}{int(data["next_queue_number"]):03d}'
-            result_dict["queue_number"] = qn
-        except Exception:
-            pass
-
-    # Luôn tự dựng speak_text để ngắn gọn, tránh truncation
-    st = (result_dict.get("speak_text") or "").strip()
-    if not st:
-        result_dict["speak_text"] = _build_speak_text(result_dict)
-
+    # ---- Gắn image_url dựa vào hospital_code đã load ----
+    try:
+        # Tạo map normalised name -> code
+        def _norm(s: str) -> str:
+            s2 = unicodedata.normalize("NFD", s or "")
+            s2 = "".join(ch for ch in s2 if unicodedata.category(ch) != "Mn")
+            return re.sub(r"[^a-z0-9]+", "", s2.lower())
+        hosp_map = {}
+        for h in data.get("hospitals", []):
+            hn = h.get("hospital_name") or h.get("name") or h.get("hospital") or ""
+            code = h.get("hospital_code") or os.path.splitext(os.path.basename(hn))[0]
+            hosp_map[_norm(hn)] = code
+        def _attach(opt: Dict[str, Any]):
+            if not isinstance(opt, dict):
+                return
+            key = _norm(opt.get("hospital") or opt.get("hospital_name") or "")
+            code = hosp_map.get(key)
+            if code:
+                opt["hospital_code"] = code
+                # Ảnh frontend phục vụ từ /images/<CODE>.png
+                opt["image_url"] = f"/images/{code}.png"
+        for opt in result_dict.get("options", []) or []:
+            _attach(opt)
+        if isinstance(result_dict.get("chosen"), dict):
+            _attach(result_dict["chosen"])
+    except Exception:
+        pass
     return result_dict

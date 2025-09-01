@@ -8,7 +8,7 @@ RAG đơn giản cho quy chuẩn y tế:
 """
 
 import os, time, json, glob, threading
-from typing import List, Tuple, Optional
+from typing import List, Tuple, Optional, Any
 from dataclasses import dataclass, field
 
 try:
@@ -51,10 +51,11 @@ class MedicalRAG:
     source_path: str
     max_docs: int = 2000
     _lock: threading.Lock = field(default_factory=threading.Lock, init=False)
-    _tfidf: Optional[TfidfVectorizer] = field(default=None, init=False)
+    _tfidf: Optional[Any] = field(default=None, init=False)
     _doc_matrix = None
-    _docs: List[str] = field(default_factory=list, init=False)
+    _docs: List[str] = field(default_factory=list, init=False)  # static guideline chunks
     _mtime: float = field(default=0.0, init=False)
+    dynamic_docs: List[str] = field(default_factory=list, init=False)  # personalization snippets (NOT in TF-IDF)
 
     def _split_docs(self, text: str, max_len: int = 1200) -> List[str]:
         # tách theo đoạn trống đôi để giữ cấu trúc guideline
@@ -76,17 +77,27 @@ class MedicalRAG:
         text = _read_text_from_path(self.source_path)
         docs = self._split_docs(text)
         if not docs:
-            # always have at least one empty doc to avoid errors
-            docs = [""]
-        if TfidfVectorizer is None:
+            # No documents found - use fallback mode
+            self._docs = ["No medical guidelines available"]
+            self._tfidf = None
+            self._doc_matrix = None
+        elif TfidfVectorizer is None:
             # fallback: keyword-only
             self._docs = docs
             self._tfidf = None
             self._doc_matrix = None
         else:
-            tfidf = TfidfVectorizer(ngram_range=(1,2), min_df=1)
-            mat = tfidf.fit_transform(docs)
-            self._docs, self._tfidf, self._doc_matrix = docs, tfidf, mat
+            # Check if docs contain meaningful content
+            meaningful_docs = [doc for doc in docs if doc.strip() and len(doc.strip()) > 5]
+            if not meaningful_docs:
+                # No meaningful content - use fallback
+                self._docs = ["No detailed medical guidelines available"]
+                self._tfidf = None
+                self._doc_matrix = None
+            else:
+                tfidf = TfidfVectorizer(ngram_range=(1,2), min_df=1)
+                mat = tfidf.fit_transform(meaningful_docs)
+                self._docs, self._tfidf, self._doc_matrix = meaningful_docs, tfidf, mat
 
     def _paths_mtime(self) -> float:
         if os.path.isdir(self.source_path):
@@ -117,20 +128,53 @@ class MedicalRAG:
                 self._mtime = mt
 
     def query(self, question: str, k: int = 4, max_chars: int = 1200) -> str:
+        """Return combined context: PERSONAL_HISTORY (if any) + top guideline chunks.
+
+        Personal history is always surfaced (not ranked) to avoid being missed by retrieval.
+        """
         self.maybe_reload()
+        personal_block = ""
         with self._lock:
+            if self.dynamic_docs:
+                # keep only last 1 personal summary to stay concise
+                latest = self.dynamic_docs[-1]
+                personal_block = f"[PERSONAL_HISTORY]\n{latest}\n[/PERSONAL_HISTORY]\n\n"
+
             if not self._docs:
-                return ""
+                return personal_block.strip()[:max_chars]
+            base_docs = self._docs
             if self._tfidf is None:
-                # fallback: naive keyword score
                 q = question.lower()
-                scores = [(sum(q.count(w) for w in d.lower().split()), i) for i, d in enumerate(self._docs)]
+                scores = [(sum(q.count(w) for w in d.lower().split()), i) for i, d in enumerate(base_docs)]
                 scores.sort(reverse=True)
-                picks = [self._docs[i] for _, i in scores[:k]]
+                picks = [base_docs[i] for _, i in scores[:k]]
             else:
                 qv = self._tfidf.transform([question])
                 sims = cosine_similarity(qv, self._doc_matrix)[0]
                 idx = sims.argsort()[::-1][:k]
-                picks = [self._docs[i] for i in idx]
-            ctx = "\n\n---\n\n".join(picks)
-            return ctx[:max_chars]
+                picks = [base_docs[i] for i in idx]
+            guide_block = "[GUIDELINES]\n" + "\n\n---\n\n".join(picks) + "\n[/GUIDELINES]"
+            combined = (personal_block + guide_block).strip()
+            if len(combined) > max_chars:
+                # preserve personal block start; truncate guideline tail
+                if personal_block and len(personal_block) < max_chars:
+                    remain = max_chars - len(personal_block)
+                    combined = personal_block + guide_block[:remain]
+                else:
+                    combined = combined[:max_chars]
+            return combined
+
+    def add_dynamic_context(self, text: str):
+        """Store personalization snippet separately (no TF-IDF rebuild). Deduplicate and cap length."""
+        if not text:
+            return
+        snippet = text.strip()
+        if not snippet:
+            return
+        with self._lock:
+            if snippet in self.dynamic_docs:
+                return
+            self.dynamic_docs.append(snippet)
+            # cap to last 2 snippets
+            if len(self.dynamic_docs) > 2:
+                self.dynamic_docs = self.dynamic_docs[-2:]

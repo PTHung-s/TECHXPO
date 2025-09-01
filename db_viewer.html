@@ -27,14 +27,14 @@
 <div class="section">
   <h2>Khách hàng</h2>
   <table id="customersTbl">
-    <thead><tr><th>ID</th><th>Tên</th><th>Phone</th><th>Số lượt khám</th></tr></thead>
+    <thead><tr><th>ID</th><th>Tên</th><th>Phone</th><th>Số lượt khám</th><th>Facts</th><th>Summary</th></tr></thead>
     <tbody></tbody>
   </table>
 </div>
 <div class="section">
   <h2>Lượt khám</h2>
   <table id="visitsTbl">
-    <thead><tr><th>Visit ID</th><th>Customer ID</th><th>Thời gian</th><th>Tóm tắt</th></tr></thead>
+    <thead><tr><th>Visit ID</th><th>Customer ID</th><th>Thời gian</th><th>Summary</th><th>Facts</th><th>Chi tiết</th></tr></thead>
     <tbody></tbody>
   </table>
 </div>
@@ -61,15 +61,19 @@ document.getElementById('customerFilter').addEventListener('input', ()=> renderC
 
   function renderCustomers(db) {
     const filter = document.getElementById('customerFilter').value.toLowerCase();
-    const stmt = q(db, `SELECT c.id, c.name, c.phone, COUNT(v.visit_id) AS cnt\n                      FROM customers c LEFT JOIN visits v ON v.customer_id=c.id\n                      GROUP BY c.id ORDER BY cnt DESC, c.name`);
+    const stmt = q(db, `SELECT c.id, c.name, c.phone, c.facts, c.last_summary, COUNT(v.visit_id) AS cnt
+                      FROM customers c LEFT JOIN visits v ON v.customer_id=c.id
+                      GROUP BY c.id ORDER BY cnt DESC, c.name`);
     const tbody = document.querySelector('#customersTbl tbody');
     tbody.innerHTML='';
     while(stmt.step()) {
-      const {id,name,phone,cnt} = stmt.getAsObject();
+      const {id,name,phone,facts,last_summary,cnt} = stmt.getAsObject();
       const text = `${name||''} ${phone||''}`.toLowerCase();
       if(filter && !text.includes(filter)) continue;
       const tr = document.createElement('tr');
-      tr.innerHTML = `<td>${id}</td><td>${name||''}</td><td>${phone||''}</td><td>${cnt}</td>`;
+      const factsPreview = (facts || '').length > 50 ? (facts || '').substring(0,50) + '...' : (facts || '');
+      const summaryPreview = (last_summary || '').length > 50 ? (last_summary || '').substring(0,50) + '...' : (last_summary || '');
+      tr.innerHTML = `<td>${id}</td><td>${name||''}</td><td>${phone||''}</td><td>${cnt}</td><td title="${facts||''}">${factsPreview}</td><td title="${last_summary||''}">${summaryPreview}</td>`;
       tr.onclick = ()=> highlightCustomer(id);
       tbody.appendChild(tr);
     }
@@ -77,17 +81,19 @@ document.getElementById('customerFilter').addEventListener('input', ()=> renderC
   }
 
   function renderVisits(db, customerId=null) {
-    let sql = `SELECT visit_id, customer_id, created_at, payload_json FROM visits ORDER BY created_at DESC LIMIT 500`;
-    if(customerId) sql = `SELECT visit_id, customer_id, created_at, payload_json FROM visits WHERE customer_id = '${customerId.replace(/'/g,"''")}' ORDER BY created_at DESC`;
+    let sql = `SELECT visit_id, customer_id, created_at, payload_json, summary, facts_extracted FROM visits ORDER BY created_at DESC LIMIT 500`;
+    if(customerId) sql = `SELECT visit_id, customer_id, created_at, payload_json, summary, facts_extracted FROM visits WHERE customer_id = '${customerId.replace(/'/g,"''")}' ORDER BY created_at DESC`;
     const stmt = q(db, sql);
     const tbody = document.querySelector('#visitsTbl tbody');
     tbody.innerHTML='';
     while(stmt.step()) {
-      const {visit_id, customer_id, created_at, payload_json} = stmt.getAsObject();
+      const {visit_id, customer_id, created_at, payload_json, summary, facts_extracted} = stmt.getAsObject();
       let pretty = '';
       try { const o = JSON.parse(payload_json); pretty = JSON.stringify(o,null,2);} catch(e){ pretty = payload_json || ''; }
+      const summaryPreview = (summary || '').length > 30 ? (summary || '').substring(0,30) + '...' : (summary || '');
+      const factsPreview = (facts_extracted || '').length > 30 ? (facts_extracted || '').substring(0,30) + '...' : (facts_extracted || '');
       const tr = document.createElement('tr');
-      tr.innerHTML = `<td>${visit_id}</td><td>${customer_id}</td><td>${created_at}</td><td><div class='json'>${pretty}</div></td>`;
+      tr.innerHTML = `<td>${visit_id}</td><td>${customer_id}</td><td>${created_at}</td><td title="${summary||''}">${summaryPreview}</td><td title="${facts_extracted||''}">${factsPreview}</td><td><div class='json'>${pretty}</div></td>`;
       tbody.appendChild(tr);
     }
     stmt.free();

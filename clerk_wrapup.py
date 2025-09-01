@@ -20,7 +20,7 @@ def _to_jsonable(x):
     return x
 
 def _client():
-    api_key = (os.getenv("GOOGLE_API_KEY2") or os.getenv("GEMINI_API_KEY2"))
+    api_key = (os.getenv("GOOGLE_API_KEY2"))
     return genai.Client(api_key=api_key) if api_key else genai.Client()
 
 def _json_dumps(x) -> str:
@@ -159,7 +159,7 @@ Bạn là thư ký y khoa. Hãy trích xuất phiếu thăm khám (tiếng Việ
             config=types.GenerateContentConfig(
                 system_instruction=SYSTEM,
                 temperature=0.0,
-                max_output_tokens=1024,
+                max_output_tokens=4096,
                 response_mime_type="application/json",
                 response_schema=VisitSummary,   # Pydantic schema
                 # safety_settings=[ ... ]  # nới nếu cần

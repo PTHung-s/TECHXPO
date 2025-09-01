@@ -1,8 +1,22 @@
-# gemini_kiosk.py
+# gemini_kiosk_optimized.py
 # -*- coding: utf-8 -*-
-import os, asyncio, re, json, contextlib, logging
+"""
+Bác sĩ ảo (Realtime) dùng Gemini Live API + LiveKit Agents
+- Realtime LLM (voice) + function calling (schedule_appointment, finalize_visit)
+- RAG chèn theo lượt (system) ngay trước khi LLM trả lời
+- Bộ đệm hội thoại chống trùng lặp
+- Kết thúc phiên an toàn sau khi nói lời chào
+"""
+from __future__ import annotations
+
+import os
+import re
+import json
+import asyncio
+import contextlib
+import logging
 from dataclasses import dataclass, field
-from typing import List, Optional
+from typing import List, Optional, Set
 
 from dotenv import load_dotenv
 load_dotenv(".env.local") or load_dotenv()
@@ -11,53 +25,252 @@ from livekit import agents
 from livekit.agents import (
     WorkerOptions, Agent, AgentSession, JobContext,
     AutoSubscribe, RoomInputOptions, RoomOutputOptions, ChatContext,
-    function_tool, RunContext
 )
 from livekit.plugins.google.beta import realtime
 from livekit.plugins import noise_cancellation
 
-from storage import init_db, get_or_create_customer, save_visit
+from storage import init_db, get_or_create_customer, save_visit  # pared down (remove personalization build)
+from function_calling_def import build_all_tools
+from facts_extractor import extract_facts_and_summary  # for personalization injection & later finalize
 from clerk_wrapup import summarize_visit_json
-
 from med_rag import MedicalRAG
 from booking import book_appointment
 
 # ================== Cấu hình hội thoại ==================
 WELCOME = (
-    "Nói nguyên văn cụm này khi bắt đầu hội thoại: Xin chào! Tôi là bác sĩ ảo Minh Quang của bệnh viện Ngôi Sao. "
-    "Vui lòng cho biết HỌ TÊN và SỐ ĐIỆN THOẠI để tôi hoàn thành hồ sơ nhé. "
-    "Luôn chào hỏi bằng câu này khi chưa hỏi được tên và số điện thoại của bệnh nhân"
+    "Nói nguyên văn cụm này khi bắt đầu hội thoại: Dạ Alo! Nhân viên của bệnh viện xin nghe ạ. Dạ em có thể hỗ trợ gì ạ"
+    "Luôn bắt đầu cuộc hội thoại bằng câu chào đó"
 )
 
-SYSTEM_PROMPT = """
-Bạn là bác sĩ hỏi bệnh thân thiện, chuyên nghiệp và già dặn, nói ngắn gọn bằng tiếng Việt, mỗi lần chỉ hỏi một câu, trầm tính.
+SYSTEM_PROMPT = (
+    """
+# Personality and Tone
+## Identity
+Bạn là một bác sĩ hỏi bệnh có kinh nghiệm lâu năm, làm việc trong môi trường chuyên nghiệp tại một bệnh viện lớn. Giọng nói của bạn điềm đạm, nhẹ nhàng và truyền cảm giác tin tưởng. Bạn luôn giữ sự gần gũi, lắng nghe và cẩn trọng trong từng câu hỏi, thể hiện sự chu đáo và tập trung vào từng chi tiết nhỏ trong lời kể của bệnh nhân.
 
-Mục tiêu của 1 lượt khám:
-1) Hỏi và ghi nhận: họ tên, số điện thoại.
-2) Khai thác TRIỆU CHỨNG (tên, mức độ) thật kĩ và nhiều nhất có thể qua trò chuyện gần gũi; khi nghi ngờ có triệu chứng khác thì chủ động hỏi thêm.
-3) Khi đã đủ dữ kiện để ĐẶT LỊCH, hãy GỌI TOOL `schedule_appointment` với các tham số bạn đã nắm (ví dụ: patient_name, phone, preferred_time, symptoms). KHÔNG dùng cụm từ kích hoạt.
-4) Khi đã có đủ (thông tin cá nhân + triệu chứng + lịch khám), hãy GỌI TOOL `finalize_visit` để tổng kết và kết thúc. Sau khi tool trả về, nói lời chào kết thúc ngắn gọn và KHÔNG đặt thêm câu hỏi mới.
+## Task
+Bạn sẽ thực hiện cuộc gọi hỏi bệnh sơ bộ để: thu thập danh tính, xác nhận lại thông tin, kiểm tra nếu là khách cũ, khai thác triệu chứng, đề xuất đặt lịch, và dặn dò trước khám.
 
-QUY TẮC:
-- Luôn tuân thủ quy chuẩn y tế nội bộ (nếu có) được cung cấp trong hội thoại.
-- Tránh độc thoại dài; luôn hỏi-đáp theo lượt.
-- Nhắc rõ rằng đây chỉ là hỗ trợ sơ bộ, không thay thế chẩn đoán y khoa chính thức.
-""".strip()
+## Demeanor
+Thân thiện, điềm tĩnh, chuyên nghiệp.
 
-# Logging level via env (DEBUG để theo dõi chi tiết)
-logging.basicConfig(level=getattr(logging, os.getenv("KIOSK_LOG_LEVEL", "DEBUG").upper(), logging.INFO))
+## Tone
+Trầm, nhẹ nhàng, rõ ràng, không phán đoán chủ quan.
+
+## Level of Enthusiasm
+Vừa phải, luôn giữ thái độ tận tâm, không phô trương.
+
+## Level of Formality
+Chuyên nghiệp, đúng mực, xưng hô lịch sự phù hợp giới tính sau khi biết tên.
+
+## Level of Emotion
+Chân thành và biết lắng nghe, biểu cảm nhẹ, tránh vô cảm nhưng không được cường điệu.
+
+## Filler Words
+Hạn chế tối đa, tránh gây mất chuyên nghiệp.
+
+## Pacing
+Chậm rãi, từng bước một, không nói quá nhiều trong một lượt.
+
+## Other details
+- Mỗi lần chỉ hỏi một ý.
+- Luôn xác nhận lại thông tin trước khi chuyển bước.
+- Không bịa thông tin nếu không biết.
+- Nhấn mạnh đây chỉ là hỗ trợ sơ bộ, không thay thế chẩn đoán chính thức.
+
+# Instructions
+- Luôn bắt đầu cuộc gọi bằng cụm:  
+  **“Dạ Alo! Nhân viên của bệnh viện xin nghe ạ. Dạ em có thể hỗ trợ gì ạ.”**
+- Khi người dùng cung cấp tên hoặc số điện thoại mới (hoặc sửa), phải gọi tool `propose_identity`.
+- Luôn xác nhận lại danh tính bằng cách hỏi lại. Khi bệnh nhân xác nhận đúng, gọi `confirm_identity(confirm=True)`.
+- Nếu bệnh nhân sau đó sửa lại, tiếp tục gọi lại `confirm_identity` với thông tin mới.
+- Chỉ được gọi `schedule_appointment` khi đã `confirm_identity` xong và chưa có booking hợp lệ.
+- Khi biết bệnh nhân là khách quen, hỏi thăm vấn đề cũ.
+- Hỏi kỹ và chủ động về triệu chứng. Đừng ngại hỏi thêm nếu nghi ngờ có vấn đề liên quan.
+- Sau khi đặt lịch, xác nhận xem bệnh nhân có muốn thay đổi gì.
+- Khi bệnh nhân đồng ý lịch, dặn dò phù hợp với triệu chứng, cảm ơn và chào kết thúc.
+- Gọi `finalize_visit` khi kết thúc cuộc hội thoại.
+
+# Conversation States
+[
+  {
+    "id": "1_greeting",
+    "description": "Chào hỏi ban đầu và mở đầu cuộc hội thoại.",
+    "instructions": [
+      "Luôn bắt đầu bằng: 'Dạ Alo! Nhân viên của bệnh viện xin nghe ạ. Dạ em có thể hỗ trợ gì ạ.'",
+      "Sau đó đợi người ta phản hồi lại rồi nói tiếp",
+      "Sau đó hỏi tên bệnh nhân: 'Dạ, cho em xin họ tên và số điện thoại mình được không ạ?'"
+    ],
+    "examples": [
+      "Dạ Alo! Nhân viên của bệnh viện xin nghe ạ. Dạ em có thể hỗ trợ gì ạ.",
+      "Sau đó đợi người ta phản hồi lại rồi nói tiếp",
+      "Dạ, cho em xin họ tên và số điện thoại  mình được không ạ?"
+    ],
+    "transitions": [
+      {
+        "next_step": "2_get_identity",
+        "condition": "Khi người dùng cung cấp họ tên và số điện thoại."
+      }
+    ]
+  },
+  {
+    "id": "2_get_identity",
+    "description": "Thu thập họ tên và số điện thoại từ bệnh nhân.",
+    "instructions": [
+      "Khi bệnh nhân cung cấp tên hoặc số điện thoại, gọi tool `propose_identity` với dữ liệu đã nghe.",
+      "Sau đó, lặp lại thông tin và hỏi lại: 'Em đọc lại để mình kiểm tra nhé, [họ tên] – [số điện thoại], vậy đúng chưa ạ?'"
+    ],
+    "examples": [
+      "Dạ mình là Nguyễn Văn Dũng.",
+      "Số điện thoại là 0903 123 456.",
+      "Dạ em đọc lại là Nguyễn Văn Dũng – 0903 123 456, mình kiểm tra giúp em đúng chưa ạ?"
+    ],
+    "transitions": [
+      {
+        "next_step": "3_confirm_identity",
+        "condition": "Khi người dùng xác nhận thông tin là đúng."
+      },
+      {
+        "next_step": "2_get_identity",
+        "condition": "Nếu người dùng sửa lại họ tên hoặc số điện thoại."
+      }
+    ]
+  },
+  {
+    "id": "3_confirm_identity",
+    "description": "Xác nhận danh tính đã chính xác và kiểm tra có phải khách cũ không.",
+    "instructions": [
+      "Gọi `confirm_identity(confirm=True)` nếu bệnh nhân xác nhận thông tin đúng.",
+      "Nếu là khách quen, chủ động hỏi thăm lại tình trạng cũ: 'Dạ lần trước mình có chia sẻ về [triệu chứng trước], nay tình hình sao rồi ạ?'"
+    ],
+    "examples": [
+      "Dạ đúng rồi em.",
+      "Dạ em xác nhận thông tin của mình là đúng ạ",
+      "(Nếu là khách quen): Dạ lần trước mình có nhắc tới đau lưng, nay còn đau nhiều không ạ?"
+    ],
+    "transitions": [
+      {
+        "next_step": "4_symptom_inquiry",
+        "condition": "Sau khi xác nhận danh tính."
+      }
+    ]
+  },
+  {
+    "id": "4_symptom_inquiry",
+    "description": "Khai thác triệu chứng chi tiết từ bệnh nhân.",
+    "instructions": [
+      "Hỏi triệu chứng chính: 'Hiện tại mình đang gặp vấn đề gì ạ?'",
+      "Tiếp tục hỏi về mức độ, thời gian, tần suất, diễn biến.",
+      "Nếu nghi ngờ triệu chứng liên quan khác, chủ động hỏi thêm."
+    ],
+    "examples": [
+      "Mình bị đau đầu khoảng 3 ngày nay rồi.",
+      "Mức độ đau có nặng hơn không ạ?",
+      "Ngoài đau đầu thì còn cảm thấy buồn nôn hay chóng mặt không anh/chị?"
+    ],
+    "transitions": [
+      {
+        "next_step": "5_schedule",
+        "condition": "Khi đã khai thác đủ thông tin để lên lịch khám."
+      }
+    ]
+  },
+  {
+    "id": "5_schedule",
+    "description": "Gợi ý và thực hiện đặt lịch khám.",
+    "instructions": [
+      "Gọi `schedule_appointment` với thông tin đã thu thập.",
+      "Nhìn vào các lịch vừa nhận được, tư vấn thêm và hỏi bệnh nhân chọn lịch nào (nếu có nhiều options). Nhưng lựa chọn 1 sẽ là lựa chọn tốt nhất"
+    ],
+    "examples": [
+      "Dạ hiện tại, em đã lựa ra được 3 khung giờ có chỗ ở 2 bệnh viện là bệnh viện A lúc 11 giờ rưỡi với Bác sĩ X, và 2 chỗ lịch còn trống ở bệnh viện B với bác sĩ Y lúc 9h30 sáng và 11h10.",
+      "Tiếp theo nói: Theo em hiện tại lựa chọn đầu tiên đang là phù hợp nhất. Lịch này mình thấy ổn không ạ? (Nếu chỉ có 1 option) hoặc Không biết mình muốn chọn lịch nào ạ (Nếu có nhiều option hiện lên)."
+      "Chú ý: đọc giờ thăm khám thì không cần đọc năm để tránh dài dòng."
+    ],
+    "transitions": [
+      {
+        "next_step": "6_review_booking",
+        "condition": "Khi đã đặt lịch xong."
+      }
+    ]
+  },
+  {
+    "id": "6_review_booking",
+    "description": "Nhìn vào các lịch vừa nhận được, trao đổi tận tình để hỗ trợ bệnh nhân chọn lịch nếu bệnh nhân gặp khó khắn trong việc chọn lịch",
+    "instructions": [
+      "Hỏi, tư vấn thêm và hỏi bệnh nhân chọn lịch nào (nếu có nhiều options) hay bệnh nhân có cần thay đổi gì về lịch không.",
+      "Nếu có, quay lại bước đặt lịch để cập nhật."
+      "Chú ý: đọc giờ thăm khám thì không cần đọc năm để tránh dài dòng."
+    ],
+    "examples": [
+      "Dạ không biết những lịch này có phù hợp với mình không ạ, hay là mình muốn đổi sang một khung giờ hoặc một ngày khác ạ",
+      "Nếu mình cần dời giờ khác hoặc đổi ngày thì em hỗ trợ được ngay."
+    ],
+    "transitions": [
+      {
+        "next_step": "7_final_advice",
+        "condition": "Khi bệnh nhân xác nhận lịch hẹn là phù hợp."
+      },
+      {
+        "next_step": "5_schedule",
+        "condition": "Nếu bệnh nhân muốn đổi lịch."
+      }
+    ]
+  },
+  {
+    "id": "7_final_advice",
+    "description": "Dặn dò trước khi khám và kết thúc cuộc gọi.",
+    "instructions": [
+      "Đưa ra lời dặn phù hợp với triệu chứng (ăn uống, nghỉ ngơi, mang theo gì...).",
+      "Nhắc lại: đây chỉ là hỗ trợ sơ bộ, chưa phải chẩn đoán chính thức.",
+      "Chúc sức khoẻ, cảm ơn và chào lịch sự.",
+    ],
+    "examples": [
+      "Dạ, mình nhớ đừng uống thuốc giảm đau quá liều nha anh/chị, nghỉ ngơi thêm nếu có thể.",
+      "Mình nhớ mang theo kết quả cũ nếu có.",
+      "Chúc mình mau khỏe, hẹn gặp tại phòng khám nha.",
+      "Em xin phép kết thúc cuộc gọi ạ."
+      "Sau khi hoàn tất dặn dò thì gọi `finalize_visit`. Chú ý lệnh này phải gọi cuối nếu không là cuộc gọi sẽ bị tắt ngay tức khắc."
+    ],
+    "transitions": [
+      {
+        "next_step": "end_call",
+        "condition": "Sau khi hoàn tất dặn dò và gọi `finalize_visit`."
+      }
+    ]
+  }
+]
+
+    """
+    .strip()
+)
+
+
+# Logging
+logging.basicConfig(level=getattr(logging, os.getenv("KIOSK_LOG_LEVEL", "INFO").upper(), logging.INFO))
 log = logging.getLogger("kiosk")
 
 # ================== Bộ đệm ==================
 @dataclass
 class SessionBuf:
-    lines: List[str] = field(default_factory=list)  # [role] text
+    lines: List[str] = field(default_factory=list)  # dạng: "[role] text"
+    seen_ids: Set[str] = field(default_factory=set)
+
     def add(self, role: str, text: str):
         text = (text or "").strip()
         if text:
             self.lines.append(f"[{role}] {text}")
+
+    def add_once(self, item_id: Optional[str], role: str, text: str):
+        if item_id and item_id in self.seen_ids:
+            return
+        if item_id:
+            self.seen_ids.add(item_id)
+        self.add(role, text)
+
     def clear(self):
         self.lines.clear()
+        self.seen_ids.clear()
 
 # ================== Helpers log ==================
 def _log_evt(tag: str, role: str, text: str, extra: str = ""):
@@ -66,23 +279,24 @@ def _log_evt(tag: str, role: str, text: str, extra: str = ""):
 
 # ================== Talker (Agent) có RAG ==================
 class Talker(Agent):
-    def __init__(self, rag: MedicalRAG):
+    """Đơn giản hoá: bỏ toàn bộ cơ chế personal memory injection."""
+    def __init__(self, rag: MedicalRAG, buf: SessionBuf):
         super().__init__(instructions=SYSTEM_PROMPT)
         self.rag = rag
+        self.buf = buf
 
     async def on_user_turn_completed(self, turn_ctx: ChatContext, new_message):
-        """Chèn RAG (quy chuẩn y tế) vào system trước khi LLM trả lời."""
-        user_text = (new_message.text_content or "").strip()
+        # Ghi lại user để summarize (giữ logic nhẹ)
+        user_text = (getattr(new_message, "text_content", "") or "").strip()
         if not user_text:
-            return
-        ctx = self.rag.query(user_text, k=4, max_chars=1200)
-        if not ctx:
-            return
-        turn_ctx.add_message(
-            role="system",
-            content="Các quy chuẩn y tế nội bộ ưu tiên áp dụng (không đọc ra, chỉ tham khảo):\n" + ctx
-        )
-        await self.update_chat_ctx(turn_ctx)
+            collected = []
+            for m in getattr(turn_ctx, "user_messages", []) or []:
+                t = (getattr(m, "text_content", "") or "").strip()
+                if t:
+                    collected.append(t)
+            user_text = "\n".join(collected).strip()
+        if user_text and (not self.buf.lines or not self.buf.lines[-1].endswith(user_text)):
+            self.buf.add("user", user_text)
 
 # ================== Entrypoint ==================
 async def entrypoint(ctx: JobContext):
@@ -93,13 +307,23 @@ async def entrypoint(ctx: JobContext):
     await ctx.connect(auto_subscribe=AutoSubscribe.AUDIO_ONLY)
     log.info("connected to room: %s", getattr(ctx.room, "name", "?"))
 
+    # 1b) Load clinic_defaults (cấu hình / thông tin tĩnh) dùng cho summarize_visit_json
+    clinic_defaults_path = os.getenv("CLINIC_DATA_PATH", "./clinic_data.json")
+    try:
+        with open(clinic_defaults_path, "r", encoding="utf-8") as f:
+            clinic_defaults = json.load(f)
+    except Exception as e:
+        log.warning("Không đọc được clinic defaults (%s): %s", clinic_defaults_path, e)
+        clinic_defaults = {}
+
     # 2) Gemini Live API (Realtime LLM có audio & tool calling)
-    # Lưu ý: ID đúng của model là 'gemini-live-2.5-flash-preview' (không phải 'gemini-2.5-flash-live-preview')
+    # Tên model theo docs: gemini-live-2.5-flash-preview (voice/video + tool calling)
     rt_model = os.getenv("GEMINI_RT_MODEL", "gemini-live-2.5-flash-preview")
-    rt_lang  = os.getenv("GEMINI_LANGUAGE", "vi-VN")  # BCP-47, ví dụ: vi-VN, en-US
+    rt_lang = os.getenv("GEMINI_LANGUAGE", "vi-VN")  # BCP-47
+
     llm = realtime.RealtimeModel(
         model=rt_model,
-        voice=os.getenv("GEMINI_VOICE", "Puck"),  # LiveKit plugin cho phép chọn 'Puck' mặc định
+        voice=os.getenv("GEMINI_VOICE", "Puck"),  # "Puck" là mặc định ổn định
         language=rt_lang,
     )
     log.info("Realtime LLM: %s", rt_model)
@@ -112,136 +336,109 @@ async def entrypoint(ctx: JobContext):
     state = SessionBuf()
     session: Optional[AgentSession] = None
 
+    # NEW: giữ booking gần nhất + cờ gate finalize
+    latest_booking: Optional[dict] = None
+    allow_finalize: bool = False
+    closing: bool = False   # <--- thêm cờ
+    identity_state = {
+        "identity_confirmed": False,
+        "patient_name": None,
+        "phone": None,  # unified key
+        "draft_name": None,
+        "draft_phone": None,
+        "draft_conf": 0.0,
+    }
+
+    # Heuristic patterns removed (identity extraction now fully via tools)
+
+    async def _publish_data(obj: dict):
+        try:
+            payload = json.dumps(obj, ensure_ascii=False).encode("utf-8")
+            with contextlib.suppress(Exception):
+                await ctx.room.local_participant.publish_data(payload)
+        except Exception:
+            log.exception("publish data failed type=%s", obj.get("type"))
+
+
+    # Removed _inject_personal_context: personalization disabled
+
     async def start_new_session():
-        nonlocal session
+        nonlocal session, latest_booking, allow_finalize, closing
         if session is not None:
             with contextlib.suppress(Exception):
                 await session.aclose()
-
-        talker = Talker(rag=rag)
+        talker = Talker(rag=rag, buf=state)
         session = AgentSession(llm=llm)
         room_io = RoomInputOptions(noise_cancellation=noise_cancellation.BVC())
 
-        # === Event: transcript người dùng
-        @session.on("user_input_transcribed")
-        def on_user_input_transcribed(ev):
-            _log_evt("EVT user_input_transcribed", "user", ev.transcript,
-                     extra=f"final={getattr(ev,'is_final',None)} lang={getattr(ev,'language',None)}")
-            if getattr(ev, "is_final", False):
-                state.add("user", ev.transcript)
-
-        # === Event: item assistant/user được commit vào history
+        # ---------- Event handlers ----------
         @session.on("conversation_item_added")
         def on_item_added(ev):
+            if closing:
+                return  # bỏ qua sự kiện sau khi wrap-up
             role = (ev.item.role or "unknown")
             text = (getattr(ev.item, "text_content", "") or "").strip()
+            iid = getattr(ev.item, "id", None)
             if text:
                 _log_evt("EVT conversation_item_added", role, text)
-                state.add(role, text)
+                state.add_once(iid, role, text)
+                # (Heuristic identity extraction removed)
+            # Sau khi model hoàn thành tool call (identity) sẽ trả 1-2 item assistant; nếu context vừa inject và chưa chào thì trigger
+            try:
+                if shared.get("needs_personal_greet") and not shared.get("personal_greet_done"):
+                    if role in ("assistant",):
+                        # Gửi lời chào cá nhân hoá 1 lần rồi tắt cờ
+                        async def _do_personal_greet():
+                            greet_instr = (
+                                "Dựa trên PERSONAL_HISTORY vừa được thêm, hãy chào thân thiện, thật là thân mật như gặp người quen (dùng tên nếu phù hợp) và thăm về sức khỏe, cuộc sống,..."
+                            )
+                            try:
+                                handle = await session.generate_reply(instructions=greet_instr)
+                                await handle
+                            except Exception:
+                                pass
+                        shared["personal_greet_done"] = True
+                        shared["needs_personal_greet"] = False
+                        asyncio.create_task(_do_personal_greet())
+            except Exception:
+                pass
 
-        # === Event: item assistant/user được cập nhật
         @session.on("conversation_item_updated")
         def on_item_updated(ev):
             role = (ev.item.role or "unknown")
             text = (getattr(ev.item, "text_content", "") or "").strip()
             if text:
                 _log_evt("EVT conversation_item_updated", role, text)
-                state.add(role, text)
 
-        # ---------- Tool definitions (function calling) ----------
-        # Đăng ký tool bên trong để có thể "bắt" state/session qua closure
+        # ---------- Build all tools externally (identity + booking + finalize) ----------
+        shared = {
+            "latest_booking": latest_booking,
+            "allow_finalize": allow_finalize,
+            "closing": closing,
+            "session": session,
+            "ctx": ctx,
+            "rag": rag,
+            "talker": talker,
+            "extract_facts_and_summary": extract_facts_and_summary,
+            # booking async flag
+            "booking_in_progress": False,
+            # marker flags
+            "personal_context_injected": False,
+            "personal_greet_done": False,
+        }
 
-        @function_tool
-        async def schedule_appointment(
-            context: RunContext,
-            patient_name: str,
-            phone: str,
-            preferred_time: Optional[str] = None,
-            symptoms: Optional[str] = None,
-        ) -> dict:
-            """
-            Đặt lịch khám cho bệnh nhân.
-            Sử dụng khi bạn (model) đã thu thập được họ tên, số điện thoại và (nếu có) thời gian mong muốn + tóm tắt triệu chứng.
-            Trả về JSON chứa thông tin lịch hẹn và gợi ý câu nói xác nhận cho bệnh nhân.
-            """
-            history = "\n".join(state.lines)
-            data_path = os.getenv("CLINIC_DATA_PATH", "./clinic_data.json")
-
-            # Thực hiện đặt lịch (dùng model text 'gemini-2.5-flash' trong module booking.py như trước)
-            result = await asyncio.to_thread(
-                book_appointment, history, data_path, "gemini-2.5-pro"
-            )
-
-            # Lưu CSDL khách
-            try:
-                cid, _ = get_or_create_customer(
-                    result.get("patient_name") or patient_name or "",
-                    result.get("phone") or phone or "",
-                )
-                result["customer_id"] = cid
-                await asyncio.to_thread(save_visit, cid, {"booking": result})
-            except Exception:
-                pass
-
-            return {
-                "ok": True,
-                "booking": result,
-                # Model sẽ đọc/diễn đạt phần speak_text này theo cách tự nhiên trong câu trả lời kế tiếp
-                "speak_text": result.get("speak_text") or "Tôi đã sắp xếp lịch phù hợp. Cảm ơn bạn."
-            }
-
-        @function_tool
-        async def finalize_visit(context: RunContext) -> dict:
-            """
-            Tổng hợp hồ sơ, lưu vào CSDL và reset phiên làm việc để tiếp bệnh nhân kế tiếp.
-            Gọi tool này khi (model) đã thu thập đủ thông tin và đã đặt lịch thành công.
-            Sau khi tool trả về, hãy nói lời chào kết thúc ngắn gọn (ví dụ: 'Cảm ơn bạn đã đến khám. Chúc bạn mau khỏe!').
-            """
-            transcript_lines = list(state.lines)
-            transcript = "\n".join(transcript_lines)
-            user_only = "\n".join(
-                line[len("[user] "):] for line in transcript_lines if line.startswith("[user] ")
-            )
-            combined = transcript + "\n\n[USER_ONLY]\n" + (user_only or "(rỗng)")
-
-            clinic_defaults = {
-                "doctor_name": str(os.getenv("CLINIC_DOCTOR", "Bác sĩ trực")),
-                "appointment_time": "(không rõ)",
-                "diet_notes": "",
-            }
-
-            async def _do_wrap_up_and_reset():
-                try:
-                    print("===== WRAP UP (snapshot) =====")
-                    print(combined)
-                    summary = await asyncio.to_thread(summarize_visit_json, combined, clinic_defaults)
-                    patient_name = summary.get("patient_name") or ""
-                    phone = summary.get("phone") or ""
-                    cid, _ = await asyncio.to_thread(get_or_create_customer, patient_name, phone)
-                    summary["customer_id"] = cid
-                    await asyncio.to_thread(save_visit, cid, summary)
-                    log.info("visit saved: cid=%s", cid)
-                except Exception as e:
-                    fallback = {"error": str(e), "raw_transcript": transcript_lines, "user_only": user_only}
-                    with contextlib.suppress(Exception):
-                        await asyncio.to_thread(save_visit, "UNKNOWN", fallback)
-                    log.exception("Wrap-up error: %s", e)
-                finally:
-                    # Đợi ngắn để đảm bảo model đã nói xong lời chào
-                    await asyncio.sleep(1.2)
-                    with contextlib.suppress(Exception):
-                        if session is not None:
-                            await session.aclose()
-                    state.clear()
-                    await asyncio.sleep(0.6)
-                    await start_new_session()
-
-            # Chạy wrap-up ở background để không chặn luồng tool-calling
-            asyncio.create_task(_do_wrap_up_and_reset())
-            return {"ok": True, "message": "Visit finalized and session will reset."}
-
-        # Cập nhật tool vào agent (đồng bộ với phiên realtime hiện tại)
-        await talker.update_tools([schedule_appointment, finalize_visit])
+        tools = build_all_tools(
+            lambda obj: asyncio.create_task(_publish_data(obj)),
+            identity_state,
+            shared,
+            state=state,
+            book_appointment=book_appointment,
+            get_or_create_customer=get_or_create_customer,
+            save_visit=save_visit,
+            summarize_visit_json=summarize_visit_json,
+            clinic_defaults=clinic_defaults,
+        )
+        await talker.update_tools(tools)
 
         # Khởi động phiên
         await session.start(
@@ -249,10 +446,43 @@ async def entrypoint(ctx: JobContext):
             agent=talker,
             room_input_options=room_io,
             room_output_options=RoomOutputOptions(
-                transcription_enabled=True,
+                transcription_enabled=(os.getenv("LK_TRANSCRIPTION", "0") == "1"),
                 audio_enabled=True,
             ),
         )
+
+        # Lắng nghe data từ web (identity_confirmed_ui / identity_corrected)
+        @ctx.room.on("data_received")
+        def _on_data(pkt):
+            try:
+                raw = pkt.data
+                msg = json.loads(raw.decode("utf-8"))
+            except Exception:
+                return
+            t = msg.get("type")
+            if t == "identity_confirmed_ui":
+                # Deprecated: manual confirm button removed
+                pass
+            elif t == "identity_corrected":
+                pn = (msg.get("patient_name") or "").strip()
+                ph_raw = (msg.get("phone") or "").strip()
+                ph_digits = re.sub(r"\D", "", ph_raw)
+                if pn:
+                    identity_state["patient_name"] = pn
+                if len(ph_digits) == 10 and ph_digits.startswith("0"):
+                    identity_state["phone"] = ph_digits
+                if identity_state.get("patient_name") and identity_state.get("phone"):
+                    identity_state["identity_confirmed"] = True
+                    asyncio.create_task(_publish_data({
+                        "type": "identity_confirmed",
+                        "patient_name": identity_state.get("patient_name"),
+                        "phone": identity_state.get("phone"),
+                        "confidence": 0.9,
+                    }))
+            elif t == "identity_confirmed":
+                # No-op: personalization injected via confirm_identity callback
+                pass
+        # Có thể mở rộng các type khác
 
         # Chào đầu
         try:
@@ -264,5 +494,11 @@ async def entrypoint(ctx: JobContext):
     # Khởi động
     await start_new_session()
 
+
 if __name__ == "__main__":
-    agents.cli.run_app(WorkerOptions(entrypoint_fnc=entrypoint))
+    agents.cli.run_app(
+        WorkerOptions(
+            entrypoint_fnc=entrypoint,
+            agent_name=os.getenv("AGENT_NAME", "kiosk"),  # 👈 cho phép dispatch theo tên
+        )
+    )

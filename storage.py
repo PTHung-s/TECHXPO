@@ -1,9 +1,14 @@
 # storage.py
 import sqlite3, hashlib, os, json, time
-from typing import Dict
+from typing import Dict, List
 
 DB_PATH = os.getenv("KIOSK_DB", "kiosk.db")
 OUT_DIR = os.getenv("KIOSK_OUT", "out")
+# SAVE_VISIT_FILES modes:
+#  - "always" (default current behavior)
+#  - "final"  (only when explicitly flagged final=True)
+#  - "none"   (never write files, still store DB)
+SAVE_MODE = os.getenv("SAVE_VISIT_FILES", "always").lower()
 
 def _conn():
     conn = sqlite3.connect(DB_PATH)
@@ -17,13 +22,17 @@ def init_db():
     CREATE TABLE IF NOT EXISTS customers(
       id TEXT PRIMARY KEY,
       name TEXT,
-      phone TEXT UNIQUE
+      phone TEXT UNIQUE,
+      facts TEXT,
+      last_summary TEXT
     );
     CREATE TABLE IF NOT EXISTS visits(
       visit_id TEXT PRIMARY KEY,
       customer_id TEXT,
       created_at TEXT,
-      payload_json TEXT
+      payload_json TEXT,
+      summary TEXT,
+      facts_extracted TEXT
     );
     CREATE INDEX IF NOT EXISTS idx_visits_customer_created ON visits(customer_id, created_at);
     CREATE INDEX IF NOT EXISTS idx_customers_phone ON customers(phone);
@@ -51,23 +60,138 @@ def get_or_create_customer(name: str, phone: str):
         conn.commit(); conn.close()
         return cid, False
     cid = _stable_id_from_phone(phone)
-    conn.execute("INSERT OR REPLACE INTO customers(id,name,phone) VALUES(?,?,?)",
-                 (cid, name or "", phone))
+    conn.execute("INSERT OR REPLACE INTO customers(id,name,phone,facts,last_summary) VALUES(?,?,?,?,?)",
+                 (cid, name or "", phone, "", ""))
     conn.commit(); conn.close()
     return cid, True
 
-def save_visit(customer_id: str, payload: Dict) -> str:
+def get_customer_by_phone(phone: str):
+    """Lookup existing customer id by phone without creating a new record. Returns id or None."""
+    phone = _normalize_phone(phone)
+    conn = _conn()
+    cur = conn.cursor()
+    cur.execute("SELECT id FROM customers WHERE phone=?", (phone,))
+    row = cur.fetchone()
+    conn.close()
+    return row[0] if row else None
+
+def save_visit(customer_id: str, payload: Dict, *, final: bool = True, summary: str = "", facts: str = "") -> str:
     visit_id = f"VIS-{int(time.time()*1000)}"
     conn = _conn()
-    conn.execute("INSERT INTO visits(visit_id,customer_id,created_at,payload_json) VALUES(?,?,datetime('now'),?)",
-                 (visit_id, customer_id, json.dumps(payload, ensure_ascii=False)))
+    conn.execute("INSERT INTO visits(visit_id,customer_id,created_at,payload_json,summary,facts_extracted) VALUES(?,?,datetime('now'),?,?,?)",
+                 (visit_id, customer_id, json.dumps(payload, ensure_ascii=False), summary, facts))
     conn.commit(); conn.close()
+    write_files = False
+    if SAVE_MODE == "always":
+        write_files = True
+    elif SAVE_MODE == "final" and final:
+        write_files = True
+    elif SAVE_MODE == "none":
+        write_files = False
 
-    with open(os.path.join(OUT_DIR, f"{visit_id}.json"), "w", encoding="utf-8") as f:
-        json.dump(payload, f, ensure_ascii=False, indent=2)
-    with open(os.path.join(OUT_DIR, f"{visit_id}.txt"), "w", encoding="utf-8") as f:
-        f.write(pretty_txt(payload))
+    if write_files:
+        os.makedirs(OUT_DIR, exist_ok=True)
+        with open(os.path.join(OUT_DIR, f"{visit_id}.json"), "w", encoding="utf-8") as f:
+            json.dump(payload, f, ensure_ascii=False, indent=2)
+        with open(os.path.join(OUT_DIR, f"{visit_id}.txt"), "w", encoding="utf-8") as f:
+            f.write(pretty_txt(payload))
     return visit_id
+
+def get_recent_visits(customer_id: str, limit: int = 5):
+    """Return recent visit rows (newest first) for a customer as list of dicts with parsed payload."""
+    conn = _conn()
+    cur = conn.cursor()
+    cur.execute("SELECT visit_id, created_at, payload_json, summary, facts_extracted FROM visits WHERE customer_id=? ORDER BY created_at DESC LIMIT ?", (customer_id, limit))
+    rows = []
+    for vid, created_at, payload_json, summary, facts in cur.fetchall():
+        try:
+            payload = json.loads(payload_json)
+        except Exception:
+            payload = {"raw": payload_json}
+        rows.append({
+            "visit_id": vid, 
+            "created_at": created_at, 
+            "payload": payload,
+            "summary": summary or "",
+            "facts": facts or ""
+        })
+    conn.close()
+    return rows
+
+def get_customer_facts_summary(customer_id: str):
+    """Get accumulated facts and last summary for a customer."""
+    conn = _conn()
+    cur = conn.cursor()
+    cur.execute("SELECT facts, last_summary FROM customers WHERE id=?", (customer_id,))
+    row = cur.fetchone()
+    conn.close()
+    if row:
+        return {"facts": row[0] or "", "last_summary": row[1] or ""}
+    return {"facts": "", "last_summary": ""}
+
+def update_customer_facts_summary(customer_id: str, facts: str, summary: str):
+    """Update customer's accumulated facts and last summary."""
+    conn = _conn()
+    conn.execute("UPDATE customers SET facts=?, last_summary=? WHERE id=?", (facts, summary, customer_id))
+    conn.commit()
+    conn.close()
+
+def build_personal_context(customer_id: str = None, visits: List[dict] = None) -> str:
+    """Return structured personal history blocks (WITHOUT wrapper tags).
+
+    Structure (only emit sections that have data):
+
+    [PATIENT_FACTS]\n...stable facts...\n[/PATIENT_FACTS]
+    [LAST_SUMMARY]\n...previous visit summary...\n[/LAST_SUMMARY]
+    [VISIT_HISTORY]\n- yyyy-mm-dd: brief line\n...\n[/VISIT_HISTORY]
+
+    This string will later be wrapped by gemini_kiosk with [PERSONAL_HISTORY] ... [/PERSONAL_HISTORY].
+    """
+    if not customer_id:
+        # fallback minimal (legacy path if only visits provided)
+        if visits:
+            lines = ["[VISIT_HISTORY]"]
+            for v in visits[:3]:
+                p = v.get("payload", {})
+                symptoms = []
+                for s in p.get("symptoms", []) or []:
+                    nm = s.get("name") or s.get("symptom") or "?"
+                    sev = s.get("severity") or s.get("level") or "?"
+                    symptoms.append(f"{nm}({sev})")
+                sym_txt = ", ".join(symptoms) if symptoms else "(không rõ)"
+                diag_list = p.get("tentative_diagnoses") or []
+                diag_txt = ", ".join(diag_list) if diag_list else "(chưa ghi)"
+                appt = p.get("appointment_time") or p.get("slot_time") or "(chưa rõ)"
+                lines.append(f"- {v.get('created_at','')}: {sym_txt}; chẩn đoán: {diag_txt}; lịch: {appt}")
+            lines.append("[/VISIT_HISTORY]")
+            return "\n".join(lines)
+        return ""
+
+    facts_data = get_customer_facts_summary(customer_id)
+    if visits is None:
+        visits = get_recent_visits(customer_id, limit=5)
+
+    sections: List[str] = []
+
+    # FACTS
+    facts_txt = (facts_data.get("facts") or "").strip()
+    if facts_txt:
+        sections.append(f"[PATIENT_FACTS]\n{facts_txt}\n[/PATIENT_FACTS]")
+
+    # LAST SUMMARY (take newest non-empty summary that is not today duplicate of last_summary)
+    last_summary = (facts_data.get("last_summary") or "").strip()
+    if not last_summary:
+        # fallback: derive from latest visit summary
+        for v in visits:
+            if v.get("summary"):
+                last_summary = v["summary"].strip()
+                break
+    if last_summary:
+        sections.append(f"[LAST_SUMMARY]\n{last_summary}\n[/LAST_SUMMARY]")
+
+    # (Tạm thời bỏ VISIT_HISTORY để giảm nhiễu, chỉ giữ FACTS + LAST_SUMMARY giúp model nhớ đúng)
+
+    return "\n\n".join(sections)
 
 def pretty_txt(p: Dict) -> str:
     def g(k, d="(không rõ)"): return p.get(k) or d
