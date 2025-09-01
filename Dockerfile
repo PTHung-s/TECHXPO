@@ -33,4 +33,13 @@ EXPOSE 8080
 HEALTHCHECK --interval=30s --timeout=5s --start-period=40s --retries=3 CMD curl -f http://localhost:${PORT}/healthz || exit 1
 
 # Single CMD runs worker (if enabled) then uvicorn
-CMD ["bash","-lc","echo '[docker] start RUN_AGENT='${RUN_AGENT}; if [ '$RUN_AGENT' = '1' ]; then python gemini_kiosk.py start & fi; exec uvicorn web.server:app --host 0.0.0.0 --port ${PORT}"]
+CMD ["bash","-lc","echo '[docker] RUN_AGENT='${RUN_AGENT}; \
+if [ \"$RUN_AGENT\" = '1' ]; then \
+  echo '[docker] launching agent'; \
+  (python -u gemini_kiosk.py start 2>&1 | sed 's/^/[agent] /') & \
+  sleep 3; ps -o pid,cmd -C python | sed 's/^/[ps] /'; \
+  if ! pgrep -f 'gemini_kiosk.py start' >/dev/null; then echo '[docker] agent failed (likely missing env LIVEKIT_* or GOOGLE_API_KEY)'; fi; \
+fi; \
+echo '[docker] starting uvicorn'; \
+
+exec uvicorn web.server:app --host 0.0.0.0 --port ${PORT}"]exec uvicorn web.server:app --host 0.0.0.0 --port ${PORT}"]
