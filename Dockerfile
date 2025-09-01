@@ -9,12 +9,14 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential curl ca-certificates && rm -rf /var/lib/apt/lists/*
+    bash build-essential curl ca-certificates && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
 # Copy entire app subtree first so build platform that pre-parses COPY won't fail
 COPY TECHXPO/ /app/
+# Normalize potential CRLF and ensure executable bit for entrypoint
+RUN if [ -f entrypoint.sh ]; then sed -i 's/\r$//' entrypoint.sh; chmod 755 entrypoint.sh; fi
 
 # Install deps
 RUN pip install --no-cache-dir -r requirements.txt
@@ -29,7 +31,7 @@ ENV AGENT_NAME=kiosk \
     PORT=8080
 
 # Fallback entrypoint if missing (should exist already after COPY)
-RUN [ -f entrypoint.sh ] || (echo '#!/usr/bin/env bash\nset -e\npython gemini_kiosk.py & exec uvicorn web.server:app --host 0.0.0.0 --port ${PORT:-8080}' > entrypoint.sh && chmod +x entrypoint.sh)
+RUN [ -f entrypoint.sh ] || (echo '#!/usr/bin/env bash\nset -e\npython gemini_kiosk.py & exec uvicorn web.server:app --host 0.0.0.0 --port ${PORT:-8080}' > entrypoint.sh && sed -i 's/\r$//' entrypoint.sh && chmod 755 entrypoint.sh)
 
 EXPOSE 8080
 HEALTHCHECK --interval=30s --timeout=5s --start-period=40s --retries=3 CMD curl -f http://localhost:${PORT}/healthz || exit 1
