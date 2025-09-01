@@ -3,6 +3,7 @@ python-dotenv>=1.0.0,<2.0
 google-genai
 livekit-plugins-google
 livekit-agents[google]~=1.2.6
+livekit-plugins-noise-cancellation
 PyYAML>=6.0
 pydantic>=2.4,<3.0
 scikit-learn>=1.4.0
