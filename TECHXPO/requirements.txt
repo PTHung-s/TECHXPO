@@ -1,0 +1,15 @@
+python-dotenv>=1.0.0,<2.0
+# google-genai needs pydantic >=2,<3
+google-genai
+livekit-plugins-google
+livekit-agents[google]~=1.2.6
+livekit-plugins-noise-cancellation
+PyYAML>=6.0
+pydantic>=2.4,<3.0
+scikit-learn>=1.4.0
+numpy>=1.26.0
+uvicorn>=0.29.0
+fastapi>=0.110.0  # fastapi 0.110+ supports pydantic v2
+PyJWT>=2.8.0
+httpx>=0.27.0
+requests>=2.31.0
