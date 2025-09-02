@@ -1,0 +1,242 @@
+{
+  "hospital_code": "BV_NAMSAIGON",
+    "hospital_name": "Bệnh viện Nam Sài Gòn",
+  "departments": {
+    "TAI - MŨI - Họng": [
+      {
+        "name": "THS.BS.CKII NGUYỄN TRƯƠNG KHƯƠNG",
+        "profile_link": "https://benhviennamsaigon.com/doi-ngu-bac-si/nguyen-truong-khuong/",
+        "role": "THS.BS.CKII",
+        "specialty": "Tai – Mũi – Họng",
+        "extra_info": "Giám đốc Chuyên môn 25 năm kinh nghiệm"
+      },
+      {
+        "name": "THS.BS.CKII LÊ NHẬT VINH",
+        "profile_link": "https://benhviennamsaigon.com/doi-ngu-bac-si/le-nhat-vinh/",
+        "role": "THS.BS.CKII",
+        "specialty": "Tai – Mũi – Họng",
+        "extra_info": "Phụ trách Khoa Liên chuyên khoa Mắt – Tai Mũi Họng – Răng Hàm Mặt – Da Liễu 14 năm kinh nghiệm"
+      }
+    ],
+    "Ngoại Thần Kinh - CỘT Sống": [
+      {
+        "name": "TS.BS NGUYỄN KIM CHUNG",
+        "profile_link": "https://benhviennamsaigon.com/doi-ngu-bac-si/nguyen-kim-chung/",
+        "role": "TS.BS",
+        "specialty": "Ngoại Thần Kinh - Cột Sống",
+        "extra_info": "Bác sĩ chuyên gia Ngoại Thần kinh – Sọ não – Cột sống 30 năm kinh nghiệm"
+      },
+      {
+        "name": "TS.BS LÊ KHÂM TUÂN",
+        "profile_link": "https://benhviennamsaigon.com/doi-ngu-bac-si/le-kham-tuan/",
+        "role": "TS.BS",
+        "specialty": "Ngoại Thần Kinh - Cột Sống",
+        "extra_info": "Trưởng khoa Ngoại Thần kinh - Cột sống 19 năm kinh nghiệm"
+      },
+      {
+        "name": "BS.CKII LÊ TRỌNG NGHĨA",
+        "profile_link": "https://benhviennamsaigon.com/doi-ngu-bac-si/le-trong-nghia/",
+        "role": "BS.CKII",
+        "specialty": "Ngoại Thần Kinh - Cột Sống",
+        "extra_info": "Phó Trưởng khoa Ngoại Thần kinh – Cột sống 20 năm kinh nghiệm"
+      },
+      {
+        "name": "THS.BS.CKII ĐỖ ANH VŨ",
+        "profile_link": "https://benhviennamsaigon.com/doi-ngu-bac-si/do-anh-vu/",
+        "role": "THS.BS.CKII",
+        "specialty": "Ngoại Thần Kinh - Cột Sống",
+        "extra_info": "Bác sĩ khoa Ngoại Thần Kinh – Cột sống 23 năm kinh nghiệm"
+      }
+    ],
+    "Ngoại Lồng Ngực": [
+      {
+        "name": "PGS.TS.BS VŨ HỮU VĨNH",
+        "profile_link": "https://benhviennamsaigon.com/doi-ngu-bac-si/vu-huu-vinh/",
+        "role": "PGS.TS.BS",
+        "specialty": "Ngoại Lồng Ngực",
+        "extra_info": "Trưởng khoa Ngoại Lồng ngực 30 năm kinh nghiệm"
+      }
+    ],
+    "Chấn Thương Chỉnh Hình, CƠ - Xương - Khớp": [
+      {
+        "name": "BS.CKII VÕ VĂN MẪN",
+        "profile_link": "https://benhviennamsaigon.com/doi-ngu-bac-si/vo-van-man/",
+        "role": "BS.CKII",
+        "specialty": "Chấn Thương Chỉnh Hình, Cơ - Xương - Khớp",
+        "extra_info": "Trưởng khoa Chấn thương Chỉnh hình 30 năm kinh nghiệm"
+      },
+      {
+        "name": "BS.CKII NGUYỄN TRỌNG ANH",
+        "profile_link": "https://benhviennamsaigon.com/doi-ngu-bac-si/nguyen-trong-anh/",
+        "role": "BS.CKII",
+        "specialty": "Chấn Thương Chỉnh Hình, Cơ - Xương - Khớp",
+        "extra_info": "Bác sĩ chuyên gia bệnh lý Cơ – Xương – Khớp & Chấn Thương Thể Thao 30 năm kinh nghiệm"
+      },
+      {
+        "name": "BS.CKII HUỲNH ĐẶNG THANH SƠN",
+        "profile_link": "https://benhviennamsaigon.com/doi-ngu-bac-si/huynh-dang-thanh-son/",
+        "role": "BS.CKII",
+        "specialty": "Chấn Thương Chỉnh Hình, Cơ - Xương - Khớp",
+        "extra_info": "Phó Trưởng khoa Chấn thương Chỉnh hình 15 năm kinh nghiệm"
+      }
+    ],
+    "Ngoại Tổng HỢP": [
+      {
+        "name": "TS.BS NGUYỄN QUỐC VINH",
+        "profile_link": "https://benhviennamsaigon.com/doi-ngu-bac-si/nguyen-quoc-vinh/",
+        "role": "TS.BS",
+        "specialty": "Ngoại Tổng Hợp",
+        "extra_info": "Trưởng khoa Ngoại Tổng hợp 20 năm kinh nghiệm"
+      },
+      {
+        "name": "BS.CKII LÊ VĂN HIẾU NHÂN",
+        "profile_link": "https://benhviennamsaigon.com/doi-ngu-bac-si/le-van-hieu-nhan/",
+        "role": "BS.CKII",
+        "specialty": "Ngoại Tổng Hợp",
+        "extra_info": "Phó Trưởng khoa Ngoại Tổng hợp 26 năm kinh nghiệm"
+      },
+      {
+        "name": "THS.BS.CKII VƯƠNG THỊ NGUYÊN THẢO",
+        "profile_link": "https://benhviennamsaigon.com/doi-ngu-bac-si/vuong-thi-nguyen-thao/",
+        "role": "THS.BS.CKII",
+        "specialty": "Ngoại Tổng Hợp",
+        "extra_info": "Bác sĩ Ung bướu 30 năm kinh nghiệm"
+      }
+    ],
+    "Khám Bệnh": [
+      {
+        "name": "BS.CKII NGUYỄN MỸ BẢO ANH",
+        "profile_link": "https://benhviennamsaigon.com/doi-ngu-bac-si/nguyen-my-bao-anh/",
+        "role": "BS.CKII",
+        "specialty": "Khám Bệnh",
+        "extra_info": "Trưởng khoa Khám bệnh 24 năm kinh nghiệm"
+      },
+      {
+        "name": "TTƯT.TS.BS NGUYỄN THỊ THU HƯƠNG",
+        "profile_link": "https://benhviennamsaigon.com/doi-ngu-bac-si/nguyen-thi-thu-huong/",
+        "role": "TTƯT.TS.BS",
+        "specialty": "Khám Bệnh",
+        "extra_info": "Bác sĩ chuyên gia phòng khám Nội thận – Tiết niệu 39 năm kinh nghiệm"
+      },
+      {
+        "name": "TS.BS.CKII TRƯƠNG THỊ MAI HƯƠNG",
+        "profile_link": "https://benhviennamsaigon.com/doi-ngu-bac-si/truong-thi-mai-huong/",
+        "role": "TS.BS.CKII",
+        "specialty": "Khám Bệnh",
+        "extra_info": "Bác sĩ chuyên gia Nội Tim mạch 38 năm kinh nghiệm"
+      },
+      {
+        "name": "THS.BS PHẠM THỊ VÂN THANH",
+        "profile_link": "https://benhviennamsaigon.com/doi-ngu-bac-si/pham-thi-van-thanh/",
+        "role": "THS.BS",
+        "specialty": "Khám Bệnh",
+        "extra_info": "Bác sĩ chuyên gia Nội soi thanh – khí – phế quản 24 năm kinh nghiệm"
+      },
+      {
+        "name": "THS.BS NGUYỄN HỮU LĨNH",
+        "profile_link": "https://benhviennamsaigon.com/doi-ngu-bac-si/nguyen-huu-linh/",
+        "role": "THS.BS",
+        "specialty": "Khám Bệnh",
+        "extra_info": "Bác sĩ Nhi khoa 25 năm kinh nghiệm"
+      }
+    ],
+    "NỘI Tổng HỢP": [
+      {
+        "name": "BS.CKI HỒ THANH LỊCH",
+        "profile_link": "https://benhviennamsaigon.com/doi-ngu-bac-si/ho-thanh-lich/",
+        "role": "BS.CKI",
+        "specialty": "Nội Tổng Hợp",
+        "extra_info": "Trưởng khoa Nội Tổng hợp 16 năm kinh nghiệm"
+      },
+      {
+        "name": "BS.CKI VÕ THỊ HUỲNH NGA",
+        "profile_link": "https://benhviennamsaigon.com/doi-ngu-bac-si/vo-thi-huynh-nga/",
+        "role": "BS.CKI",
+        "specialty": "Nội Tổng Hợp",
+        "extra_info": "Bác sĩ khoa Nội Tổng hợp 15 năm kinh nghiệm"
+      },
+      {
+        "name": "BS.CKI NGUYỄN LÂM VĨNH PHÚC",
+        "profile_link": "https://benhviennamsaigon.com/doi-ngu-bac-si/nguyen-lam-vinh-phuc/",
+        "role": "BS.CKI",
+        "specialty": "Nội Tổng Hợp",
+        "extra_info": "Phó Trưởng khoa Nội Tổng hợp 10 năm kinh nghiệm"
+      },
+      {
+        "name": "BS.CKII PHAN TẤT KHÁNH DƯƠNG",
+        "profile_link": "https://benhviennamsaigon.com/doi-ngu-bac-si/phan-tat-khanh-duong/",
+        "role": "BS.CKII",
+        "specialty": "Nội Tổng Hợp",
+        "extra_info": "Bác sĩ Nội Tổng hợp 15 năm kinh nghiệm"
+      }
+    ],
+    "GÂY MÊ - HỒI SỨC": [
+      {
+        "name": "BS.CKII VŨ THỊ THU HƯƠNG",
+        "profile_link": "https://benhviennamsaigon.com/doi-ngu-bac-si/vu-thi-thu-huong/",
+        "role": "BS.CKII",
+        "specialty": "Gây Mê - Hồi Sức",
+        "extra_info": "Phó Giám đốc Chuyên môn – Trưởng khoa Gây mê hồi sức 25 năm kinh nghiệm"
+      },
+      {
+        "name": "BS.CKII TRẦN THỊ DIỄM QUỲNH",
+        "profile_link": "https://benhviennamsaigon.com/doi-ngu-bac-si/tran-thi-diem-quynh/",
+        "role": "BS.CKII",
+        "specialty": "Gây Mê - Hồi Sức",
+        "extra_info": "Phó Trưởng khoa Gây mê hồi sức 20 năm kinh nghiệm"
+      },
+      {
+        "name": "BS.CKII NGUYỄN THỊ PHƯỢNG",
+        "profile_link": "https://benhviennamsaigon.com/doi-ngu-bac-si/nguyen-thi-phuong/",
+        "role": "BS.CKII",
+        "specialty": "Gây Mê - Hồi Sức",
+        "extra_info": "Bác sĩ khoa Gây mê hồi sức 15 năm kinh nghiệm"
+      }
+    ],
+    "HỒI SỨC Tích CỰC - CẤP CỨU": [
+      {
+        "name": "BS.CKI TRƯƠNG HOÀI SƠN",
+        "profile_link": "https://benhviennamsaigon.com/doi-ngu-bac-si/truong-hoai-son/",
+        "role": "BS.CKI",
+        "specialty": "Hồi Sức Tích Cực - Cấp Cứu",
+        "extra_info": "Phó Trưởng khoa Hồi sức tích cực – Cấp cứu 9 năm kinh nghiệm"
+      }
+    ],
+    "Chẩn Đoán Hình Ảnh": [
+      {
+        "name": "THS.BS NGUYỄN HỮU THANH",
+        "profile_link": "https://benhviennamsaigon.com/doi-ngu-bac-si/nguyen-huu-thanh/",
+        "role": "THS.BS",
+        "specialty": "Chẩn Đoán Hình Ảnh",
+        "extra_info": "Trưởng khoa Chẩn đoán hình ảnh – Thăm dò chức năng 15 năm kinh nghiệm"
+      }
+    ],
+    "VẬT LÝ TRỊ Liệu - Phục HỒI Chức Năng": [
+      {
+        "name": "BS. BÙI THỊ BỐN",
+        "profile_link": "https://benhviennamsaigon.com/doi-ngu-bac-si/bui-thi-bon/",
+        "role": "Bác sĩ",
+        "specialty": "Vật Lý Trị Liệu – Phục Hồi Chức Năng",
+        "extra_info": "Trưởng khoa Vật lý trị liệu – Phục hồi chức năng 8 năm kinh nghiệm"
+      }
+    ],
+    "Khoa Dược": [
+      {
+        "name": "DS.CKI PHẠM NGỌC THẢO UYÊN",
+        "profile_link": "https://benhviennamsaigon.com/doi-ngu-bac-si/pham-ngoc-thao-uyen/",
+        "role": "DS.CKI",
+        "specialty": "Khoa Dược",
+        "extra_info": "Trưởng khoa Dược 18 năm kinh nghiệm"
+      }
+    ],
+    "Phòng khám MẮT": [
+      {
+        "name": "THS.BS TÔ THỊ KỲ ANH",
+        "profile_link": "https://benhviennamsaigon.com/doi-ngu-bac-si/to-thi-ky-anh/",
+        "role": "THS.BS",
+        "specialty": "Phòng khám Mắt",
+        "extra_info": "Bác sĩ chuyên gia chuyên khoa Mắt 30 năm kinh nghiệm"
+      }
+    ]
+  }
+}
