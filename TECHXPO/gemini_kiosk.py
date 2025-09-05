@@ -272,6 +272,34 @@ class SessionBuf:
         self.lines.clear()
         self.seen_ids.clear()
 
+# ================== ReplyGate ==================
+class ReplyGate:
+  """Serialize all session.generate_reply calls to avoid race during reconnect.
+
+  Adds a small delay before issuing the request and retries once on transient error.
+  """
+  def __init__(self, session: AgentSession, base_delay: float = 0.15):
+    self._session = session
+    self._lock = asyncio.Lock()
+    self._base_delay = base_delay
+
+  async def say(self, instructions: str, retry: bool = True):
+    async with self._lock:
+      # small debounce to let tool events / reconnect settle
+      await asyncio.sleep(self._base_delay)
+      try:
+        handle = await self._session.generate_reply(instructions=instructions)
+        await handle
+      except Exception:
+        if retry:
+          # brief backoff then single retry
+          await asyncio.sleep(0.5)
+          try:
+            handle = await self._session.generate_reply(instructions=instructions)
+            await handle
+          except Exception as e:  # final give up
+            log.warning("reply_gate retry failed: %s", e)
+
 # ================== Helpers log ==================
 def _log_evt(tag: str, role: str, text: str, extra: str = ""):
     if logging.getLogger().isEnabledFor(logging.DEBUG):
@@ -335,21 +363,18 @@ async def entrypoint(ctx: JobContext):
     # ===== State & session =====
     state = SessionBuf()
     session: Optional[AgentSession] = None
-
-    # NEW: giữ booking gần nhất + cờ gate finalize
     latest_booking: Optional[dict] = None
     allow_finalize: bool = False
-    closing: bool = False   # <--- thêm cờ
+    closing: bool = False
     identity_state = {
         "identity_confirmed": False,
         "patient_name": None,
-        "phone": None,  # unified key
+        "phone": None,
         "draft_name": None,
         "draft_phone": None,
         "draft_conf": 0.0,
     }
-
-    # Heuristic patterns removed (identity extraction now fully via tools)
+    shared: dict = {}
 
     async def _publish_data(obj: dict):
         try:
@@ -360,10 +385,8 @@ async def entrypoint(ctx: JobContext):
             log.exception("publish data failed type=%s", obj.get("type"))
 
 
-    # Removed _inject_personal_context: personalization disabled
-
     async def start_new_session():
-        nonlocal session, latest_booking, allow_finalize, closing
+        nonlocal session, latest_booking, allow_finalize, closing, shared
         if session is not None:
             with contextlib.suppress(Exception):
                 await session.aclose()
@@ -371,37 +394,16 @@ async def entrypoint(ctx: JobContext):
         session = AgentSession(llm=llm)
         room_io = RoomInputOptions(noise_cancellation=noise_cancellation.BVC())
 
-        # ---------- Event handlers ----------
         @session.on("conversation_item_added")
         def on_item_added(ev):
             if closing:
-                return  # bỏ qua sự kiện sau khi wrap-up
+                return
             role = (ev.item.role or "unknown")
             text = (getattr(ev.item, "text_content", "") or "").strip()
             iid = getattr(ev.item, "id", None)
             if text:
                 _log_evt("EVT conversation_item_added", role, text)
                 state.add_once(iid, role, text)
-                # (Heuristic identity extraction removed)
-            # Sau khi model hoàn thành tool call (identity) sẽ trả 1-2 item assistant; nếu context vừa inject và chưa chào thì trigger
-            try:
-                if shared.get("needs_personal_greet") and not shared.get("personal_greet_done"):
-                    if role in ("assistant",):
-                        # Gửi lời chào cá nhân hoá 1 lần rồi tắt cờ
-                        async def _do_personal_greet():
-                            greet_instr = (
-                                "Dựa trên PERSONAL_HISTORY vừa được thêm, hãy chào thân thiện, thật là thân mật như gặp người quen (dùng tên nếu phù hợp) và thăm về sức khỏe, cuộc sống,..."
-                            )
-                            try:
-                                handle = await session.generate_reply(instructions=greet_instr)
-                                await handle
-                            except Exception:
-                                pass
-                        shared["personal_greet_done"] = True
-                        shared["needs_personal_greet"] = False
-                        asyncio.create_task(_do_personal_greet())
-            except Exception:
-                pass
 
         @session.on("conversation_item_updated")
         def on_item_updated(ev):
@@ -410,22 +412,14 @@ async def entrypoint(ctx: JobContext):
             if text:
                 _log_evt("EVT conversation_item_updated", role, text)
 
-        # ---------- Build all tools externally (identity + booking + finalize) ----------
-        shared = {
+        shared.update({
             "latest_booking": latest_booking,
             "allow_finalize": allow_finalize,
             "closing": closing,
             "session": session,
-            "ctx": ctx,
             "rag": rag,
-            "talker": talker,
-            "extract_facts_and_summary": extract_facts_and_summary,
-            # booking async flag
-            "booking_in_progress": False,
-            # marker flags
-            "personal_context_injected": False,
-            "personal_greet_done": False,
-        }
+            "reply_gate": None,
+        })
 
         tools = build_all_tools(
             lambda obj: asyncio.create_task(_publish_data(obj)),
@@ -440,7 +434,7 @@ async def entrypoint(ctx: JobContext):
         )
         await talker.update_tools(tools)
 
-        # Khởi động phiên
+        # Start realtime session first
         await session.start(
             room=ctx.room,
             agent=talker,
@@ -451,45 +445,12 @@ async def entrypoint(ctx: JobContext):
             ),
         )
 
-        # Lắng nghe data từ web (identity_confirmed_ui / identity_corrected)
-        @ctx.room.on("data_received")
-        def _on_data(pkt):
-            try:
-                raw = pkt.data
-                msg = json.loads(raw.decode("utf-8"))
-            except Exception:
-                return
-            t = msg.get("type")
-            if t == "identity_confirmed_ui":
-                # Deprecated: manual confirm button removed
-                pass
-            elif t == "identity_corrected":
-                pn = (msg.get("patient_name") or "").strip()
-                ph_raw = (msg.get("phone") or "").strip()
-                ph_digits = re.sub(r"\D", "", ph_raw)
-                if pn:
-                    identity_state["patient_name"] = pn
-                if len(ph_digits) == 10 and ph_digits.startswith("0"):
-                    identity_state["phone"] = ph_digits
-                if identity_state.get("patient_name") and identity_state.get("phone"):
-                    identity_state["identity_confirmed"] = True
-                    asyncio.create_task(_publish_data({
-                        "type": "identity_confirmed",
-                        "patient_name": identity_state.get("patient_name"),
-                        "phone": identity_state.get("phone"),
-                        "confidence": 0.9,
-                    }))
-            elif t == "identity_confirmed":
-                # No-op: personalization injected via confirm_identity callback
-                pass
-        # Có thể mở rộng các type khác
-
-        # Chào đầu
+        # Create ReplyGate after session is active and send greeting once
+        shared["reply_gate"] = ReplyGate(session)
         try:
-            handle = await session.generate_reply(instructions=WELCOME)
-            await handle
+            await shared["reply_gate"].say(WELCOME)
         except Exception as e:
-            logging.warning("welcome failed: %s", e)
+            log.warning("welcome failed: %s", e)
 
     # Khởi động
     await start_new_session()

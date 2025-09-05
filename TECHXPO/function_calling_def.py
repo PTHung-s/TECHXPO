@@ -284,13 +284,17 @@ def build_all_tools(
                         except Exception:
                             pass
                         try:
-                            # Dùng chỉ dẫn mạnh để model đọc nguyên văn, tránh tự paraphrase hoặc hỏi lại
+                            # Dùng chỉ dẫn mạnh để model đọc nguyên văn
                             force_instr = (
                                 "ĐỌC NGUYÊN VĂN lịch khám vừa đặt cho bệnh nhân, không thêm câu hỏi hay diễn giải khác. "
                                 "Sau khi đọc xong thì dừng lại chờ bệnh nhân xác nhận. Câu cần đọc: \n" + speak_text
                             )
-                            handle = await session.generate_reply(instructions=force_instr)
-                            await handle  # đợi tạo xong (âm thanh sẽ phát tiếp theo)
+                            rg = shared.get("reply_gate")
+                            if rg:
+                                await rg.say(force_instr)
+                            else:
+                                handle = await session.generate_reply(instructions=force_instr)
+                                await handle
                         except Exception:
                             pass
                 except Exception:
@@ -305,8 +309,13 @@ def build_all_tools(
                     shared["booking_guard_added"] = False
                 try:
                     if session is not None:
-                        handle = await session.generate_reply(instructions="Em xin lỗi, hiện tại hệ thống đặt lịch gặp lỗi, mình có muốn thử lại một lát nữa không ạ?")
-                        await handle
+                        apology = "Em xin lỗi, hiện tại hệ thống đặt lịch gặp lỗi, mình có muốn thử lại một lát nữa không ạ?"
+                        rg = shared.get("reply_gate")
+                        if rg:
+                            await rg.say(apology)
+                        else:
+                            handle = await session.generate_reply(instructions=apology)
+                            await handle
                 except Exception:
                     pass
             finally:
