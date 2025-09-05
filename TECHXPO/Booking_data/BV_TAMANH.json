@@ -2,1138 +2,1252 @@
   "hospital_code": "BV_TAMANH",
   "hospital_name": "Bệnh viện Tâm Anh",
   "departments": {
-    "Trung TÂM TIM mạch": [
-      {
-        "name": "PHẠM NGUYỄN VINH",
-        "role": "PGS.TS.BS",
-        "info": "Giám đốc Trung tâm Tim mạch",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/pham-nguyen-vinh/",
-        "specialty": "Trung tâm Tim mạch"
-      },
-      {
-        "name": "VÕ THÀNH NHÂN",
-        "role": "TTND.GS.TS.BS",
-        "info": "Giám đốc Trung tâm Tim mạch Can thiệp",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/vo-thanh-nhan/",
-        "specialty": "Trung tâm Tim mạch"
-      },
-      {
-        "name": "NGUYỄN MINH TRÍ VIÊN",
-        "role": "THS.BS",
-        "info": "Cố vấn Phẫu thuật tim, Trung tâm Tim mạch",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/nguyen-minh-tri-vien/",
-        "specialty": "Trung tâm Tim mạch"
-      },
-      {
-        "name": "HUỲNH NGỌC LONG",
-        "role": "BS.CKII",
-        "info": "Phó Giám đốc Trung tâm Tim mạch Can thiệp",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/huynh-ngoc-long/",
-        "specialty": "Trung tâm Tim mạch"
-      }
-    ],
-    "Trung TÂM Tiết niệu - Thận HỌC - NAM khoa": [
-      {
-        "name": "VŨ LÊ CHUYÊN",
-        "role": "TTƯT.PGS.TS.BS",
-        "info": "Giám đốc Trung tâm Tiết niệu - Thận học - Nam khoa",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/vu-le-chuyen/",
-        "specialty": "Trung tâm Tiết niệu – Thận học – Nam khoa"
-      },
-      {
-        "name": "TẠ PHƯƠNG DUNG",
-        "role": "TTƯT.BS.CKII",
-        "info": "Phó Giám đốc Trung tâm Tiết niệu - Thận học - Nam khoa",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/ta-phuong-dung/",
-        "specialty": "Trung tâm Tiết niệu – Thận học – Nam khoa"
-      },
-      {
-        "name": "NGUYỄN HOÀNG ĐỨC",
-        "role": "TS.BS",
-        "info": "Trưởng khoa Tiết Niệu, Trung tâm Tiết niệu - Thận học - Nam khoa",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/nguyen-hoang-duc/",
-        "specialty": "Trung tâm Tiết niệu – Thận học – Nam khoa"
-      },
-      {
-        "name": "TỪ THÀNH TRÍ DŨNG",
-        "role": "TS.BS",
-        "info": "Trưởng khoa Nam học, Trung tâm Tiết niệu - Thận học - Nam khoa",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/tu-thanh-tri-dung/",
-        "specialty": "Trung tâm Tiết niệu – Thận học – Nam khoa"
-      },
-      {
-        "name": "PHẠM THỊ THANH TÂM",
-        "role": "BS.CKII",
-        "info": "Trưởng đơn vị Nội Tổng hợp, Phòng khám Đa khoa Tâm Anh Quận 7",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/pham-thi-thanh-tam/",
-        "specialty": "Trung tâm Tiết niệu – Thận học – Nam khoa"
-      },
-      {
-        "name": "NGUYỄN TÂN CƯƠNG",
-        "role": "THS.BS",
-        "info": "Phó khoa Tiết niệu, Trung tâm Tiết niệu - Thận học - Nam khoa",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/nguyen-tan-cuong/",
-        "specialty": "Trung tâm Tiết niệu – Thận học – Nam khoa"
-      }
-    ],
-    "Trung TÂM SẢN PHỤ Khoa": [
-      {
-        "name": "NGUYỄN BÁ MỸ NHI",
-        "role": "BS.CKII",
-        "info": "Giám đốc Trung tâm Sản Phụ khoa",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/nguyen-ba-my-nhi/",
-        "specialty": "Trung tâm Sản Phụ Khoa"
-      },
-      {
-        "name": "NGUYỄN THỊ QUÝ KHOA",
-        "role": "THS.BS",
-        "info": "Phó khoa Sản - Trung tâm Sản Phụ khoa",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/nguyen-thi-quy-khoa/",
-        "specialty": "Trung tâm Sản Phụ Khoa"
-      },
-      {
-        "name": "LÊ THANH HÙNG",
-        "role": "BS.CKII",
-        "info": "Phó khoa Sản - Trung tâm Sản Phụ khoa",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/le-thanh-hung/",
-        "specialty": "Trung tâm Sản Phụ Khoa"
-      },
-      {
-        "name": "HÀ HUỲNH KIM YẾN",
-        "role": "THS.BS.CKII",
-        "info": "Trưởng đơn vị Sản phụ khoa",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/ha-huynh-kim-yen/",
-        "specialty": "Trung tâm Sản Phụ Khoa"
-      },
-      {
-        "name": "HUỲNH KIM KHOE",
-        "role": "BS.CKII",
-        "info": "Bác sĩ đơn vị Sản Phụ khoa",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/huynh-kim-khoe/",
-        "specialty": "Trung tâm Sản Phụ Khoa"
-      },
-      {
-        "name": "NGUYỄN THỊ THANH TÂM",
-        "role": "THS.BS",
-        "info": "Bác sĩ Trung tâm Sản Phụ khoa",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/nguyen-thi-thanh-tam/",
-        "specialty": "Trung tâm Sản Phụ Khoa"
-      },
-      {
-        "name": "HỒ THỊ KHÁNH QUYÊN",
-        "role": "BS.CKI",
-        "info": "Bác sĩ Trung tâm Sản Phụ khoa",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/ho-thi-khanh-quyen/",
-        "specialty": "Trung tâm Sản Phụ Khoa"
-      }
-    ],
-    "Trung TÂM NỘI SOI & Phẫu thuật NỘI SOI tiêu HÓA": [
-      {
-        "name": "ĐỖ MINH HÙNG",
-        "role": "TS.BS",
-        "info": "Giám đốc Trung tâm Nội soi và Phẫu thuật Nội soi Tiêu hóa",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/do-minh-hung/",
-        "specialty": "Trung tâm Nội soi & Phẫu thuật nội soi tiêu hóa"
-      },
-      {
-        "name": "PHẠM HỮU TÙNG",
-        "role": "TTƯT.TS.BS",
-        "info": "Phó Giám Đốc Trung tâm Nội soi và Phẫu thuật nội soi tiêu hóa",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/pham-huu-tung/",
-        "specialty": "Trung tâm Nội soi & Phẫu thuật nội soi tiêu hóa"
-      },
-      {
-        "name": "ĐẶNG LÊ BÍCH NGỌC",
-        "role": "BS.CKI",
-        "info": "Trưởng Đơn vị Nội soi Tiêu hóa Quận 7",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/dang-le-bich-ngoc/",
-        "specialty": "Trung tâm Nội soi & Phẫu thuật nội soi tiêu hóa"
-      },
-      {
-        "name": "TRẦN THANH BÌNH",
-        "role": "TS.BS",
-        "info": "Bác sĩ Trung tâm Nội soi và Phẫu thuật nội soi tiêu hóa",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/tran-thanh-binh/",
-        "specialty": "Trung tâm Nội soi & Phẫu thuật nội soi tiêu hóa"
-      },
-      {
-        "name": "NGUYỄN PHƯỚC LÂM",
-        "role": "THS.BS",
-        "info": "Bác sĩ Trung tâm Nội soi và Phẫu thuật nội soi tiêu hóa",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/nguyen-phuoc-lam/",
-        "specialty": "Trung tâm Nội soi & Phẫu thuật nội soi tiêu hóa"
-      }
-    ],
-    "Trung TÂM SƠ sinh": [
-      {
-        "name": "CAM NGỌC PHƯỢNG",
-        "role": "TS.BS",
-        "info": "Giám đốc Trung tâm Sơ sinh",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/cam-ngoc-phuong/",
-        "specialty": "Trung tâm Sơ sinh"
-      },
-      {
-        "name": "PHẠM LÊ MỸ HẠNH",
-        "role": "BS.CKII",
-        "info": "Trưởng khoa Sơ sinh",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/pham-le-my-hanh/",
-        "specialty": "Trung tâm Sơ sinh"
-      },
-      {
-        "name": "VŨ NĂNG PHÚC",
-        "role": "BS.CKII",
-        "info": "Trưởng khoa Tim bẩm sinh",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/vu-nang-phuc/",
-        "specialty": "Trung tâm Sơ sinh"
-      },
-      {
-        "name": "LÊ THỊ NGỌC DUNG",
-        "role": "BS.CKI",
-        "info": "Bác sĩ Trung tâm Sơ sinh",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/le-thi-ngoc-dung/",
-        "specialty": "Trung tâm Sơ sinh"
-      },
-      {
-        "name": "TÔ VŨ THIÊN HƯƠNG",
-        "role": "BS.CKI",
-        "info": "Bác sĩ Trung tâm Sơ sinh",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/to-vu-thien-huong/",
-        "specialty": "Trung tâm Sơ sinh"
-      }
-    ],
-    "Khoa NHI": [
-      {
-        "name": "VŨ HUY TRỤ",
-        "role": "PGS.TS.BS",
-        "info": "Trưởng khoa Nhi",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/pgs-ts-bs-vu-huy-tru/",
-        "specialty": "Khoa Nhi"
-      },
-      {
-        "name": "HOÀNG THỊ DIỄM THÚY",
-        "role": "TS.BS",
-        "info": "Bác sĩ Khoa Nhi",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/hoang-thi-diem-thuy/",
-        "specialty": "Khoa Nhi"
-      },
-      {
-        "name": "NGUYỄN THỊ HẠNH TRANG",
-        "role": "BS.CKI",
-        "info": "Phó khoa Nhi",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/nguyen-thi-hanh-trang/",
-        "specialty": "Khoa Nhi"
-      },
-      {
-        "name": "NGÔ HÀ LỆ CHI",
-        "role": "BS.CKI",
-        "info": "Bác sĩ Khoa Nhi",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/ngo-ha-le-chi/",
-        "specialty": "Khoa Nhi"
-      }
-    ],
-    "Trung TÂM TAI MŨI Họng": [
-      {
-        "name": "TRẦN PHAN CHUNG THỦY",
-        "role": "GS.TS.BS",
-        "info": "Giám đốc Trung Tâm Tai Mũi Họng",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/tran-phan-chung-thuy/",
-        "specialty": "Trung Tâm Tai Mũi Họng"
-      },
-      {
-        "name": "TRẦN THỊ THÚY HẰNG",
-        "role": "THS.BS.CKII",
-        "info": "Trưởng khoa Tai Mũi Họng, Trung tâm Tai Mũi Họng",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/tran-thi-thuy-hang/",
-        "specialty": "Trung Tâm Tai Mũi Họng"
-      },
-      {
-        "name": "PHẠM THÁI DUY",
-        "role": "THS.BS.CKI",
-        "info": "Bác sĩ Trung tâm Tai Mũi Họng",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/pham-thai-duy/",
-        "specialty": "Trung Tâm Tai Mũi Họng"
-      },
-      {
-        "name": "DIỆP PHÚC ANH",
-        "role": "THS.BS.CKI",
-        "info": "Bác sĩ Trung tâm Tai Mũi Họng",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/diep-phuc-anh/",
-        "specialty": "Trung Tâm Tai Mũi Họng"
-      },
-      {
-        "name": "PHẠM THỊ PHƯƠNG",
-        "role": "THS.BS.CKI",
-        "info": "Bác sĩ Trung tâm Tai Mũi Họng",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/bsnt-pham-thi-phuong/",
-        "specialty": "Trung Tâm Tai Mũi Họng"
-      },
-      {
-        "name": "NGUYỄN TRUNG NGUYÊN",
-        "role": "THS.BS.CKI",
-        "info": "Bác sĩ Trung tâm Tai Mũi Họng",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/nguyen-trung-nguyen/",
-        "specialty": "Trung Tâm Tai Mũi Họng"
-      }
-    ],
-    "Khoa UNG bướu": [
-      {
-        "name": "TRẦN VƯƠNG THẢO NGHI",
-        "role": "BS",
-        "info": "Trưởng khoa Khoa Ung bướu",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/tran-vuong-thao-nghi/",
-        "specialty": "Khoa Ung bướu"
-      },
-      {
-        "name": "TRẦN THỊ THIÊN HƯƠNG",
-        "role": "BS.CKII",
-        "info": "Bác sĩ Khoa Ung bướu",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/tran-thien-huong/",
-        "specialty": "Khoa Ung bướu"
-      },
-      {
-        "name": "Hồ Ngọc Bảo",
-        "role": "BS.CKI",
-        "info": "BS.CKI Hồ Ngọc Bảo",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/ho-ngoc-bao/",
-        "specialty": "Khoa Ung bướu"
-      },
-      {
-        "name": "​​NGUYỄN TIẾN SỸ",
-        "role": "THS.BS",
-        "info": "Bác sĩ Khoa Ung bướu",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/nguyen-tien-sy/",
-        "specialty": "Khoa Ung bướu"
-      },
-      {
-        "name": "​​VŨ TRẦN MINH NGUYÊN",
-        "role": "BS.CKI",
-        "info": "Bác sĩ Khoa Ung bướu",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/vu-tran-minh-nguyen/",
-        "specialty": "Khoa Ung bướu"
-      },
-      {
-        "name": "NGUYỄN CHÍ THANH",
-        "role": "BS.CKI",
-        "info": "Bác sĩ Khoa Ung bướu",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/nguyen-chi-thanh/",
-        "specialty": "Khoa Ung bướu"
-      }
-    ],
-    "Trung TÂM XÉT nghiệm": [
-      {
-        "name": "TRẦN THỊ THANH NGA",
-        "role": "BS.CKII",
-        "info": "Giám đốc Trung tâm Xét nghiệm",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/tran-thi-thanh-nga/",
-        "specialty": "Trung tâm Xét nghiệm"
-      },
-      {
-        "name": "NGUYỄN VĂN TÂN MINH",
-        "role": "THS.BS",
-        "info": "Bác sĩ Trung tâm Xét nghiệm",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/nguyen-van-tan-minh/",
-        "specialty": "Trung tâm Xét nghiệm"
-      },
-      {
-        "name": "NGUYỄN QUỐC DŨNG",
-        "role": "THS.BS",
-        "info": "Bác sĩ Trung tâm Xét nghiệm",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/nguyen-quoc-dung/",
-        "specialty": "Trung tâm Xét nghiệm"
-      }
-    ],
-    "Trung TÂM Chẩn đoán hình ảnhĐiện quang CAN thiệp": [
-      {
-        "name": "HỒ HOÀNG PHƯƠNG",
-        "role": "TS.BS",
-        "info": "Giám đốc Trung tâm Chẩn đoán hình ảnh & Điện quang can thiệp",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/ho-hoang-phuong/",
-        "specialty": "Trung tâm Chẩn đoán hình ảnhĐiện quang can thiệp"
-      },
-      {
-        "name": "CHÂU THỊ NGỌC ÁNH",
-        "role": "THS.BS.CKII",
-        "info": "Phó Giám đốc Trung tâm Chẩn đoán Hình ảnh & Điện quang Can thiệp",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/chau-thi-ngoc-anh/",
-        "specialty": "Trung tâm Chẩn đoán hình ảnhĐiện quang can thiệp"
-      },
-      {
-        "name": "LÊ VĂN TẤN",
-        "role": "TS.KTV",
-        "info": "Kỹ thuật viên trưởng Trung tâm Chẩn đoán hình ảnh & Điện quang can thiệp",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/le-van-tan/",
-        "specialty": "Trung tâm Chẩn đoán hình ảnhĐiện quang can thiệp"
-      }
-    ],
-    "Khoa HỒI SỨC CẤP CỨU (Icu)": [
-      {
-        "name": "PHAN THỊ XUÂN",
-        "role": "TTND.TS.BS.CKII",
-        "info": "Trưởng khoa Hồi sức tích cực - Chống độc",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/phan-thi-xuan/",
-        "specialty": "Khoa Hồi sức cấp cứu (ICU)"
-      },
-      {
-        "name": "HỒNG VĂN IN",
-        "role": "BS.CKI",
-        "info": "Phó trưởng khoa Khoa Cấp cứu",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/hong-van-in/",
-        "specialty": "Khoa Hồi sức cấp cứu (ICU)"
-      },
-      {
-        "name": "TRẦN MINH GIANG",
-        "role": "TS.BS",
-        "info": "Phó trưởng khoa Hồi sức tích cực - chống độc",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/tran-minh-giang/",
-        "specialty": "Khoa Hồi sức cấp cứu (ICU)"
-      },
-      {
-        "name": "VƯƠNG MỸ DUNG",
-        "role": "BS.CKI",
-        "info": "Phó khoa Hồi sức tích cực - Chống độc",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/vuong-my-dung/",
-        "specialty": "Khoa Hồi sức cấp cứu (ICU)"
-      }
-    ],
-    "Trung TÂM Khoa HỌC Thần kinh": [
-      {
-        "name": "LƯU KÍNH KHƯƠNG",
-        "role": "BS.CKII",
-        "info": "Trưởng khoa Khoa Gây mê hồi sức",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/luu-kinh-khuong/",
-        "specialty": "Trung tâm Khoa học Thần kinh"
-      },
-      {
-        "name": "LÊ VĂN TUẤN",
-        "role": "TS.BS",
-        "info": "Giám đốc Trung tâm Khoa học Thần kinh",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/le-van-tuan/",
-        "specialty": "Trung tâm Khoa học Thần kinh"
-      },
-      {
-        "name": "NGUYỄN THỊ MINH ĐỨC",
-        "role": "TTƯT.TS.BS",
-        "info": "Trưởng khoa Thần kinh",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/nguyen-thi-minh-duc/",
-        "specialty": "Trung tâm Khoa học Thần kinh"
-      },
-      {
-        "name": "THÂN THỊ MINH TRUNG",
-        "role": "BS.CKII",
-        "info": "Phó trưởng khoa Khoa Thần kinh",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/than-thi-minh-trung/",
-        "specialty": "Trung tâm Khoa học Thần kinh"
-      }
-    ],
-    "Trung TÂM Chấn thương chỉnh hình": [
-      {
-        "name": "LÊ VĂN TUẤN",
-        "role": "TTƯT.TS.BS.CKII",
-        "info": "Giám đốc Trung tâm Chấn thương Chỉnh hình",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/le-van-tuan-2/",
-        "specialty": "Trung tâm Chấn thương chỉnh hình"
-      },
-      {
-        "name": "HỒ HỮU DŨNG",
-        "role": "THS.BS.CKII",
-        "info": "Phó giám đốc Trung tâm Chấn thương chỉnh hình",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/ho-huu-dung/",
-        "specialty": "Trung tâm Chấn thương chỉnh hình"
-      },
-      {
-        "name": "TRƯƠNG HỮU BẢO",
-        "role": "THS.BSNT.CKI",
-        "info": "Trưởng Đơn vị Chấn thương chỉnh hình",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/truong-huu-bao/",
-        "specialty": "Trung tâm Chấn thương chỉnh hình"
-      }
-    ],
-    "Khoa Ngoại Tổng HỢP": [
-      {
-        "name": "TRẦN VĂN HÒA",
-        "role": "BS.CKII",
-        "info": "Phó khoa Ngoại Tim mạch",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/tran-van-hoa/",
-        "specialty": "Khoa Ngoại Tổng Hợp"
-      },
-      {
-        "name": "TRẦN THÚC KHANG",
-        "role": "THS.BS",
-        "info": "Phó khoa Ngoại Tim mạch",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/tran-thuc-khang/",
-        "specialty": "Khoa Ngoại Tổng Hợp"
-      },
-      {
-        "name": "NGUYỄN QUỐC THÁI",
-        "role": "BS.CKII",
-        "info": "Trưởng khoa Ngoại tiêu hóa",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/nguyen-quoc-thai/",
-        "specialty": "Khoa Ngoại Tổng Hợp"
-      }
-    ],
-    "Khoa Ngoại Lồng ngực - Mạch MÁU": [
-      {
-        "name": "NGUYỄN ANH DŨNG",
-        "role": "TS.BS",
-        "info": "Trưởng khoa Ngoại Lồng ngực - Mạch máu",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/nguyen-anh-dung/",
-        "specialty": "Khoa Ngoại Lồng ngực – Mạch máu"
-      },
-      {
-        "name": "TRẦN CÔNG QUYỀN",
-        "role": "TTƯT.BS.CKII",
-        "info": "Phó khoa Ngoại Lồng ngực - Mạch máu",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/tran-cong-quyen/",
-        "specialty": "Khoa Ngoại Lồng ngực – Mạch máu"
-      },
-      {
-        "name": "LÊ THỊ NGỌC HẰNG",
-        "role": "THS.BS.CKI",
-        "info": "Bác sĩ khoa Ngoại Lồng ngực - Mạch máu",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/le-thi-ngoc-hang/",
-        "specialty": "Khoa Ngoại Lồng ngực – Mạch máu"
-      }
-    ],
-    "Khoa Ngoại VÚ - ĐẦU MẶT CỔ": [
-      {
-        "name": "NGUYỄN ĐỖ THÙY GIANG",
-        "role": "THS.BS",
-        "info": "Trưởng Khoa Ngoại Vú - Đầu Mặt Cổ",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/nguyen-do-thuy-giang/",
-        "specialty": "Khoa Ngoại Vú – Đầu Mặt Cổ"
-      },
-      {
-        "name": "ĐOÀN MINH TRÔNG",
-        "role": "THS.BS.CKII",
-        "info": "Bác sĩ Khoa Ngoại Vú - Đầu Mặt Cổ",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/doan-minh-trong/",
-        "specialty": "Khoa Ngoại Vú – Đầu Mặt Cổ"
-      },
-      {
-        "name": "HUỲNH BÁ TẤN",
-        "role": "THS.BS.CKI",
-        "info": "Bác sĩ Khoa Ngoại Vú - Đầu Mặt Cổ",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/huynh-ba-tan/",
-        "specialty": "Khoa Ngoại Vú – Đầu Mặt Cổ"
-      },
-      {
-        "name": "ĐỖ ANH TUẤN",
-        "role": "BS.CKI",
-        "info": "Bác sĩ Khoa Ngoại Vú - Đầu Mặt Cổ",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/do-anh-tuan/",
-        "specialty": "Khoa Ngoại Vú – Đầu Mặt Cổ"
-      }
-    ],
-    "Khoa NỘI tổng HỢP": [
-      {
-        "name": "TRẦN THỊ THANH TRÚC",
-        "role": "BS.CKII",
-        "info": "Trưởng khoa Nội tổng hợp",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/tran-thi-thanh-truc/",
-        "specialty": "Khoa Nội tổng hợp"
-      },
-      {
-        "name": "LÊ THANH QUỲNH NGÂN",
-        "role": "THS.BS.CKII",
-        "info": "Trưởng Khoa Nội tiêu hóa",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/le-thanh-quynh-ngan/",
-        "specialty": "Khoa Nội tổng hợp"
-      },
-      {
-        "name": "NGUYỄN HOÀNG TUẤN VŨ",
-        "role": "THS.BS.CKII",
-        "info": "Phó Trưởng khoa Nội Tổng hợp",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/nguyen-hoang-tuan-vu/",
-        "specialty": "Khoa Nội tổng hợp"
-      },
-      {
-        "name": "NGUYỄN THỊ THÚY",
-        "role": "THS.BS",
-        "info": "Bác sĩ Khoa Nội tổng hợp",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/nguyen-thi-thuy/",
-        "specialty": "Khoa Nội tổng hợp"
-      },
-      {
-        "name": "ĐẶNG THỊ MAI KHUÊ",
-        "role": "TS.BS",
-        "info": "Phó Trưởng khoa Nội Tổng hợp",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/dang-thi-mai-khue/",
-        "specialty": "Khoa Nội tổng hợp"
-      }
-    ],
-    "Khoa CẤP CỨU Tổng HỢP": [
-      {
-        "name": "HUỲNH VĂN MƯỜI MỘT",
-        "role": "BS.CKI",
-        "info": "Bác sĩ Khoa Cấp cứu",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/huynh-van-muoi-mot/",
-        "specialty": "Khoa Cấp cứu Tổng hợp"
-      },
-      {
-        "name": "LÊ HỒNG HẢI",
-        "role": "BS.CKII",
-        "info": "Bác sĩ Khoa Cấp cứu",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/le-hong-hai/",
-        "specialty": "Khoa Cấp cứu Tổng hợp"
-      },
-      {
-        "name": "TRƯƠNG TRỌNG TUẤN",
-        "role": "BS.CKI",
-        "info": "Bác sĩ Khoa Cấp cứu",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/truong-trong-tuan/",
-        "specialty": "Khoa Cấp cứu Tổng hợp"
-      },
-      {
-        "name": "PHAN TUẤN TRỌNG",
-        "role": "BS.CKI",
-        "info": "Bác sĩ Khoa Cấp cứu",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/phan-tuan-trong/",
-        "specialty": "Khoa Cấp cứu Tổng hợp"
-      }
-    ],
-    "Trung TÂM HỖ TRỢ sinh SẢN": [
-      {
-        "name": "CHÂU HOÀNG PHƯƠNG THẢO",
-        "role": "BS.CKI",
-        "info": "Phó Giám đốc Trung tâm Hỗ trợ sinh sản",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/chau-hoang-phuong-thao/",
-        "specialty": "Trung tâm Hỗ trợ sinh sản"
-      },
-      {
-        "name": "NGUYỄN NGỌC QUỲNH",
-        "role": "THS",
-        "info": "Trưởng Lab - Trung tâm Hỗ trợ sinh sản",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/nguyen-ngoc-quynh/",
-        "specialty": "Trung tâm Hỗ trợ sinh sản"
-      },
-      {
-        "name": "LÊ XUÂN NGUYÊN",
-        "role": "BS",
-        "info": "Bác sĩ Trung tâm Hỗ trợ sinh sản",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/bs-le-xuan-nguyen/",
-        "specialty": "Trung tâm Hỗ trợ sinh sản"
-      },
-      {
-        "name": "NGÔ ĐÌNH TRIỆU VỸ",
-        "role": "BS",
-        "info": "Bác sĩ Trung tâm Hỗ trợ sinh sản",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/ngo-dinh-trieu-vy/",
-        "specialty": "Trung tâm Hỗ trợ sinh sản"
-      }
-    ],
-    "Khoa Kiểm soát nhiễm khuẩn": [
-      {
-        "name": "TỐNG VĂN KHẢI",
-        "role": "DS",
-        "info": "Trưởng khoa Khoa Kiểm soát nhiễm khuẩn",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/tong-van-khai/",
-        "specialty": "Khoa Kiểm soát nhiễm khuẩn"
-      },
-      {
-        "name": "HUỲNH THỊ THANH TRANG",
-        "role": "THS.BS.CKII",
-        "info": "Phó Khoa Kiểm soát nhiễm khuẩn",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/huynh-thi-thanh-trang/",
-        "specialty": "Khoa Kiểm soát nhiễm khuẩn"
-      },
-      {
-        "name": "LÊ THỊ MỸ HƯƠNG",
-        "role": "BS",
-        "info": "Bác sĩ Giám sát Kiểm soát nhiễm khuẩn",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/le-thi-my-huong/",
-        "specialty": "Khoa Kiểm soát nhiễm khuẩn"
-      },
-      {
-        "name": "NGUYỄN THỊ HƯƠNG GIANG",
-        "role": "BS",
-        "info": "Bác sĩ Giám sát Kiểm soát nhiễm khuẩn",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/nguyen-thi-huong-giang/",
-        "specialty": "Khoa Kiểm soát nhiễm khuẩn"
-      }
-    ],
-    "Khoa Khám bệnh": [
-      {
-        "name": "NGUYỄN PHẠM THÙY LINH",
-        "role": "BS.CKI",
-        "info": "Bác sĩ khoa Tim bẩm sinh",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/nguyen-pham-thuy-linh/",
-        "specialty": "Khoa Khám bệnh"
-      },
-      {
-        "name": "QUÁCH NGÂN HÀ",
-        "role": "BS.CKII",
-        "info": "Bác sĩ Khoa Khám bệnh",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/quach-ngan-ha/",
-        "specialty": "Khoa Khám bệnh"
-      },
-      {
-        "name": "LÂM HIẾU MINH",
-        "role": "BS.CKII",
-        "info": "Chuyên khoa Tâm Thần Kinh: Khoa Khám bệnh",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/lam-hieu-minh/",
-        "specialty": "Khoa Khám bệnh"
-      }
-    ],
-    "Trung TÂM Y HỌC BÀO thai": [
-      {
-        "name": "TRẦN ANH VŨ",
-        "role": "THS.BS.CKII",
-        "info": "Trưởng khoa Y học thể thao & Nội soi",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/tran-anh-vu/",
-        "specialty": "Trung tâm Y học Bào thai"
-      },
-      {
-        "name": "MÃ THANH PHONG",
-        "role": "BS.CKII",
-        "info": "Trưởng Đơn vị Hô hấp",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/ma-thanh-phong/",
-        "specialty": "Trung tâm Y học Bào thai"
-      },
-      {
-        "name": "NGUYỄN HOÀNG LONG",
-        "role": "TS.BS",
-        "info": "Phó giám đốc Trung tâm Y học bào thai",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/nguyen-hoang-long/",
-        "specialty": "Trung tâm Y học Bào thai"
-      },
-      {
-        "name": "NGUYỄN THỊ LIÊN PHƯƠNG",
-        "role": "THS.BS",
-        "info": "Bác sĩ Siêu âm Sản Phụ khoa, Trung tâm Y học bào thai",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/nguyen-thi-lien-phuong/",
-        "specialty": "Trung tâm Y học Bào thai"
-      }
-    ],
-    "Khoa DA Liễu - Thẩm MỸ DA": [
-      {
-        "name": "ĐẶNG THỊ NGỌC BÍCH",
-        "role": "TS.BS.CKII",
-        "info": "Trưởng chuyên khoa Da liễu - Thẩm mỹ Da",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/dang-thi-ngoc-bich/",
-        "specialty": "Khoa Da Liễu – Thẩm mỹ da"
-      },
-      {
-        "name": "QUÁCH THỊ BÍCH VÂN",
-        "role": "BS.CKI",
-        "info": "Bác sĩ Chuyên khoa Da liễu  - Thẩm mỹ Da",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/quach-thi-bich-van/",
-        "specialty": "Khoa Da Liễu – Thẩm mỹ da"
-      },
-      {
-        "name": "LÝ THIÊN PHÚC",
-        "role": "BSNT.CKI",
-        "info": "Bác sĩ chuyên khoa Da liễu - Thẩm mỹ Da",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/ly-thien-phuc/",
-        "specialty": "Khoa Da Liễu – Thẩm mỹ da"
-      },
-      {
-        "name": "HUỲNH CÔNG TRÍ",
-        "role": "THS.BS",
-        "info": "Bác sĩ chuyên khoa Da liễu - Thẩm mỹ Da",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/huynh-cong-tri/",
-        "specialty": "Khoa Da Liễu – Thẩm mỹ da"
-      }
-    ],
-    "Khoa Dược": [
-      {
-        "name": "HUỲNH HIỀN TRUNG",
-        "role": "TS.DS",
-        "info": "Trưởng Khoa Dược",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/huynh-hien-trung/",
-        "specialty": "Khoa Dược"
-      },
-      {
-        "name": "HOÀNG TRỌNG TÍN",
-        "role": "DS",
-        "info": "Dược sĩ Khoa Dược",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/hoang-trong-tin/",
-        "specialty": "Khoa Dược"
-      }
-    ],
-    "Khoa Tiết niệu - NAM HỌC": [
-      {
-        "name": "LƯU HIẾU THẢO",
-        "role": "BS.CKII",
-        "info": "Phó Giám đốc",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/luu-hieu-thao/",
-        "specialty": "Khoa Tiết niệu – Nam học"
-      },
-      {
-        "name": "CHUNG GIA VIỄN",
-        "role": "BS.CKI",
-        "info": "Phó giám đốc",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/chung-gia-vien/",
-        "specialty": "Khoa Tiết niệu – Nam học"
-      }
-    ],
-    "Khoa Ngoại NHI": [
-      {
-        "name": "LÊ TẤN SƠN",
-        "role": "PGS.TS.BS",
-        "info": "Cố vấn chuyên môn Khoa Ngoại Nhi",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/le-tan-son/",
-        "specialty": "Khoa Ngoại Nhi"
-      },
-      {
-        "name": "NGUYỄN ĐỨC TUẤN",
-        "role": "BS.CKII",
-        "info": "Trưởng khoa Ngoại nhi",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/nguyen-duc-tuan/",
-        "specialty": "Khoa Ngoại Nhi"
-      },
-      {
-        "name": "NGUYỄN ĐỖ TRỌNG",
-        "role": "BS.CKII",
-        "info": "Bác sĩ Khoa Ngoại Nhi",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/nguyen-do-trong/",
-        "specialty": "Khoa Ngoại Nhi"
-      },
-      {
-        "name": "TRẦN THỊ THU THẢO",
-        "role": "BS.CKI",
-        "info": "Bác sĩ Nhi",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/bs-cki-tran-thi-thu-thao/",
-        "specialty": "Khoa Ngoại Nhi"
-      }
-    ],
-    "Trung TÂM TIM mạch CAN thiệp": [
-      {
-        "name": "PHẠM ĐỖ ANH THƯ",
-        "role": "THS.BS",
-        "info": "Trưởng đơn vị Bệnh Van tim",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/pham-do-anh-thu/",
-        "specialty": "Trung tâm Tim mạch Can thiệp"
-      },
-      {
-        "name": "VŨ NGỌC LÂM",
-        "role": "BS.CKII",
-        "info": "Trưởng Đơn vị Tiêu hóa Quận 7",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/vu-ngoc-lam/",
-        "specialty": "Trung tâm Tim mạch Can thiệp"
-      },
-      {
-        "name": "PHẠM HOÀNG TRỌNG HIẾU",
-        "role": "THS.BS",
-        "info": "Bác sĩ Tim mạch Can thiệp",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/pham-hoang-trong-hieu/",
-        "specialty": "Trung tâm Tim mạch Can thiệp"
-      }
-    ],
-    "Khoa Tiêu HÓA - GAN MẬT - TỤY": [
-      {
-        "name": "PHẠM CÔNG KHÁNH",
-        "role": "TS.BS",
-        "info": "Trưởng khoa Gan - Mật - Tụy",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/pham-cong-khanh/",
-        "specialty": "Khoa Tiêu hóa – Gan mật – Tụy"
-      },
-      {
-        "name": "HÀ THỊ KIM TUYẾN",
-        "role": "BS.CKII",
-        "info": "Bác sĩ Khoa Gây mê hồi sức",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/ha-thi-kim-tuyen/",
-        "specialty": "Khoa Tiêu hóa – Gan mật – Tụy"
-      },
-      {
-        "name": "TRẦN THỊ THU THẢO",
-        "role": "BS",
-        "info": "Bác sĩ Khoa Gây mê hồi sức",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/tran-thi-thu-thao/",
-        "specialty": "Khoa Tiêu hóa – Gan mật – Tụy"
-      }
-    ],
-    "Khoa Phục HỒI chức năng": [
-      {
-        "name": "ĐỖ THỊ HỒNG ÁNH",
-        "role": "BS.CKI",
-        "info": "Bác sĩ Khoa Phục hồi chức năng",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/do-thi-hong-anh/",
-        "specialty": "Khoa Phục hồi chức năng"
-      },
-      {
-        "name": "ĐÀO VĂN HOÀN",
-        "role": "BS.CKI",
-        "info": "Bác sĩ Khoa Phục hồi chức năng",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/dao-van-hoan/",
-        "specialty": "Khoa Phục hồi chức năng"
-      },
-      {
-        "name": "LÊ VĂN TÂM",
-        "role": "BS.CKI",
-        "info": "Bác sĩ Khoa Phục hồi chức năng",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/le-van-tam/",
-        "specialty": "Khoa Phục hồi chức năng"
-      },
-      {
-        "name": "HUỲNH HOÀNG ANH",
-        "role": "BS.CKI",
-        "info": "Bác sĩ Khoa Phục hồi chức năng",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/huynh-hoang-anh/",
-        "specialty": "Khoa Phục hồi chức năng"
-      },
-      {
-        "name": "VŨ THỊ THÙY TRANG",
-        "role": "Ths.BS",
-        "info": "Ths.BS VŨ THỊ THÙY TRANG",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/vu-thi-thuy-trang/",
-        "specialty": "Khoa Phục hồi chức năng"
-      }
-    ],
-    "Khoa phẫu thuật khớp VÀ NỘI SOI": [
-      {
-        "name": "LÊ THANH VƯƠNG",
-        "role": "BS.CKI",
-        "info": "Bác sĩ Khoa Phẫu thuật cột sống",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/le-thanh-vuong/",
-        "specialty": "Khoa phẫu thuật khớp và Nội soi"
-      },
-      {
-        "name": "NGUYỄN VĂN TOẠI",
-        "role": "BS.CKI",
-        "info": "Bác sĩ Khoa Phẫu thuật cột sống",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/nguyen-van-toai/",
-        "specialty": "Khoa phẫu thuật khớp và Nội soi"
-      },
-      {
-        "name": "TRẦN QUỐC ĐẠT",
-        "role": "THS.BS",
-        "info": "Bác sĩ Khoa Phẫu thuật Thần kinh",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/tran-quoc-dat/",
-        "specialty": "Khoa phẫu thuật khớp và Nội soi"
-      },
-      {
-        "name": "ĐẶNG BẢO NGỌC",
-        "role": "BS.CKII",
-        "info": "Bác sĩ Khoa Phẫu thuật Thần kinh",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/dang-bao-ngoc/",
-        "specialty": "Khoa phẫu thuật khớp và Nội soi"
-      },
-      {
-        "name": "HUỲNH TRÍ DŨNG",
-        "role": "BS.CKI",
-        "info": "Bác sĩ điều trị Khoa Phẫu thuật Thần kinh",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/huynh-tri-dung/",
-        "specialty": "Khoa phẫu thuật khớp và Nội soi"
-      },
-      {
-        "name": "PHAN VÂN ĐÌNH",
-        "role": "BS.CKI",
-        "info": "Bác sĩ điều trị Khoa Phẫu thuật Thần kinh",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/phan-van-dinh/",
-        "specialty": "Khoa phẫu thuật khớp và Nội soi"
-      },
-      {
-        "name": "LÊ XUÂN SANG",
-        "role": "BS.CKI",
-        "info": "Bác sĩ Khoa Phẫu thuật Thần kinh",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/le-xuan-sang/",
-        "specialty": "Khoa phẫu thuật khớp và Nội soi"
-      },
-      {
-        "name": "ĐÀO PHẠM THÁI SƠN",
-        "role": "BS.CKI",
-        "info": "Bác sĩ Khoa Phẫu thuật cột sống",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/dao-pham-thai-son/",
-        "specialty": "Khoa phẫu thuật khớp và Nội soi"
-      },
-      {
-        "name": "MAI HOÀNG VŨ",
-        "role": "THS.BS.CKII",
-        "info": "Bác sĩ Khoa Phẫu thuật Thần kinh",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/mai-hoang-vu/",
-        "specialty": "Khoa phẫu thuật khớp và Nội soi"
-      },
-      {
-        "name": "VŨ ĐỨC THẮNG",
-        "role": "THS.BS.CKI",
-        "info": "Bác sĩ Khoa Phẫu thuật cột sống",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/vu-duc-thang/",
-        "specialty": "Khoa phẫu thuật khớp và Nội soi"
-      },
-      {
-        "name": "VŨ NGỌC BẢO QUỲNH",
-        "role": "BS.CKI",
-        "info": "Bác sĩ Khoa Phẫu thuật cột sống",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/vu-ngoc-bao-quynh/",
-        "specialty": "Khoa phẫu thuật khớp và Nội soi"
-      },
-      {
-        "name": "BÙI HỮU LƯỢNG",
-        "role": "BS.CKI",
-        "info": "Bác sĩ Khoa Phẫu thuật cột sống",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/bui-huu-luong/",
-        "specialty": "Khoa phẫu thuật khớp và Nội soi"
-      }
-    ],
-    "Trung TÂM MẮT Công nghệ CAO": [
-      {
-        "name": "PHẠM HUY VŨ TÙNG",
-        "role": "THS.BS",
-        "info": "Bác sĩ Trung tâm Mắt Công nghệ cao",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/ths-bs-pham-huy-vu-tung/",
-        "specialty": "Trung tâm Mắt Công nghệ cao"
-      },
-      {
-        "name": "TĂNG NGỌC ANH",
-        "role": "THS.BS",
-        "info": "Phó khoa Mắt, Trung tâm Mắt Công nghệ cao",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/tang-ngoc-anh/",
-        "specialty": "Trung tâm Mắt Công nghệ cao"
-      },
-      {
-        "name": "CẤN NGỌC THÚY",
-        "role": "BS.CKI",
-        "info": "Bác sĩ tại Trung tâm Mắt Công nghệ cao",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/can-ngoc-thuy/",
-        "specialty": "Trung tâm Mắt Công nghệ cao"
-      },
-      {
-        "name": "NGUYỄN ĐỨC HUY",
-        "role": "BS.CKI",
-        "info": "Bác sĩ tại Trung tâm Mắt Công nghệ cao",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/nguyen-duc-huy/",
-        "specialty": "Trung tâm Mắt Công nghệ cao"
-      },
-      {
-        "name": "NGUYỄN TRÀ THẢO NHI",
-        "role": "THS.BS",
-        "info": "Bác sĩ tại Trung tâm Mắt Công nghệ cao",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/nguyen-tra-thao-nhi/",
-        "specialty": "Trung tâm Mắt Công nghệ cao"
-      }
-    ],
-    "Khoa Dinh dưỡng Tiết CHẾ": [
-      {
-        "name": "ĐÀO THỊ YẾN THỦY",
-        "role": "BS.CKI",
-        "info": "Trưởng khoa Khoa Dinh dưỡng Tiết chế",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/dao-thi-yen-thuy/",
-        "specialty": "Khoa Dinh dưỡng Tiết chế"
-      },
-      {
-        "name": "ĐINH VŨ PHƯƠNG THẢO",
-        "role": "ThS.BS",
-        "info": "ThS.BS ĐINH VŨ PHƯƠNG THẢO",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/dinh-vu-phuong-thao/",
-        "specialty": "Khoa Dinh dưỡng Tiết chế"
-      },
-      {
-        "name": "VÕ QUỲNH NHƯ",
-        "role": "CVDD",
-        "info": "Chuyên viên dinh dưỡng, Khoa Dinh dưỡng – Tiết chế",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/vo-quynh-nhu/",
-        "specialty": "Khoa Dinh dưỡng Tiết chế"
-      },
-      {
-        "name": "NGUYỄN PHAN NGỌC QUỲNH",
-        "role": "CVDD-TC",
-        "info": "Chuyên viên Dinh dưỡng – Tiết chế, Khoa Dinh dưỡng – Tiết chế",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/nguyen-phan-ngoc-quynh/",
-        "specialty": "Khoa Dinh dưỡng Tiết chế"
-      }
-    ],
-    "Khoa CƠ xương khớp": [
-      {
-        "name": "PHẠM THỊ XUÂN THƯ",
-        "role": "THS.BS",
-        "info": "Bác sĩ Nội cơ xương khớp",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/pham-thi-xuan-thu/",
-        "specialty": "Khoa Cơ xương khớp"
-      }
-    ],
-    "Khoa Giải phẫu bệnh& TẾ BÀO": [
-      {
-        "name": "NGUYỄN VĂN THÁI",
-        "role": "BS.CKI",
-        "info": "Phó khoa Giải phẫu bệnh & Tế bào",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/nguyen-van-thai/",
-        "specialty": "Khoa Giải phẫu bệnh& Tế bào"
-      }
-    ],
-    "Khoa Răng HÀM MẶT": [
-      {
-        "name": "VÕ VĂN HÙNG",
-        "role": "THS.BS",
-        "info": "Phó trưởng khoa Răng Hàm Mặt",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/vo-van-hung/",
-        "specialty": "Khoa Răng Hàm Mặt"
-      },
-      {
-        "name": "NGUYỄN THỊ CHÂU BẢN",
-        "role": "BS.CKI",
-        "info": "Bác sĩ Khoa Răng Hàm Mặt",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/nguyen-thi-chau-ban/",
-        "specialty": "Khoa Răng Hàm Mặt"
-      },
-      {
-        "name": "VŨ THÀNH ĐẠT",
-        "role": "BS",
-        "info": "Bác sĩ Khoa Răng Hàm Mặt",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/vu-thanh-dat/",
-        "specialty": "Khoa Răng Hàm Mặt"
-      }
-    ],
-    "Trung TÂM tiêm chủng Bvđk TÂM ANH": [
-      {
-        "name": "NGUYỄN NGỌC KHÁNH",
-        "role": "BS.CKI",
-        "info": "Bệnh viện Đa khoa Tâm Anh TP.HCM",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/nguyen-ngoc-khanh/",
-        "specialty": "Trung tâm tiêm chủng BVĐK Tâm Anh"
-      }
-    ],
-    "Khoa Miễn dịch LÂM sàng": [
-      {
-        "name": "HOÀNG THỊ LÂM",
-        "role": "PGS.TS.BS",
-        "info": "Trưởng khoa Khoa Miễn dịch lâm sàng",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/hoang-thi-lam/",
-        "specialty": "Khoa Miễn dịch Lâm sàng"
-      },
-      {
-        "name": "NGUYỄN PHÚC TÂN",
-        "role": "TS.BS",
-        "info": "Bác sĩ Khoa Miễn dịch lâm sàng",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/nguyen-phuc-tan/",
-        "specialty": "Khoa Miễn dịch Lâm sàng"
-      },
-      {
-        "name": "LƯƠNG VŨ THANH BÌNH",
-        "role": "THS.BS",
-        "info": "Bác sĩ Khoa Miễn dịch lâm sàng",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/luong-vu-thanh-binh/",
-        "specialty": "Khoa Miễn dịch Lâm sàng"
-      },
-      {
-        "name": "TRẦN THỊ THANH TUYỀN",
-        "role": "BS.CKI",
-        "info": "Bác sĩ Khoa Miễn dịch lâm sàng",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/tran-thi-thanh-tuyen/",
-        "specialty": "Khoa Miễn dịch Lâm sàng"
-      }
-    ],
-    "Kiểm soát CÂN nặng VÀ Điều TRỊ BÉO PHÌ": [
-      {
-        "name": "VÕ TRẦN NHƯ THẢO",
-        "role": "BS",
-        "info": "Bác sĩ Phòng khám Kiểm soát cân nặng và Điều trị béo phì",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/vo-tran-nhu-thao/",
-        "specialty": "Kiểm soát cân nặng và Điều trị béo phì"
-      },
-      {
-        "name": "ĐÀO NGỌC LAN",
-        "role": "HOÀNG",
-        "info": "Chuyên viên Phòng khám Kiểm soát cân nặng và Điều trị béo phì",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/hoang-dao-ngoc-lan/",
-        "specialty": "Kiểm soát cân nặng và Điều trị béo phì"
-      },
-      {
-        "name": "HÀ NHẬT QUYÊN",
-        "role": "TRỊNH",
-        "info": "Chuyên viên Phòng khám Kiểm soát cân nặng và Điều trị béo phì",
-        "profile_link": "https://tamanhhospital.vn/chuyen-gia/trinh-ha-nhat-quyen/",
-        "specialty": "Kiểm soát cân nặng và Điều trị béo phì"
-      }
-    ]
+    "TTTM": {
+      "name": "Trung TÂM TIM mạch",
+      "doctors": [
+        {
+          "name": "PHẠM NGUYỄN VINH",
+          "role": "PGS.TS.BS",
+          "info": "Giám đốc Trung tâm Tim mạch",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/pham-nguyen-vinh/",
+          "specialty": "Trung tâm Tim mạch"
+        },
+        {
+          "name": "VÕ THÀNH NHÂN",
+          "role": "TTND.GS.TS.BS",
+          "info": "Giám đốc Trung tâm Tim mạch Can thiệp",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/vo-thanh-nhan/",
+          "specialty": "Trung tâm Tim mạch"
+        },
+        {
+          "name": "NGUYỄN MINH TRÍ VIÊN",
+          "role": "THS.BS",
+          "info": "Cố vấn Phẫu thuật tim, Trung tâm Tim mạch",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/nguyen-minh-tri-vien/",
+          "specialty": "Trung tâm Tim mạch"
+        },
+        {
+          "name": "HUỲNH NGỌC LONG",
+          "role": "BS.CKII",
+          "info": "Phó Giám đốc Trung tâm Tim mạch Can thiệp",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/huynh-ngoc-long/",
+          "specialty": "Trung tâm Tim mạch"
+        }
+      ]
+    },
+    "TTTNTH": {
+      "name": "Trung TÂM Tiết niệu - Thận HỌC - NAM khoa",
+      "doctors": [
+        {
+          "name": "VŨ LÊ CHUYÊN",
+          "role": "TTƯT.PGS.TS.BS",
+          "info": "Giám đốc Trung tâm Tiết niệu - Thận học - Nam khoa",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/vu-le-chuyen/",
+          "specialty": "Trung tâm Tiết niệu – Thận học – Nam khoa"
+        },
+        {
+          "name": "TẠ PHƯƠNG DUNG",
+          "role": "TTƯT.BS.CKII",
+          "info": "Phó Giám đốc Trung tâm Tiết niệu - Thận học - Nam khoa",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/ta-phuong-dung/",
+          "specialty": "Trung tâm Tiết niệu – Thận học – Nam khoa"
+        },
+        {
+          "name": "NGUYỄN HOÀNG ĐỨC",
+          "role": "TS.BS",
+          "info": "Trưởng khoa Tiết Niệu, Trung tâm Tiết niệu - Thận học - Nam khoa",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/nguyen-hoang-duc/",
+          "specialty": "Trung tâm Tiết niệu – Thận học – Nam khoa"
+        },
+        {
+          "name": "TỪ THÀNH TRÍ DŨNG",
+          "role": "TS.BS",
+          "info": "Trưởng khoa Nam học, Trung tâm Tiết niệu - Thận học - Nam khoa",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/tu-thanh-tri-dung/",
+          "specialty": "Trung tâm Tiết niệu – Thận học – Nam khoa"
+        },
+        {
+          "name": "PHẠM THỊ THANH TÂM",
+          "role": "BS.CKII",
+          "info": "Trưởng đơn vị Nội Tổng hợp, Phòng khám Đa khoa Tâm Anh Quận 7",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/pham-thi-thanh-tam/",
+          "specialty": "Trung tâm Tiết niệu – Thận học – Nam khoa"
+        },
+        {
+          "name": "NGUYỄN TÂN CƯƠNG",
+          "role": "THS.BS",
+          "info": "Phó khoa Tiết niệu, Trung tâm Tiết niệu - Thận học - Nam khoa",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/nguyen-tan-cuong/",
+          "specialty": "Trung tâm Tiết niệu – Thận học – Nam khoa"
+        }
+      ]
+    },
+    "TTSPK": {
+      "name": "Trung TÂM SẢN PHỤ Khoa",
+      "doctors": [
+        {
+          "name": "NGUYỄN BÁ MỸ NHI",
+          "role": "BS.CKII",
+          "info": "Giám đốc Trung tâm Sản Phụ khoa",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/nguyen-ba-my-nhi/",
+          "specialty": "Trung tâm Sản Phụ Khoa"
+        },
+        {
+          "name": "NGUYỄN THỊ QUÝ KHOA",
+          "role": "THS.BS",
+          "info": "Phó khoa Sản - Trung tâm Sản Phụ khoa",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/nguyen-thi-quy-khoa/",
+          "specialty": "Trung tâm Sản Phụ Khoa"
+        },
+        {
+          "name": "LÊ THANH HÙNG",
+          "role": "BS.CKII",
+          "info": "Phó khoa Sản - Trung tâm Sản Phụ khoa",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/le-thanh-hung/",
+          "specialty": "Trung tâm Sản Phụ Khoa"
+        },
+        {
+          "name": "HÀ HUỲNH KIM YẾN",
+          "role": "THS.BS.CKII",
+          "info": "Trưởng đơn vị Sản phụ khoa",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/ha-huynh-kim-yen/",
+          "specialty": "Trung tâm Sản Phụ Khoa"
+        },
+        {
+          "name": "HUỲNH KIM KHOE",
+          "role": "BS.CKII",
+          "info": "Bác sĩ đơn vị Sản Phụ khoa",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/huynh-kim-khoe/",
+          "specialty": "Trung tâm Sản Phụ Khoa"
+        },
+        {
+          "name": "NGUYỄN THỊ THANH TÂM",
+          "role": "THS.BS",
+          "info": "Bác sĩ Trung tâm Sản Phụ khoa",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/nguyen-thi-thanh-tam/",
+          "specialty": "Trung tâm Sản Phụ Khoa"
+        },
+        {
+          "name": "HỒ THỊ KHÁNH QUYÊN",
+          "role": "BS.CKI",
+          "info": "Bác sĩ Trung tâm Sản Phụ khoa",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/ho-thi-khanh-quyen/",
+          "specialty": "Trung tâm Sản Phụ Khoa"
+        }
+      ]
+    },
+    "TTNSPT": {
+      "name": "Trung TÂM NỘI SOI & Phẫu thuật NỘI SOI tiêu HÓA",
+      "doctors": [
+        {
+          "name": "ĐỖ MINH HÙNG",
+          "role": "TS.BS",
+          "info": "Giám đốc Trung tâm Nội soi và Phẫu thuật Nội soi Tiêu hóa",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/do-minh-hung/",
+          "specialty": "Trung tâm Nội soi & Phẫu thuật nội soi tiêu hóa"
+        },
+        {
+          "name": "PHẠM HỮU TÙNG",
+          "role": "TTƯT.TS.BS",
+          "info": "Phó Giám Đốc Trung tâm Nội soi và Phẫu thuật nội soi tiêu hóa",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/pham-huu-tung/",
+          "specialty": "Trung tâm Nội soi & Phẫu thuật nội soi tiêu hóa"
+        },
+        {
+          "name": "ĐẶNG LÊ BÍCH NGỌC",
+          "role": "BS.CKI",
+          "info": "Trưởng Đơn vị Nội soi Tiêu hóa Quận 7",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/dang-le-bich-ngoc/",
+          "specialty": "Trung tâm Nội soi & Phẫu thuật nội soi tiêu hóa"
+        },
+        {
+          "name": "TRẦN THANH BÌNH",
+          "role": "TS.BS",
+          "info": "Bác sĩ Trung tâm Nội soi và Phẫu thuật nội soi tiêu hóa",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/tran-thanh-binh/",
+          "specialty": "Trung tâm Nội soi & Phẫu thuật nội soi tiêu hóa"
+        },
+        {
+          "name": "NGUYỄN PHƯỚC LÂM",
+          "role": "THS.BS",
+          "info": "Bác sĩ Trung tâm Nội soi và Phẫu thuật nội soi tiêu hóa",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/nguyen-phuoc-lam/",
+          "specialty": "Trung tâm Nội soi & Phẫu thuật nội soi tiêu hóa"
+        }
+      ]
+    },
+    "TTSS": {
+      "name": "Trung TÂM SƠ sinh",
+      "doctors": [
+        {
+          "name": "CAM NGỌC PHƯỢNG",
+          "role": "TS.BS",
+          "info": "Giám đốc Trung tâm Sơ sinh",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/cam-ngoc-phuong/",
+          "specialty": "Trung tâm Sơ sinh"
+        },
+        {
+          "name": "PHẠM LÊ MỸ HẠNH",
+          "role": "BS.CKII",
+          "info": "Trưởng khoa Sơ sinh",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/pham-le-my-hanh/",
+          "specialty": "Trung tâm Sơ sinh"
+        },
+        {
+          "name": "VŨ NĂNG PHÚC",
+          "role": "BS.CKII",
+          "info": "Trưởng khoa Tim bẩm sinh",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/vu-nang-phuc/",
+          "specialty": "Trung tâm Sơ sinh"
+        },
+        {
+          "name": "LÊ THỊ NGỌC DUNG",
+          "role": "BS.CKI",
+          "info": "Bác sĩ Trung tâm Sơ sinh",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/le-thi-ngoc-dung/",
+          "specialty": "Trung tâm Sơ sinh"
+        },
+        {
+          "name": "TÔ VŨ THIÊN HƯƠNG",
+          "role": "BS.CKI",
+          "info": "Bác sĩ Trung tâm Sơ sinh",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/to-vu-thien-huong/",
+          "specialty": "Trung tâm Sơ sinh"
+        }
+      ]
+    },
+    "KNKHOA": {
+      "name": "Khoa NHI",
+      "doctors": [
+        {
+          "name": "VŨ HUY TRỤ",
+          "role": "PGS.TS.BS",
+          "info": "Trưởng khoa Nhi",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/pgs-ts-bs-vu-huy-tru/",
+          "specialty": "Khoa Nhi"
+        },
+        {
+          "name": "HOÀNG THỊ DIỄM THÚY",
+          "role": "TS.BS",
+          "info": "Bác sĩ Khoa Nhi",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/hoang-thi-diem-thuy/",
+          "specialty": "Khoa Nhi"
+        },
+        {
+          "name": "NGUYỄN THỊ HẠNH TRANG",
+          "role": "BS.CKI",
+          "info": "Phó khoa Nhi",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/nguyen-thi-hanh-trang/",
+          "specialty": "Khoa Nhi"
+        },
+        {
+          "name": "NGÔ HÀ LỆ CHI",
+          "role": "BS.CKI",
+          "info": "Bác sĩ Khoa Nhi",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/ngo-ha-le-chi/",
+          "specialty": "Khoa Nhi"
+        }
+      ]
+    },
+    "TTTMH": {
+      "name": "Trung TÂM TAI MŨI Họng",
+      "doctors": [
+        {
+          "name": "TRẦN PHAN CHUNG THỦY",
+          "role": "GS.TS.BS",
+          "info": "Giám đốc Trung Tâm Tai Mũi Họng",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/tran-phan-chung-thuy/",
+          "specialty": "Trung Tâm Tai Mũi Họng"
+        },
+        {
+          "name": "TRẦN THỊ THÚY HẰNG",
+          "role": "THS.BS.CKII",
+          "info": "Trưởng khoa Tai Mũi Họng, Trung tâm Tai Mũi Họng",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/tran-thi-thuy-hang/",
+          "specialty": "Trung Tâm Tai Mũi Họng"
+        },
+        {
+          "name": "PHẠM THÁI DUY",
+          "role": "THS.BS.CKI",
+          "info": "Bác sĩ Trung tâm Tai Mũi Họng",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/pham-thai-duy/",
+          "specialty": "Trung Tâm Tai Mũi Họng"
+        },
+        {
+          "name": "DIỆP PHÚC ANH",
+          "role": "THS.BS.CKI",
+          "info": "Bác sĩ Trung tâm Tai Mũi Họng",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/diep-phuc-anh/",
+          "specialty": "Trung Tâm Tai Mũi Họng"
+        },
+        {
+          "name": "PHẠM THỊ PHƯƠNG",
+          "role": "THS.BS.CKI",
+          "info": "Bác sĩ Trung tâm Tai Mũi Họng",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/bsnt-pham-thi-phuong/",
+          "specialty": "Trung Tâm Tai Mũi Họng"
+        },
+        {
+          "name": "NGUYỄN TRUNG NGUYÊN",
+          "role": "THS.BS.CKI",
+          "info": "Bác sĩ Trung tâm Tai Mũi Họng",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/nguyen-trung-nguyen/",
+          "specialty": "Trung Tâm Tai Mũi Họng"
+        }
+      ]
+    },
+    "KUB": {
+      "name": "Khoa UNG bướu",
+      "doctors": [
+        {
+          "name": "TRẦN VƯƠNG THẢO NGHI",
+          "role": "BS",
+          "info": "Trưởng khoa Khoa Ung bướu",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/tran-vuong-thao-nghi/",
+          "specialty": "Khoa Ung bướu"
+        },
+        {
+          "name": "TRẦN THỊ THIÊN HƯƠNG",
+          "role": "BS.CKII",
+          "info": "Bác sĩ Khoa Ung bướu",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/tran-thien-huong/",
+          "specialty": "Khoa Ung bướu"
+        },
+        {
+          "name": "Hồ Ngọc Bảo",
+          "role": "BS.CKI",
+          "info": "BS.CKI Hồ Ngọc Bảo",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/ho-ngoc-bao/",
+          "specialty": "Khoa Ung bướu"
+        },
+        {
+          "name": "​​NGUYỄN TIẾN SỸ",
+          "role": "THS.BS",
+          "info": "Bác sĩ Khoa Ung bướu",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/nguyen-tien-sy/",
+          "specialty": "Khoa Ung bướu"
+        },
+        {
+          "name": "​​VŨ TRẦN MINH NGUYÊN",
+          "role": "BS.CKI",
+          "info": "Bác sĩ Khoa Ung bướu",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/vu-tran-minh-nguyen/",
+          "specialty": "Khoa Ung bướu"
+        },
+        {
+          "name": "NGUYỄN CHÍ THANH",
+          "role": "BS.CKI",
+          "info": "Bác sĩ Khoa Ung bướu",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/nguyen-chi-thanh/",
+          "specialty": "Khoa Ung bướu"
+        }
+      ]
+    },
+    "TTXN": {
+      "name": "Trung TÂM XÉT nghiệm",
+      "doctors": [
+        {
+          "name": "TRẦN THỊ THANH NGA",
+          "role": "BS.CKII",
+          "info": "Giám đốc Trung tâm Xét nghiệm",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/tran-thi-thanh-nga/",
+          "specialty": "Trung tâm Xét nghiệm"
+        },
+        {
+          "name": "NGUYỄN VĂN TÂN MINH",
+          "role": "THS.BS",
+          "info": "Bác sĩ Trung tâm Xét nghiệm",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/nguyen-van-tan-minh/",
+          "specialty": "Trung tâm Xét nghiệm"
+        },
+        {
+          "name": "NGUYỄN QUỐC DŨNG",
+          "role": "THS.BS",
+          "info": "Bác sĩ Trung tâm Xét nghiệm",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/nguyen-quoc-dung/",
+          "specialty": "Trung tâm Xét nghiệm"
+        }
+      ]
+    },
+    "TTCOHA": {
+      "name": "Trung TÂM Chẩn đoán hình ảnhĐiện quang CAN thiệp",
+      "doctors": [
+        {
+          "name": "HỒ HOÀNG PHƯƠNG",
+          "role": "TS.BS",
+          "info": "Giám đốc Trung tâm Chẩn đoán hình ảnh & Điện quang can thiệp",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/ho-hoang-phuong/",
+          "specialty": "Trung tâm Chẩn đoán hình ảnhĐiện quang can thiệp"
+        },
+        {
+          "name": "CHÂU THỊ NGỌC ÁNH",
+          "role": "THS.BS.CKII",
+          "info": "Phó Giám đốc Trung tâm Chẩn đoán Hình ảnh & Điện quang Can thiệp",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/chau-thi-ngoc-anh/",
+          "specialty": "Trung tâm Chẩn đoán hình ảnhĐiện quang can thiệp"
+        },
+        {
+          "name": "LÊ VĂN TẤN",
+          "role": "TS.KTV",
+          "info": "Kỹ thuật viên trưởng Trung tâm Chẩn đoán hình ảnh & Điện quang can thiệp",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/le-van-tan/",
+          "specialty": "Trung tâm Chẩn đoán hình ảnhĐiện quang can thiệp"
+        }
+      ]
+    },
+    "KHSCCI": {
+      "name": "Khoa HỒI SỨC CẤP CỨU (Icu)",
+      "doctors": [
+        {
+          "name": "PHAN THỊ XUÂN",
+          "role": "TTND.TS.BS.CKII",
+          "info": "Trưởng khoa Hồi sức tích cực - Chống độc",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/phan-thi-xuan/",
+          "specialty": "Khoa Hồi sức cấp cứu (ICU)"
+        },
+        {
+          "name": "HỒNG VĂN IN",
+          "role": "BS.CKI",
+          "info": "Phó trưởng khoa Khoa Cấp cứu",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/hong-van-in/",
+          "specialty": "Khoa Hồi sức cấp cứu (ICU)"
+        },
+        {
+          "name": "TRẦN MINH GIANG",
+          "role": "TS.BS",
+          "info": "Phó trưởng khoa Hồi sức tích cực - chống độc",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/tran-minh-giang/",
+          "specialty": "Khoa Hồi sức cấp cứu (ICU)"
+        },
+        {
+          "name": "VƯƠNG MỸ DUNG",
+          "role": "BS.CKI",
+          "info": "Phó khoa Hồi sức tích cực - Chống độc",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/vuong-my-dung/",
+          "specialty": "Khoa Hồi sức cấp cứu (ICU)"
+        }
+      ]
+    },
+    "TTKHTK": {
+      "name": "Trung TÂM Khoa HỌC Thần kinh",
+      "doctors": [
+        {
+          "name": "LƯU KÍNH KHƯƠNG",
+          "role": "BS.CKII",
+          "info": "Trưởng khoa Khoa Gây mê hồi sức",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/luu-kinh-khuong/",
+          "specialty": "Trung tâm Khoa học Thần kinh"
+        },
+        {
+          "name": "LÊ VĂN TUẤN",
+          "role": "TS.BS",
+          "info": "Giám đốc Trung tâm Khoa học Thần kinh",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/le-van-tuan/",
+          "specialty": "Trung tâm Khoa học Thần kinh"
+        },
+        {
+          "name": "NGUYỄN THỊ MINH ĐỨC",
+          "role": "TTƯT.TS.BS",
+          "info": "Trưởng khoa Thần kinh",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/nguyen-thi-minh-duc/",
+          "specialty": "Trung tâm Khoa học Thần kinh"
+        },
+        {
+          "name": "THÂN THỊ MINH TRUNG",
+          "role": "BS.CKII",
+          "info": "Phó trưởng khoa Khoa Thần kinh",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/than-thi-minh-trung/",
+          "specialty": "Trung tâm Khoa học Thần kinh"
+        }
+      ]
+    },
+    "TTCTCH": {
+      "name": "Trung TÂM Chấn thương chỉnh hình",
+      "doctors": [
+        {
+          "name": "LÊ VĂN TUẤN",
+          "role": "TTƯT.TS.BS.CKII",
+          "info": "Giám đốc Trung tâm Chấn thương Chỉnh hình",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/le-van-tuan-2/",
+          "specialty": "Trung tâm Chấn thương chỉnh hình"
+        },
+        {
+          "name": "HỒ HỮU DŨNG",
+          "role": "THS.BS.CKII",
+          "info": "Phó giám đốc Trung tâm Chấn thương chỉnh hình",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/ho-huu-dung/",
+          "specialty": "Trung tâm Chấn thương chỉnh hình"
+        },
+        {
+          "name": "TRƯƠNG HỮU BẢO",
+          "role": "THS.BSNT.CKI",
+          "info": "Trưởng Đơn vị Chấn thương chỉnh hình",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/truong-huu-bao/",
+          "specialty": "Trung tâm Chấn thương chỉnh hình"
+        }
+      ]
+    },
+    "KNTH": {
+      "name": "Khoa Ngoại Tổng HỢP",
+      "doctors": [
+        {
+          "name": "TRẦN VĂN HÒA",
+          "role": "BS.CKII",
+          "info": "Phó khoa Ngoại Tim mạch",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/tran-van-hoa/",
+          "specialty": "Khoa Ngoại Tổng Hợp"
+        },
+        {
+          "name": "TRẦN THÚC KHANG",
+          "role": "THS.BS",
+          "info": "Phó khoa Ngoại Tim mạch",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/tran-thuc-khang/",
+          "specialty": "Khoa Ngoại Tổng Hợp"
+        },
+        {
+          "name": "NGUYỄN QUỐC THÁI",
+          "role": "BS.CKII",
+          "info": "Trưởng khoa Ngoại tiêu hóa",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/nguyen-quoc-thai/",
+          "specialty": "Khoa Ngoại Tổng Hợp"
+        }
+      ]
+    },
+    "KNLNMM": {
+      "name": "Khoa Ngoại Lồng ngực - Mạch MÁU",
+      "doctors": [
+        {
+          "name": "NGUYỄN ANH DŨNG",
+          "role": "TS.BS",
+          "info": "Trưởng khoa Ngoại Lồng ngực - Mạch máu",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/nguyen-anh-dung/",
+          "specialty": "Khoa Ngoại Lồng ngực – Mạch máu"
+        },
+        {
+          "name": "TRẦN CÔNG QUYỀN",
+          "role": "TTƯT.BS.CKII",
+          "info": "Phó khoa Ngoại Lồng ngực - Mạch máu",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/tran-cong-quyen/",
+          "specialty": "Khoa Ngoại Lồng ngực – Mạch máu"
+        },
+        {
+          "name": "LÊ THỊ NGỌC HẰNG",
+          "role": "THS.BS.CKI",
+          "info": "Bác sĩ khoa Ngoại Lồng ngực - Mạch máu",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/le-thi-ngoc-hang/",
+          "specialty": "Khoa Ngoại Lồng ngực – Mạch máu"
+        }
+      ]
+    },
+    "KNVAMC": {
+      "name": "Khoa Ngoại VÚ - ĐẦU MẶT CỔ",
+      "doctors": [
+        {
+          "name": "NGUYỄN ĐỖ THÙY GIANG",
+          "role": "THS.BS",
+          "info": "Trưởng Khoa Ngoại Vú - Đầu Mặt Cổ",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/nguyen-do-thuy-giang/",
+          "specialty": "Khoa Ngoại Vú – Đầu Mặt Cổ"
+        },
+        {
+          "name": "ĐOÀN MINH TRÔNG",
+          "role": "THS.BS.CKII",
+          "info": "Bác sĩ Khoa Ngoại Vú - Đầu Mặt Cổ",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/doan-minh-trong/",
+          "specialty": "Khoa Ngoại Vú – Đầu Mặt Cổ"
+        },
+        {
+          "name": "HUỲNH BÁ TẤN",
+          "role": "THS.BS.CKI",
+          "info": "Bác sĩ Khoa Ngoại Vú - Đầu Mặt Cổ",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/huynh-ba-tan/",
+          "specialty": "Khoa Ngoại Vú – Đầu Mặt Cổ"
+        },
+        {
+          "name": "ĐỖ ANH TUẤN",
+          "role": "BS.CKI",
+          "info": "Bác sĩ Khoa Ngoại Vú - Đầu Mặt Cổ",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/do-anh-tuan/",
+          "specialty": "Khoa Ngoại Vú – Đầu Mặt Cổ"
+        }
+      ]
+    },
+    "KNTH1": {
+      "name": "Khoa NỘI tổng HỢP",
+      "doctors": [
+        {
+          "name": "TRẦN THỊ THANH TRÚC",
+          "role": "BS.CKII",
+          "info": "Trưởng khoa Nội tổng hợp",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/tran-thi-thanh-truc/",
+          "specialty": "Khoa Nội tổng hợp"
+        },
+        {
+          "name": "LÊ THANH QUỲNH NGÂN",
+          "role": "THS.BS.CKII",
+          "info": "Trưởng Khoa Nội tiêu hóa",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/le-thanh-quynh-ngan/",
+          "specialty": "Khoa Nội tổng hợp"
+        },
+        {
+          "name": "NGUYỄN HOÀNG TUẤN VŨ",
+          "role": "THS.BS.CKII",
+          "info": "Phó Trưởng khoa Nội Tổng hợp",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/nguyen-hoang-tuan-vu/",
+          "specialty": "Khoa Nội tổng hợp"
+        },
+        {
+          "name": "NGUYỄN THỊ THÚY",
+          "role": "THS.BS",
+          "info": "Bác sĩ Khoa Nội tổng hợp",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/nguyen-thi-thuy/",
+          "specialty": "Khoa Nội tổng hợp"
+        },
+        {
+          "name": "ĐẶNG THỊ MAI KHUÊ",
+          "role": "TS.BS",
+          "info": "Phó Trưởng khoa Nội Tổng hợp",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/dang-thi-mai-khue/",
+          "specialty": "Khoa Nội tổng hợp"
+        }
+      ]
+    },
+    "KCCTH": {
+      "name": "Khoa CẤP CỨU Tổng HỢP",
+      "doctors": [
+        {
+          "name": "HUỲNH VĂN MƯỜI MỘT",
+          "role": "BS.CKI",
+          "info": "Bác sĩ Khoa Cấp cứu",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/huynh-van-muoi-mot/",
+          "specialty": "Khoa Cấp cứu Tổng hợp"
+        },
+        {
+          "name": "LÊ HỒNG HẢI",
+          "role": "BS.CKII",
+          "info": "Bác sĩ Khoa Cấp cứu",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/le-hong-hai/",
+          "specialty": "Khoa Cấp cứu Tổng hợp"
+        },
+        {
+          "name": "TRƯƠNG TRỌNG TUẤN",
+          "role": "BS.CKI",
+          "info": "Bác sĩ Khoa Cấp cứu",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/truong-trong-tuan/",
+          "specialty": "Khoa Cấp cứu Tổng hợp"
+        },
+        {
+          "name": "PHAN TUẤN TRỌNG",
+          "role": "BS.CKI",
+          "info": "Bác sĩ Khoa Cấp cứu",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/phan-tuan-trong/",
+          "specialty": "Khoa Cấp cứu Tổng hợp"
+        }
+      ]
+    },
+    "TTHTSS": {
+      "name": "Trung TÂM HỖ TRỢ sinh SẢN",
+      "doctors": [
+        {
+          "name": "CHÂU HOÀNG PHƯƠNG THẢO",
+          "role": "BS.CKI",
+          "info": "Phó Giám đốc Trung tâm Hỗ trợ sinh sản",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/chau-hoang-phuong-thao/",
+          "specialty": "Trung tâm Hỗ trợ sinh sản"
+        },
+        {
+          "name": "NGUYỄN NGỌC QUỲNH",
+          "role": "THS",
+          "info": "Trưởng Lab - Trung tâm Hỗ trợ sinh sản",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/nguyen-ngoc-quynh/",
+          "specialty": "Trung tâm Hỗ trợ sinh sản"
+        },
+        {
+          "name": "LÊ XUÂN NGUYÊN",
+          "role": "BS",
+          "info": "Bác sĩ Trung tâm Hỗ trợ sinh sản",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/bs-le-xuan-nguyen/",
+          "specialty": "Trung tâm Hỗ trợ sinh sản"
+        },
+        {
+          "name": "NGÔ ĐÌNH TRIỆU VỸ",
+          "role": "BS",
+          "info": "Bác sĩ Trung tâm Hỗ trợ sinh sản",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/ngo-dinh-trieu-vy/",
+          "specialty": "Trung tâm Hỗ trợ sinh sản"
+        }
+      ]
+    },
+    "KKSNK": {
+      "name": "Khoa Kiểm soát nhiễm khuẩn",
+      "doctors": [
+        {
+          "name": "TỐNG VĂN KHẢI",
+          "role": "DS",
+          "info": "Trưởng khoa Khoa Kiểm soát nhiễm khuẩn",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/tong-van-khai/",
+          "specialty": "Khoa Kiểm soát nhiễm khuẩn"
+        },
+        {
+          "name": "HUỲNH THỊ THANH TRANG",
+          "role": "THS.BS.CKII",
+          "info": "Phó Khoa Kiểm soát nhiễm khuẩn",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/huynh-thi-thanh-trang/",
+          "specialty": "Khoa Kiểm soát nhiễm khuẩn"
+        },
+        {
+          "name": "LÊ THỊ MỸ HƯƠNG",
+          "role": "BS",
+          "info": "Bác sĩ Giám sát Kiểm soát nhiễm khuẩn",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/le-thi-my-huong/",
+          "specialty": "Khoa Kiểm soát nhiễm khuẩn"
+        },
+        {
+          "name": "NGUYỄN THỊ HƯƠNG GIANG",
+          "role": "BS",
+          "info": "Bác sĩ Giám sát Kiểm soát nhiễm khuẩn",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/nguyen-thi-huong-giang/",
+          "specialty": "Khoa Kiểm soát nhiễm khuẩn"
+        }
+      ]
+    },
+    "KKB": {
+      "name": "Khoa Khám bệnh",
+      "doctors": [
+        {
+          "name": "NGUYỄN PHẠM THÙY LINH",
+          "role": "BS.CKI",
+          "info": "Bác sĩ khoa Tim bẩm sinh",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/nguyen-pham-thuy-linh/",
+          "specialty": "Khoa Khám bệnh"
+        },
+        {
+          "name": "QUÁCH NGÂN HÀ",
+          "role": "BS.CKII",
+          "info": "Bác sĩ Khoa Khám bệnh",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/quach-ngan-ha/",
+          "specialty": "Khoa Khám bệnh"
+        },
+        {
+          "name": "LÂM HIẾU MINH",
+          "role": "BS.CKII",
+          "info": "Chuyên khoa Tâm Thần Kinh: Khoa Khám bệnh",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/lam-hieu-minh/",
+          "specialty": "Khoa Khám bệnh"
+        }
+      ]
+    },
+    "TTYHBT": {
+      "name": "Trung TÂM Y HỌC BÀO thai",
+      "doctors": [
+        {
+          "name": "TRẦN ANH VŨ",
+          "role": "THS.BS.CKII",
+          "info": "Trưởng khoa Y học thể thao & Nội soi",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/tran-anh-vu/",
+          "specialty": "Trung tâm Y học Bào thai"
+        },
+        {
+          "name": "MÃ THANH PHONG",
+          "role": "BS.CKII",
+          "info": "Trưởng Đơn vị Hô hấp",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/ma-thanh-phong/",
+          "specialty": "Trung tâm Y học Bào thai"
+        },
+        {
+          "name": "NGUYỄN HOÀNG LONG",
+          "role": "TS.BS",
+          "info": "Phó giám đốc Trung tâm Y học bào thai",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/nguyen-hoang-long/",
+          "specialty": "Trung tâm Y học Bào thai"
+        },
+        {
+          "name": "NGUYỄN THỊ LIÊN PHƯƠNG",
+          "role": "THS.BS",
+          "info": "Bác sĩ Siêu âm Sản Phụ khoa, Trung tâm Y học bào thai",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/nguyen-thi-lien-phuong/",
+          "specialty": "Trung tâm Y học Bào thai"
+        }
+      ]
+    },
+    "KDLTMD": {
+      "name": "Khoa DA Liễu - Thẩm MỸ DA",
+      "doctors": [
+        {
+          "name": "ĐẶNG THỊ NGỌC BÍCH",
+          "role": "TS.BS.CKII",
+          "info": "Trưởng chuyên khoa Da liễu - Thẩm mỹ Da",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/dang-thi-ngoc-bich/",
+          "specialty": "Khoa Da Liễu – Thẩm mỹ da"
+        },
+        {
+          "name": "QUÁCH THỊ BÍCH VÂN",
+          "role": "BS.CKI",
+          "info": "Bác sĩ Chuyên khoa Da liễu  - Thẩm mỹ Da",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/quach-thi-bich-van/",
+          "specialty": "Khoa Da Liễu – Thẩm mỹ da"
+        },
+        {
+          "name": "LÝ THIÊN PHÚC",
+          "role": "BSNT.CKI",
+          "info": "Bác sĩ chuyên khoa Da liễu - Thẩm mỹ Da",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/ly-thien-phuc/",
+          "specialty": "Khoa Da Liễu – Thẩm mỹ da"
+        },
+        {
+          "name": "HUỲNH CÔNG TRÍ",
+          "role": "THS.BS",
+          "info": "Bác sĩ chuyên khoa Da liễu - Thẩm mỹ Da",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/huynh-cong-tri/",
+          "specialty": "Khoa Da Liễu – Thẩm mỹ da"
+        }
+      ]
+    },
+    "KDKHOA": {
+      "name": "Khoa Dược",
+      "doctors": [
+        {
+          "name": "HUỲNH HIỀN TRUNG",
+          "role": "TS.DS",
+          "info": "Trưởng Khoa Dược",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/huynh-hien-trung/",
+          "specialty": "Khoa Dược"
+        },
+        {
+          "name": "HOÀNG TRỌNG TÍN",
+          "role": "DS",
+          "info": "Dược sĩ Khoa Dược",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/hoang-trong-tin/",
+          "specialty": "Khoa Dược"
+        }
+      ]
+    },
+    "KTNNH": {
+      "name": "Khoa Tiết niệu - NAM HỌC",
+      "doctors": [
+        {
+          "name": "LƯU HIẾU THẢO",
+          "role": "BS.CKII",
+          "info": "Phó Giám đốc",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/luu-hieu-thao/",
+          "specialty": "Khoa Tiết niệu – Nam học"
+        },
+        {
+          "name": "CHUNG GIA VIỄN",
+          "role": "BS.CKI",
+          "info": "Phó giám đốc",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/chung-gia-vien/",
+          "specialty": "Khoa Tiết niệu – Nam học"
+        }
+      ]
+    },
+    "KNN": {
+      "name": "Khoa Ngoại NHI",
+      "doctors": [
+        {
+          "name": "LÊ TẤN SƠN",
+          "role": "PGS.TS.BS",
+          "info": "Cố vấn chuyên môn Khoa Ngoại Nhi",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/le-tan-son/",
+          "specialty": "Khoa Ngoại Nhi"
+        },
+        {
+          "name": "NGUYỄN ĐỨC TUẤN",
+          "role": "BS.CKII",
+          "info": "Trưởng khoa Ngoại nhi",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/nguyen-duc-tuan/",
+          "specialty": "Khoa Ngoại Nhi"
+        },
+        {
+          "name": "NGUYỄN ĐỖ TRỌNG",
+          "role": "BS.CKII",
+          "info": "Bác sĩ Khoa Ngoại Nhi",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/nguyen-do-trong/",
+          "specialty": "Khoa Ngoại Nhi"
+        },
+        {
+          "name": "TRẦN THỊ THU THẢO",
+          "role": "BS.CKI",
+          "info": "Bác sĩ Nhi",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/bs-cki-tran-thi-thu-thao/",
+          "specialty": "Khoa Ngoại Nhi"
+        }
+      ]
+    },
+    "TTTMCT": {
+      "name": "Trung TÂM TIM mạch CAN thiệp",
+      "doctors": [
+        {
+          "name": "PHẠM ĐỖ ANH THƯ",
+          "role": "THS.BS",
+          "info": "Trưởng đơn vị Bệnh Van tim",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/pham-do-anh-thu/",
+          "specialty": "Trung tâm Tim mạch Can thiệp"
+        },
+        {
+          "name": "VŨ NGỌC LÂM",
+          "role": "BS.CKII",
+          "info": "Trưởng Đơn vị Tiêu hóa Quận 7",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/vu-ngoc-lam/",
+          "specialty": "Trung tâm Tim mạch Can thiệp"
+        },
+        {
+          "name": "PHẠM HOÀNG TRỌNG HIẾU",
+          "role": "THS.BS",
+          "info": "Bác sĩ Tim mạch Can thiệp",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/pham-hoang-trong-hieu/",
+          "specialty": "Trung tâm Tim mạch Can thiệp"
+        }
+      ]
+    },
+    "KTHGMT": {
+      "name": "Khoa Tiêu HÓA - GAN MẬT - TỤY",
+      "doctors": [
+        {
+          "name": "PHẠM CÔNG KHÁNH",
+          "role": "TS.BS",
+          "info": "Trưởng khoa Gan - Mật - Tụy",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/pham-cong-khanh/",
+          "specialty": "Khoa Tiêu hóa – Gan mật – Tụy"
+        },
+        {
+          "name": "HÀ THỊ KIM TUYẾN",
+          "role": "BS.CKII",
+          "info": "Bác sĩ Khoa Gây mê hồi sức",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/ha-thi-kim-tuyen/",
+          "specialty": "Khoa Tiêu hóa – Gan mật – Tụy"
+        },
+        {
+          "name": "TRẦN THỊ THU THẢO",
+          "role": "BS",
+          "info": "Bác sĩ Khoa Gây mê hồi sức",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/tran-thi-thu-thao/",
+          "specialty": "Khoa Tiêu hóa – Gan mật – Tụy"
+        }
+      ]
+    },
+    "KPHCN": {
+      "name": "Khoa Phục HỒI chức năng",
+      "doctors": [
+        {
+          "name": "ĐỖ THỊ HỒNG ÁNH",
+          "role": "BS.CKI",
+          "info": "Bác sĩ Khoa Phục hồi chức năng",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/do-thi-hong-anh/",
+          "specialty": "Khoa Phục hồi chức năng"
+        },
+        {
+          "name": "ĐÀO VĂN HOÀN",
+          "role": "BS.CKI",
+          "info": "Bác sĩ Khoa Phục hồi chức năng",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/dao-van-hoan/",
+          "specialty": "Khoa Phục hồi chức năng"
+        },
+        {
+          "name": "LÊ VĂN TÂM",
+          "role": "BS.CKI",
+          "info": "Bác sĩ Khoa Phục hồi chức năng",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/le-van-tam/",
+          "specialty": "Khoa Phục hồi chức năng"
+        },
+        {
+          "name": "HUỲNH HOÀNG ANH",
+          "role": "BS.CKI",
+          "info": "Bác sĩ Khoa Phục hồi chức năng",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/huynh-hoang-anh/",
+          "specialty": "Khoa Phục hồi chức năng"
+        },
+        {
+          "name": "VŨ THỊ THÙY TRANG",
+          "role": "Ths.BS",
+          "info": "Ths.BS VŨ THỊ THÙY TRANG",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/vu-thi-thuy-trang/",
+          "specialty": "Khoa Phục hồi chức năng"
+        }
+      ]
+    },
+    "KPTKVN": {
+      "name": "Khoa phẫu thuật khớp VÀ NỘI SOI",
+      "doctors": [
+        {
+          "name": "LÊ THANH VƯƠNG",
+          "role": "BS.CKI",
+          "info": "Bác sĩ Khoa Phẫu thuật cột sống",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/le-thanh-vuong/",
+          "specialty": "Khoa phẫu thuật khớp và Nội soi"
+        },
+        {
+          "name": "NGUYỄN VĂN TOẠI",
+          "role": "BS.CKI",
+          "info": "Bác sĩ Khoa Phẫu thuật cột sống",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/nguyen-van-toai/",
+          "specialty": "Khoa phẫu thuật khớp và Nội soi"
+        },
+        {
+          "name": "TRẦN QUỐC ĐẠT",
+          "role": "THS.BS",
+          "info": "Bác sĩ Khoa Phẫu thuật Thần kinh",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/tran-quoc-dat/",
+          "specialty": "Khoa phẫu thuật khớp và Nội soi"
+        },
+        {
+          "name": "ĐẶNG BẢO NGỌC",
+          "role": "BS.CKII",
+          "info": "Bác sĩ Khoa Phẫu thuật Thần kinh",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/dang-bao-ngoc/",
+          "specialty": "Khoa phẫu thuật khớp và Nội soi"
+        },
+        {
+          "name": "HUỲNH TRÍ DŨNG",
+          "role": "BS.CKI",
+          "info": "Bác sĩ điều trị Khoa Phẫu thuật Thần kinh",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/huynh-tri-dung/",
+          "specialty": "Khoa phẫu thuật khớp và Nội soi"
+        },
+        {
+          "name": "PHAN VÂN ĐÌNH",
+          "role": "BS.CKI",
+          "info": "Bác sĩ điều trị Khoa Phẫu thuật Thần kinh",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/phan-van-dinh/",
+          "specialty": "Khoa phẫu thuật khớp và Nội soi"
+        },
+        {
+          "name": "LÊ XUÂN SANG",
+          "role": "BS.CKI",
+          "info": "Bác sĩ Khoa Phẫu thuật Thần kinh",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/le-xuan-sang/",
+          "specialty": "Khoa phẫu thuật khớp và Nội soi"
+        },
+        {
+          "name": "ĐÀO PHẠM THÁI SƠN",
+          "role": "BS.CKI",
+          "info": "Bác sĩ Khoa Phẫu thuật cột sống",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/dao-pham-thai-son/",
+          "specialty": "Khoa phẫu thuật khớp và Nội soi"
+        },
+        {
+          "name": "MAI HOÀNG VŨ",
+          "role": "THS.BS.CKII",
+          "info": "Bác sĩ Khoa Phẫu thuật Thần kinh",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/mai-hoang-vu/",
+          "specialty": "Khoa phẫu thuật khớp và Nội soi"
+        },
+        {
+          "name": "VŨ ĐỨC THẮNG",
+          "role": "THS.BS.CKI",
+          "info": "Bác sĩ Khoa Phẫu thuật cột sống",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/vu-duc-thang/",
+          "specialty": "Khoa phẫu thuật khớp và Nội soi"
+        },
+        {
+          "name": "VŨ NGỌC BẢO QUỲNH",
+          "role": "BS.CKI",
+          "info": "Bác sĩ Khoa Phẫu thuật cột sống",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/vu-ngoc-bao-quynh/",
+          "specialty": "Khoa phẫu thuật khớp và Nội soi"
+        },
+        {
+          "name": "BÙI HỮU LƯỢNG",
+          "role": "BS.CKI",
+          "info": "Bác sĩ Khoa Phẫu thuật cột sống",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/bui-huu-luong/",
+          "specialty": "Khoa phẫu thuật khớp và Nội soi"
+        }
+      ]
+    },
+    "TTMCNC": {
+      "name": "Trung TÂM MẮT Công nghệ CAO",
+      "doctors": [
+        {
+          "name": "PHẠM HUY VŨ TÙNG",
+          "role": "THS.BS",
+          "info": "Bác sĩ Trung tâm Mắt Công nghệ cao",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/ths-bs-pham-huy-vu-tung/",
+          "specialty": "Trung tâm Mắt Công nghệ cao"
+        },
+        {
+          "name": "TĂNG NGỌC ANH",
+          "role": "THS.BS",
+          "info": "Phó khoa Mắt, Trung tâm Mắt Công nghệ cao",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/tang-ngoc-anh/",
+          "specialty": "Trung tâm Mắt Công nghệ cao"
+        },
+        {
+          "name": "CẤN NGỌC THÚY",
+          "role": "BS.CKI",
+          "info": "Bác sĩ tại Trung tâm Mắt Công nghệ cao",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/can-ngoc-thuy/",
+          "specialty": "Trung tâm Mắt Công nghệ cao"
+        },
+        {
+          "name": "NGUYỄN ĐỨC HUY",
+          "role": "BS.CKI",
+          "info": "Bác sĩ tại Trung tâm Mắt Công nghệ cao",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/nguyen-duc-huy/",
+          "specialty": "Trung tâm Mắt Công nghệ cao"
+        },
+        {
+          "name": "NGUYỄN TRÀ THẢO NHI",
+          "role": "THS.BS",
+          "info": "Bác sĩ tại Trung tâm Mắt Công nghệ cao",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/nguyen-tra-thao-nhi/",
+          "specialty": "Trung tâm Mắt Công nghệ cao"
+        }
+      ]
+    },
+    "KDDTC": {
+      "name": "Khoa Dinh dưỡng Tiết CHẾ",
+      "doctors": [
+        {
+          "name": "ĐÀO THỊ YẾN THỦY",
+          "role": "BS.CKI",
+          "info": "Trưởng khoa Khoa Dinh dưỡng Tiết chế",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/dao-thi-yen-thuy/",
+          "specialty": "Khoa Dinh dưỡng Tiết chế"
+        },
+        {
+          "name": "ĐINH VŨ PHƯƠNG THẢO",
+          "role": "ThS.BS",
+          "info": "ThS.BS ĐINH VŨ PHƯƠNG THẢO",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/dinh-vu-phuong-thao/",
+          "specialty": "Khoa Dinh dưỡng Tiết chế"
+        },
+        {
+          "name": "VÕ QUỲNH NHƯ",
+          "role": "CVDD",
+          "info": "Chuyên viên dinh dưỡng, Khoa Dinh dưỡng – Tiết chế",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/vo-quynh-nhu/",
+          "specialty": "Khoa Dinh dưỡng Tiết chế"
+        },
+        {
+          "name": "NGUYỄN PHAN NGỌC QUỲNH",
+          "role": "CVDD-TC",
+          "info": "Chuyên viên Dinh dưỡng – Tiết chế, Khoa Dinh dưỡng – Tiết chế",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/nguyen-phan-ngoc-quynh/",
+          "specialty": "Khoa Dinh dưỡng Tiết chế"
+        }
+      ]
+    },
+    "KCXK": {
+      "name": "Khoa CƠ xương khớp",
+      "doctors": [
+        {
+          "name": "PHẠM THỊ XUÂN THƯ",
+          "role": "THS.BS",
+          "info": "Bác sĩ Nội cơ xương khớp",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/pham-thi-xuan-thu/",
+          "specialty": "Khoa Cơ xương khớp"
+        }
+      ]
+    },
+    "KGPBTB": {
+      "name": "Khoa Giải phẫu bệnh& TẾ BÀO",
+      "doctors": [
+        {
+          "name": "NGUYỄN VĂN THÁI",
+          "role": "BS.CKI",
+          "info": "Phó khoa Giải phẫu bệnh & Tế bào",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/nguyen-van-thai/",
+          "specialty": "Khoa Giải phẫu bệnh& Tế bào"
+        }
+      ]
+    },
+    "KRHM": {
+      "name": "Khoa Răng HÀM MẶT",
+      "doctors": [
+        {
+          "name": "VÕ VĂN HÙNG",
+          "role": "THS.BS",
+          "info": "Phó trưởng khoa Răng Hàm Mặt",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/vo-van-hung/",
+          "specialty": "Khoa Răng Hàm Mặt"
+        },
+        {
+          "name": "NGUYỄN THỊ CHÂU BẢN",
+          "role": "BS.CKI",
+          "info": "Bác sĩ Khoa Răng Hàm Mặt",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/nguyen-thi-chau-ban/",
+          "specialty": "Khoa Răng Hàm Mặt"
+        },
+        {
+          "name": "VŨ THÀNH ĐẠT",
+          "role": "BS",
+          "info": "Bác sĩ Khoa Răng Hàm Mặt",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/vu-thanh-dat/",
+          "specialty": "Khoa Răng Hàm Mặt"
+        }
+      ]
+    },
+    "TTTCBK": {
+      "name": "Trung TÂM tiêm chủng Bvđk TÂM ANH",
+      "doctors": [
+        {
+          "name": "NGUYỄN NGỌC KHÁNH",
+          "role": "BS.CKI",
+          "info": "Bệnh viện Đa khoa Tâm Anh TP.HCM",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/nguyen-ngoc-khanh/",
+          "specialty": "Trung tâm tiêm chủng BVĐK Tâm Anh"
+        }
+      ]
+    },
+    "KMDLS": {
+      "name": "Khoa Miễn dịch LÂM sàng",
+      "doctors": [
+        {
+          "name": "HOÀNG THỊ LÂM",
+          "role": "PGS.TS.BS",
+          "info": "Trưởng khoa Khoa Miễn dịch lâm sàng",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/hoang-thi-lam/",
+          "specialty": "Khoa Miễn dịch Lâm sàng"
+        },
+        {
+          "name": "NGUYỄN PHÚC TÂN",
+          "role": "TS.BS",
+          "info": "Bác sĩ Khoa Miễn dịch lâm sàng",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/nguyen-phuc-tan/",
+          "specialty": "Khoa Miễn dịch Lâm sàng"
+        },
+        {
+          "name": "LƯƠNG VŨ THANH BÌNH",
+          "role": "THS.BS",
+          "info": "Bác sĩ Khoa Miễn dịch lâm sàng",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/luong-vu-thanh-binh/",
+          "specialty": "Khoa Miễn dịch Lâm sàng"
+        },
+        {
+          "name": "TRẦN THỊ THANH TUYỀN",
+          "role": "BS.CKI",
+          "info": "Bác sĩ Khoa Miễn dịch lâm sàng",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/tran-thi-thanh-tuyen/",
+          "specialty": "Khoa Miễn dịch Lâm sàng"
+        }
+      ]
+    },
+    "KSCNVI": {
+      "name": "Kiểm soát CÂN nặng VÀ Điều TRỊ BÉO PHÌ",
+      "doctors": [
+        {
+          "name": "VÕ TRẦN NHƯ THẢO",
+          "role": "BS",
+          "info": "Bác sĩ Phòng khám Kiểm soát cân nặng và Điều trị béo phì",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/vo-tran-nhu-thao/",
+          "specialty": "Kiểm soát cân nặng và Điều trị béo phì"
+        },
+        {
+          "name": "ĐÀO NGỌC LAN",
+          "role": "HOÀNG",
+          "info": "Chuyên viên Phòng khám Kiểm soát cân nặng và Điều trị béo phì",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/hoang-dao-ngoc-lan/",
+          "specialty": "Kiểm soát cân nặng và Điều trị béo phì"
+        },
+        {
+          "name": "HÀ NHẬT QUYÊN",
+          "role": "TRỊNH",
+          "info": "Chuyên viên Phòng khám Kiểm soát cân nặng và Điều trị béo phì",
+          "profile_link": "https://tamanhhospital.vn/chuyen-gia/trinh-ha-nhat-quyen/",
+          "specialty": "Kiểm soát cân nặng và Điều trị béo phì"
+        }
+      ]
+    }
   }
 }

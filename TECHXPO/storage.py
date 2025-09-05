@@ -136,6 +136,73 @@ def update_customer_facts_summary(customer_id: str, facts: str, summary: str):
     conn.commit()
     conn.close()
 
+def find_visit_by_booking(hospital_code: str, date: str, doctor_name: str, slot_time: str):
+    """Search latest visit whose payload.booking matches booking identifiers.
+
+    We store booking JSON inside payload_json; do a LIKE filter then parse & verify to reduce scan cost.
+    Returns first matched visit dict or None.
+    """
+    # Quick LIKE pattern include slot_time and doctor_name
+    conn = _conn(); cur = conn.cursor()
+    pattern_slot = f'%"slot_time": "{slot_time}"%'
+    pattern_doc = f'%"doctor_name": "{doctor_name}"%'
+    # Broad filter: most recent first
+    cur.execute("SELECT visit_id, created_at, payload_json, summary, facts_extracted FROM visits WHERE payload_json LIKE ? AND payload_json LIKE ? ORDER BY created_at DESC LIMIT 15", (pattern_slot, pattern_doc))
+    rows = cur.fetchall(); conn.close()
+    import json as _json
+    for vid, created_at, payload_json, summary, facts in rows:
+        try:
+            payload = _json.loads(payload_json)
+        except Exception:
+            continue
+        # Direct booking_index check
+        b_index = payload.get('booking_index') if isinstance(payload.get('booking_index'), dict) else None
+        if b_index:
+            if (
+                (not hospital_code or b_index.get('hospital_code') == hospital_code) and
+                (not date or b_index.get('date') == date) and
+                b_index.get('doctor_name') == doctor_name and
+                b_index.get('slot_time') == slot_time
+            ):
+                return {
+                    'visit_id': vid,
+                    'created_at': created_at,
+                    'payload': payload,
+                    'summary': summary or '',
+                    'facts': facts or ''
+                }
+        b = payload.get('booking') or {}
+        if not isinstance(b, dict):
+            b = {}
+        chosen = b.get('chosen') if isinstance(b.get('chosen'), dict) else {}
+        # Gather possible fields
+        doc_candidates = [
+            b.get('doctor_name'), chosen.get('doctor_name'), payload.get('doctor_name')
+        ]
+        slot_candidates = [
+            b.get('slot_time'), chosen.get('slot_time'), b.get('appointment_time'), payload.get('appointment_time'), payload.get('slot_time')
+        ]
+        hosp_candidates = [
+            b.get('hospital_code'), chosen.get('hospital_code'), payload.get('hospital_code')
+        ]
+        date_candidates = [
+            b.get('date'), chosen.get('date'), payload.get('date'), created_at.split(' ')[0] if created_at else None
+        ]
+        # Normalize comparison (exact for now; could lower() later)
+        match_doc = any(d == doctor_name for d in doc_candidates if d)
+        match_slot = any(s == slot_time for s in slot_candidates if s)
+        match_hosp = any(h == hospital_code for h in hosp_candidates if h) or not any(hosp_candidates)  # allow missing
+        match_date = any(dt == date for dt in date_candidates if dt) or not any(date_candidates)       # allow missing
+        if match_doc and match_slot and match_hosp and match_date:
+            return {
+                'visit_id': vid,
+                'created_at': created_at,
+                'payload': payload,
+                'summary': summary or '',
+                'facts': facts or ''
+            }
+    return None
+
 def build_personal_context(customer_id: str = None, visits: List[dict] = None) -> str:
     """Return structured personal history blocks (WITHOUT wrapper tags).
 

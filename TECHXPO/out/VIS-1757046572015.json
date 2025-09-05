@@ -1,0 +1,240 @@
+{
+  "patient_name": "Phạm Tuấn Hưng",
+  "phone": "0336018126",
+  "booking": {
+    "options": [
+      {
+        "hospital": "BV_NAMSAIGON",
+        "hospital_code": "BV_NAMSAIGON",
+        "department": "TAI - MŨI - Họng",
+        "department_code": "TMH",
+        "doctor_name": "THS.BS.CKII LÊ NHẬT VINH",
+        "slot_time": "2025-09-05 07:40",
+        "room": null,
+        "score": null
+      },
+      {
+        "hospital": "BV_NAMSAIGON",
+        "hospital_code": "BV_NAMSAIGON",
+        "department": "TAI - MŨI - Họng",
+        "department_code": "TMH",
+        "doctor_name": "THS.BS.CKII NGUYỄN TRƯƠNG KHƯƠNG",
+        "slot_time": "2025-09-05 07:40",
+        "room": null,
+        "score": null
+      }
+    ],
+    "chosen": {
+      "hospital": "BV_NAMSAIGON",
+      "hospital_code": "BV_NAMSAIGON",
+      "department": "TAI - MŨI - Họng",
+      "department_code": "TMH",
+      "doctor_name": "THS.BS.CKII LÊ NHẬT VINH",
+      "slot_time": "2025-09-05 07:40",
+      "room": null,
+      "score": null
+    },
+    "rationale": "Người dùng muốn đặt lịch khám Tai Mũi Họng do viêm họng. Đã tìm các bác sĩ có sẵn trong khoa Tai Mũi Họng và đề xuất các khung giờ sớm nhất.",
+    "patient_name": "Phạm Tuấn Hưng",
+    "phone": "0336018126",
+    "meta": {
+      "selected_department_codes": [
+        "TMH"
+      ],
+      "selected_departments": [
+        "TAI - MŨI - Họng"
+      ],
+      "two_stage": true,
+      "schedule": {
+        "date": "2025-09-05",
+        "slots": {
+          "start": "07:40",
+          "end": "16:40",
+          "slot_minutes": 20
+        },
+        "hospitals": [
+          {
+            "hospital_code": "BV_NAMSAIGON",
+            "hospital_name": "BV_NAMSAIGON",
+            "departments": [
+              {
+                "department_code": "TMH",
+                "department_name": "TAI - MŨI - Họng",
+                "doctors": [
+                  {
+                    "name": "THS.BS.CKII LÊ NHẬT VINH",
+                    "free_slots": [
+                      "07:40",
+                      "08:00",
+                      "08:20",
+                      "08:40",
+                      "09:00",
+                      "09:20",
+                      "09:40",
+                      "10:00",
+                      "10:20",
+                      "10:40",
+                      "11:00",
+                      "11:20",
+                      "11:40",
+                      "12:00",
+                      "12:20",
+                      "12:40",
+                      "13:00",
+                      "13:20",
+                      "13:40",
+                      "14:00",
+                      "14:20",
+                      "14:40",
+                      "15:00",
+                      "15:20",
+                      "15:40",
+                      "16:00",
+                      "16:20",
+                      "16:40"
+                    ]
+                  },
+                  {
+                    "name": "THS.BS.CKII NGUYỄN TRƯƠNG KHƯƠNG",
+                    "free_slots": [
+                      "07:40",
+                      "08:00",
+                      "08:20",
+                      "08:40",
+                      "09:00",
+                      "09:20",
+                      "09:40",
+                      "10:00",
+                      "10:20",
+                      "10:40",
+                      "11:00",
+                      "11:20",
+                      "11:40",
+                      "12:00",
+                      "12:20",
+                      "12:40",
+                      "13:00",
+                      "13:20",
+                      "13:40",
+                      "14:00",
+                      "14:20",
+                      "14:40",
+                      "15:00",
+                      "15:20",
+                      "15:40",
+                      "16:00",
+                      "16:20",
+                      "16:40"
+                    ]
+                  }
+                ]
+              }
+            ],
+            "hospital_image": "BV_NAMSAIGON.png"
+          }
+        ],
+        "selected_department_codes": [
+          "TMH"
+        ]
+      },
+      "dept_index_map": {
+        "BV_BINHDAN": {
+          "NTQ": "Ngoại tổng quát",
+          "NTN": "Ngoại tiết niệu",
+          "PTTMM": "Phẫu Thuật TIM - Mạch MÁU",
+          "NNNIEU": "Niệu NỮ",
+          "NKNAMK": "NAM khoa"
+        },
+        "BV_NAMSAIGON": {
+          "TMH": "TAI - MŨI - Họng",
+          "NTKCS": "Ngoại Thần Kinh - CỘT Sống",
+          "NLN": "Ngoại Lồng Ngực",
+          "CTCHCX": "Chấn Thương Chỉnh Hình, CƠ - Xương - Khớp",
+          "NTH": "Ngoại Tổng HỢP",
+          "KBKHAM": "Khám Bệnh",
+          "NTH1": "NỘI Tổng HỢP",
+          "GMHS": "GÂY MÊ - HỒI SỨC",
+          "HSTCCC": "HỒI SỨC Tích CỰC - CẤP CỨU",
+          "COHA": "Chẩn Đoán Hình Ảnh",
+          "VLTLPH": "VẬT LÝ TRỊ Liệu - Phục HỒI Chức Năng",
+          "KDKHOA": "Khoa Dược",
+          "PKM": "Phòng khám MẮT"
+        },
+        "BV_TAMANH": {
+          "TTTM": "Trung TÂM TIM mạch",
+          "TTTNTH": "Trung TÂM Tiết niệu - Thận HỌC - NAM khoa",
+          "TTSPK": "Trung TÂM SẢN PHỤ Khoa",
+          "TTNSPT": "Trung TÂM NỘI SOI & Phẫu thuật NỘI SOI tiêu HÓA",
+          "TTSS": "Trung TÂM SƠ sinh",
+          "KNKHOA": "Khoa NHI",
+          "TTTMH": "Trung TÂM TAI MŨI Họng",
+          "KUB": "Khoa UNG bướu",
+          "TTXN": "Trung TÂM XÉT nghiệm",
+          "TTCOHA": "Trung TÂM Chẩn đoán hình ảnhĐiện quang CAN thiệp",
+          "KHSCCI": "Khoa HỒI SỨC CẤP CỨU (Icu)",
+          "TTKHTK": "Trung TÂM Khoa HỌC Thần kinh",
+          "TTCTCH": "Trung TÂM Chấn thương chỉnh hình",
+          "KNTH": "Khoa Ngoại Tổng HỢP",
+          "KNLNMM": "Khoa Ngoại Lồng ngực - Mạch MÁU",
+          "KNVAMC": "Khoa Ngoại VÚ - ĐẦU MẶT CỔ",
+          "KNTH1": "Khoa NỘI tổng HỢP",
+          "KCCTH": "Khoa CẤP CỨU Tổng HỢP",
+          "TTHTSS": "Trung TÂM HỖ TRỢ sinh SẢN",
+          "KKSNK": "Khoa Kiểm soát nhiễm khuẩn",
+          "KKB": "Khoa Khám bệnh",
+          "TTYHBT": "Trung TÂM Y HỌC BÀO thai",
+          "KDLTMD": "Khoa DA Liễu - Thẩm MỸ DA",
+          "KDKHOA": "Khoa Dược",
+          "KTNNH": "Khoa Tiết niệu - NAM HỌC",
+          "KNN": "Khoa Ngoại NHI",
+          "TTTMCT": "Trung TÂM TIM mạch CAN thiệp",
+          "KTHGMT": "Khoa Tiêu HÓA - GAN MẬT - TỤY",
+          "KPHCN": "Khoa Phục HỒI chức năng",
+          "KPTKVN": "Khoa phẫu thuật khớp VÀ NỘI SOI",
+          "TTMCNC": "Trung TÂM MẮT Công nghệ CAO",
+          "KDDTC": "Khoa Dinh dưỡng Tiết CHẾ",
+          "KCXK": "Khoa CƠ xương khớp",
+          "KGPBTB": "Khoa Giải phẫu bệnh& TẾ BÀO",
+          "KRHM": "Khoa Răng HÀM MẶT",
+          "TTTCBK": "Trung TÂM tiêm chủng Bvđk TÂM ANH",
+          "KMDLS": "Khoa Miễn dịch LÂM sàng",
+          "KSCNVI": "Kiểm soát CÂN nặng VÀ Điều TRỊ BÉO PHÌ"
+        }
+      }
+    },
+    "symptoms": "Viêm họng trong 2 ngày, mức độ nhẹ",
+    "persist_result": {
+      "soft_hold": {
+        "ok": true,
+        "message": "held",
+        "session_id": "default"
+      },
+      "schedule_backend": {
+        "ok": true,
+        "message": "booked",
+        "finalize_persist": true,
+        "mode": "promote_hold"
+      }
+    }
+  },
+  "summary_struct": {
+    "patient_name": "Phạm Tuấn Hưng",
+    "phone": "0336018126",
+    "customer_id": "(không rõ)",
+    "doctor_name": "THS.BS.CKII LÊ NHẬT VINH",
+    "appointment_time": "2025-09-05 07:40",
+    "room": "",
+    "queue_number": "",
+    "symptoms": "[{\"name\": \"Viêm họng\", \"severity\": \"nhẹ\", \"duration\": \"2 ngày\"}]",
+    "tentative_diagnoses": "[\"Viêm họng\"]",
+    "tests_recommended": "[]",
+    "medications_advised": "[]",
+    "diet_notes": "Giữ ấm cổ họng, tránh ăn uống đồ quá nóng hoặc quá lạnh.",
+    "follow_up": "(không rõ)",
+    "warnings": "Tránh ăn uống đồ quá nóng hoặc quá lạnh để không làm tình trạng viêm họng nặng hơn."
+  },
+  "facts_pretty": "- Thông tin cá nhân cơ bản:\n  - Họ tên: Phạm Tuấn Hưng\n  - Số điện thoại: 0336018126\n- Tiền sử bệnh: Có lịch sử khám tổng quát định kỳ.\n- Dị ứng thuốc/thực phẩm: Không được đề cập.\n- Thói quen sinh hoạt quan trọng: Không được đề cập.\n- Thuốc đang dùng thường xuyên: Không được đề cập.\n- Bệnh di truyền gia đình: Không được đề cập.\n- Các triệu chứng mạn tính/tái phát: Không có triệu chứng mạn tính/tái phát được đề cập.\n- Sở thích, phong cách, thái độ nói chuyện: Giao tiếp trực tiếp, rõ ràng. Đồng ý với các gợi ý lịch khám và tự chọn bác sĩ từ danh sách gợi ý.\n- Bác sĩ đã từng khám: BS.CKII Nguyễn Mỹ Bảo Anh (cho khám tổng quát lần trước).",
+  "summary_pretty": "- Lý do khám chính: Viêm họng.\n- Triệu chứng hiện tại và thời gian xuất hiện: Viêm họng, xuất hiện 2 ngày, mức độ nhẹ. Không có đau rát cổ họng, khó nuốt, sốt hay triệu chứng khác kèm theo.\n- Chẩn đoán sơ bộ: Chưa có, cần bác sĩ thăm khám.\n- Kế hoạch điều trị/xét nghiệm: Đặt lịch khám Tai Mũi Họng với THS.BS.CKII LÊ NHẬT VINH vào lúc 07:40 sáng ngày 05 tháng 09 năm 2025 tại Bệnh viện Nam Sài Gòn.\n- Lưu ý đặc biệt: Giữ ấm cổ họng, tránh ăn uống đồ quá nóng hoặc quá lạnh trước khi khám.",
+  "doctor_name": "THS.BS.CKII LÊ NHẬT VINH",
+  "appointment_time": "2025-09-05 07:40"
+}

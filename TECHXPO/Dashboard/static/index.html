@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <title>Doctor Schedule Dashboard</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <h1>Doctor Schedule Dashboard</h1>
+  <form id="control-form">
+    <label>Hospital:
+      <select id="hospital_select"></select>
+    </label>
+    <label>Date: <input type="date" id="date" /></label>
+    <button type="submit">Reload</button>
+  </form>
+  <div id="status"></div>
+  <div id="table-container"></div>
+
+  <template id="booking-dialog-template">
+    <div class="dialog-backdrop">
+      <div class="dialog">
+        <h3>Book Slot</h3>
+        <p id="dlg-info"></p>
+        <button id="dlg-confirm">Confirm</button>
+        <button id="dlg-cancel">Cancel</button>
+      </div>
+    </div>
+  </template>
+
+  <script src="app.js"></script>
+</body>
+</html>

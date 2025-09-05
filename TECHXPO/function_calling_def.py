@@ -342,6 +342,44 @@ def build_all_tools(
             return {"ok": False, "error": "invalid_index", "count": len(options)}
         chosen = options[option_index]
         latest["chosen"] = chosen
+        # Soft hold: cancel previous holds for this session then create new hold for chosen option
+        try:
+            session_id = (shared.get("session") and getattr(shared.get("session"), "id", None)) or shared.get("session_id") or "default"
+            from Dashboard.schedule_logic import cancel_holds_for_session, create_hold
+            cancel_holds_for_session(session_id)
+            # Canonicalize department name from schedule meta using department_code
+            try:
+                sched = (latest.get("meta") or {}).get("schedule") or {}
+                hlist = sched.get("hospitals", []) or []
+                hcode = chosen.get("hospital_code") or chosen.get("hospital")
+                dcode = chosen.get("department_code") or chosen.get("department")
+                canon_dep = None
+                for h in hlist:
+                    if h.get("hospital_code") == hcode:
+                        for dep in h.get("departments", []) or []:
+                            if dep.get("department_code") == dcode:
+                                canon_dep = dep.get("department_name") or dep.get("department")
+                                break
+                    if canon_dep:
+                        break
+                if canon_dep and chosen.get("department") != canon_dep:
+                    chosen["department"] = canon_dep
+                    latest["chosen"] = chosen
+            except Exception:
+                pass
+            slot_time_full = chosen.get("slot_time") or ""
+            date_part = slot_time_full.split(" ")[0]
+            time_part = slot_time_full.split(" ")[-1]
+            hospital_code = chosen.get("hospital_code") or chosen.get("hospital") or ""
+            department = chosen.get("department") or ""
+            department_code = chosen.get("department_code") or None
+            doctor_name = chosen.get("doctor_name") or ""
+            if hospital_code and department and doctor_name and date_part and time_part:
+                ok, msg = create_hold(hospital_code, department, doctor_name, date_part, time_part, session_id, ttl_seconds=300, department_code=department_code)
+                latest.setdefault("persist_result", {})["soft_hold"] = {"ok": ok, "message": msg, "session_id": session_id}
+        except Exception as e:
+            latest.setdefault("persist_result", {})["soft_hold_error"] = str(e)
+        # Không gọi book_slot ở đây nữa; sẽ promote tại finalize_visit.
         # Không ép generate speak_text cố định nữa; để model tự nói.
         latest.pop("speak_text", None)
         try:
@@ -376,6 +414,48 @@ def build_all_tools(
         session = shared.get("session")
         ctx = shared.get("ctx")
         latest_booking = shared.get("latest_booking")
+        # --- Booking persistence (promote hold or direct) ---
+        # Làm ngay đầu finalize để chắc chắn commit trước khi session bị đóng.
+        persist_info = {}
+        # Promote soft hold to real booking here (one-time)
+        try:
+            if latest_booking and isinstance(latest_booking, dict):
+                chosen = latest_booking.get("chosen") or {}
+                if chosen:
+                    slot_time_full = chosen.get("slot_time") or ""
+                    date_part = slot_time_full.split(" ")[0]
+                    time_part = slot_time_full.split(" ")[-1]
+                    hospital_code = chosen.get("hospital_code") or chosen.get("hospital") or ""
+                    department = chosen.get("department") or ""
+                    doctor_name = chosen.get("doctor_name") or ""
+                    department_code = chosen.get("department_code") or None
+                    if hospital_code and department and doctor_name and date_part and time_part:
+                        session_id = (shared.get("session") and getattr(shared.get("session"), "id", None)) or shared.get("session_id") or "default"
+                        from Dashboard.schedule_logic import promote_hold_to_booking, book_slot as _direct_book
+                        print(f"[finalize_visit] promote_hold start session={session_id} {hospital_code}/{department}/{doctor_name} {date_part} {time_part} code={department_code}")
+                        try:
+                            ok, msg = promote_hold_to_booking(session_id, hospital_code, department, doctor_name, date_part, time_part, department_code=department_code)
+                            persist_info = {"mode": "promote_hold", "ok": ok, "message": msg}
+                            if not ok:
+                                # Fallback direct booking
+                                try:
+                                    d_ok, d_msg = _direct_book(hospital_code, department, doctor_name, date_part, time_part, department_code=department_code)
+                                    persist_info = {"mode": "direct_fallback", "ok": d_ok, "message": d_msg, "promote_message": msg}
+                                    print(f"[finalize_visit] fallback direct booking ok={d_ok} msg={d_msg}")
+                                except Exception as ee:
+                                    persist_info = {"mode": "direct_fallback", "ok": False, "message": f"fallback_error: {ee}", "promote_message": msg}
+                            else:
+                                print(f"[finalize_visit] promote_hold success msg={msg}")
+                            latest_booking.setdefault("persist_result", {})["schedule_backend"] = {"ok": persist_info.get("ok"), "message": persist_info.get("message"), "finalize_persist": True, "mode": persist_info.get("mode")}
+                        except Exception as e:
+                            persist_info = {"mode": "error", "ok": False, "message": str(e)}
+                            latest_booking.setdefault("persist_result", {})["schedule_backend_error"] = f"{e}"
+                            print(f"[finalize_visit] persist error: {e}")
+        except Exception as e:
+            print(f"[finalize_visit] persist attempt error: {e}")
+        # Nếu không có chosen hoặc thiếu dữ liệu
+        if not persist_info:
+            print("[finalize_visit] no chosen option to persist")
         transcript_lines = list(state.lines)
         transcript = "\n".join(transcript_lines)
         user_only = "\n".join(line[len("[user] "): ] for line in transcript_lines if line.startswith("[user] "))
@@ -517,6 +597,42 @@ def build_all_tools(
                                 "facts_pretty": cfacts_pretty,
                                 "summary_pretty": csummary_pretty,
                             }
+                            # Derive booking_index for reliable Dashboard lookup
+                            try:
+                                chosen_bk = None
+                                if isinstance(latest_booking, dict):
+                                    chosen_bk = latest_booking.get("chosen") if isinstance(latest_booking.get("chosen"), dict) else latest_booking
+                                chosen_bk = chosen_bk or {}
+                                slot_time_raw = chosen_bk.get("slot_time") or chosen_bk.get("appointment_time") or base_payload.get("appointment_time") or ""
+                                date_part = None; time_part = None
+                                if slot_time_raw:
+                                    parts = slot_time_raw.strip().split()
+                                    if len(parts) == 2 and parts[1].count(":") == 1:
+                                        date_part, time_part = parts[0], parts[1]
+                                    elif len(parts) == 1 and parts[0].count(":") == 1:
+                                        time_part = parts[0]
+                                        # try pull date from latest_booking or base_payload
+                                        date_part = latest_booking.get("target_date") if isinstance(latest_booking, dict) else None
+                                if not date_part and isinstance(latest_booking, dict):
+                                    date_part = latest_booking.get("date") or (latest_booking.get("chosen") or {}).get("date")
+                                # Accept a separate field stored earlier
+                                hospital_bk = chosen_bk.get("hospital_code") or chosen_bk.get("hospital") or latest_booking.get("hospital_code") if isinstance(latest_booking, dict) else None
+                                department_code_bk = chosen_bk.get("department_code") or latest_booking.get("department_code") if isinstance(latest_booking, dict) else None
+                                doctor_bk = chosen_bk.get("doctor_name") or base_payload.get("doctor_name")
+                                booking_index = {
+                                    "hospital_code": hospital_bk,
+                                    "department_code": department_code_bk,
+                                    "doctor_name": doctor_bk,
+                                    "date": date_part,
+                                    "slot_time": time_part,
+                                }
+                                final_payload["booking_index"] = booking_index
+                                # Promote fields to top-level for simpler LIKE queries
+                                if hospital_bk: final_payload["hospital_code"] = hospital_bk
+                                if date_part: final_payload["date"] = date_part
+                                if time_part: final_payload["slot_time"] = time_part
+                            except Exception as _e_bi:
+                                print(f"[FinalizeThread] booking_index build error: {_e_bi}")
                             # Extra fields from base_payload pulled up for convenience
                             for k in ("doctor_name","appointment_time","slot_time","preferred_time"):
                                 if k in base_payload and k not in final_payload:

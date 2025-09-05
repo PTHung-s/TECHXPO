@@ -2,153 +2,168 @@
   "hospital_code": "BV_BINHDAN",
   "hospital_name": "Bệnh viện Bình Dân",
   "departments": {
-    "Ngoại tổng quát": [
-      {
-        "name": "PHẠM VĂN ĐIỆP",
-        "specialty": "Ngoại tổng quát",
-        "profile_link": "https://bvbinhdan.com.vn/vn/ths-bs-pham-van-diep.html",
-        "role": "THS.BS."
-      },
-      {
-        "name": "ĐỖ NGỌC NGHĨA",
-        "specialty": "Ngoại tổng quát",
-        "profile_link": "https://bvbinhdan.com.vn/vn/ths-bs-d-ngoc-nghia.html",
-        "role": "THS.BS."
-      },
-      {
-        "name": "GIAO HỮU TRƯỜNG QUY",
-        "specialty": "Ngoại tổng quát",
-        "profile_link": "https://bvbinhdan.com.vn/vn/ths-bs-cki-giao-huu-truong-quy.html",
-        "role": "THS.BS.CKI."
-      },
-      {
-        "name": "PHẠM VĨNH PHÚ",
-        "specialty": "Ngoại tổng quát",
-        "profile_link": "https://bvbinhdan.com.vn/vn/ths-bs-cki-pham-vinh-phu.html",
-        "role": "THS.BS.CKI."
-      },
-      {
-        "name": "PHẠM HẢI TRIỀU",
-        "specialty": "Ngoại tổng quát",
-        "profile_link": "https://bvbinhdan.com.vn/vn/bs-cki-pham-hai-trieu.html",
-        "role": "BS.CKI."
-      },
-      {
-        "name": "BÙI ĐỨC THỊNH",
-        "specialty": "Ngoại tổng quát",
-        "profile_link": "https://bvbinhdan.com.vn/vn/bs-ckii-bui-duc-thinh.html",
-        "role": "BS.CKII."
-      }
-    ],
-    "Ngoại tiết niệu": [
-      {
-        "name": "TRẦN TẤN SANG",
-        "specialty": "Ngoại tiết niệu",
-        "profile_link": "https://bvbinhdan.com.vn/vn/ths-bs-cki-tran-tan-sang.html",
-        "role": "THS.BS.CKI."
-      },
-      {
-        "name": "BÙI QUAN THIÊN PHÚ",
-        "specialty": "Ngoại tiết niệu",
-        "profile_link": "https://bvbinhdan.com.vn/vn/ths-bs-bui-quan-thien-phu.html",
-        "role": "THS.BS."
-      },
-      {
-        "name": "NGUYỄN TIẾN ĐẠT",
-        "specialty": "Ngoại tiết niệu",
-        "profile_link": "https://bvbinhdan.com.vn/vn/bs-cki-nguyen-tien-dat.html",
-        "role": "BS.CKI."
-      },
-      {
-        "name": "NGUYỄN MINH DUẬT",
-        "specialty": "Ngoại tiết niệu",
-        "profile_link": "https://bvbinhdan.com.vn/vn/ths-bs-nguyen-minh-duat.html",
-        "role": "THS.BS."
-      },
-      {
-        "name": "DƯƠNG CAO TRÍ",
-        "specialty": "Ngoại tiết niệu",
-        "profile_link": "https://bvbinhdan.com.vn/vn/ths-bs-duong-cao-tr.html",
-        "role": "THS.BS."
-      },
-      {
-        "name": "TRẦN HỮU TOÀN",
-        "specialty": "Ngoại tiết niệu",
-        "profile_link": "https://bvbinhdan.com.vn/vn/bs-cki-tran-huu-toan.html",
-        "role": "BS.CKI."
-      },
-      {
-        "name": "NGUYỄN THÁI HOÀNG",
-        "specialty": "Ngoại tiết niệu",
-        "profile_link": "https://bvbinhdan.com.vn/vn/ths-bs-cki-nguyen-thai-hoang.html",
-        "role": "THS.BS.CKI."
-      }
-    ],
-    "Phẫu Thuật TIM - Mạch MÁU": [
-      {
-        "name": "NGUYỄN HOÀNG HUY",
-        "specialty": "PHẪU THUẬT TIM - MẠCH MÁU",
-        "profile_link": "https://bvbinhdan.com.vn/vn/ths-bs-cki-nguyen-hoang-huy.html",
-        "role": "THS.BS.CKI."
-      },
-      {
-        "name": "NGUYỄN MINH TRUNG",
-        "specialty": "PHẪU THUẬT TIM - MẠCH MÁU",
-        "profile_link": "https://bvbinhdan.com.vn/vn/ths-bs-nguyen-minh-trung.html",
-        "role": "THS.BS."
-      },
-      {
-        "name": "PHẠM NGỌC HOAN",
-        "specialty": "PHẪU THUẬT TIM - MẠCH MÁU",
-        "profile_link": "https://bvbinhdan.com.vn/vn/bs-ckii-pham-ngoc-hoan.html",
-        "role": "BS.CKII."
-      }
-    ],
-    "Niệu NỮ": [
-      {
-        "name": "DƯƠNG ĐĂNG HIẾU",
-        "specialty": "NIỆU NỮ",
-        "profile_link": "https://bvbinhdan.com.vn/vn/ths-bs-cki-duong-dang-hieu.html",
-        "role": "THS.BS.CKI."
-      },
-      {
-        "name": "VŨ ANH TUẤN",
-        "specialty": "NIỆU NỮ",
-        "profile_link": "https://bvbinhdan.com.vn/vn/bs-cki-vu-anh-tuan.html",
-        "role": "BS.CKI."
-      },
-      {
-        "name": "LÊ NGUYỄN MINH HOÀNG",
-        "specialty": "NIỆU NỮ",
-        "profile_link": "https://bvbinhdan.com.vn/vn/ths-bs-le-nguyen-minh-hoang.html",
-        "role": "THS.BS."
-      }
-    ],
-    "NAM khoa": [
-      {
-        "name": "ĐINH QUANG BÌNH",
-        "specialty": "Nam khoa",
-        "profile_link": "https://bvbinhdan.com.vn/vn/ths-bs-dinh-quang-binh.html",
-        "role": "THS.BS."
-      },
-      {
-        "name": "TRẦN ĐOÀN THIÊN QUỐC",
-        "specialty": "Nam khoa",
-        "profile_link": "https://bvbinhdan.com.vn/vn/ths-bs-cki-tran-doan-thien-quoc.html",
-        "role": "THS.BS.CKI."
-      },
-      {
-        "name": "LÊ ANH TUẤN",
-        "specialty": "Nam khoa",
-        "profile_link": "https://bvbinhdan.com.vn/vn/ths-bs-cki-le-anh-tuan.html",
-        "role": "THS.BS.CKI."
-      },
-      {
-        "name": "NGUYỄN HỒ VĨNH PHƯỚC",
-        "specialty": "Nam khoa",
-        "profile_link": "https://bvbinhdan.com.vn/vn/ths-bs-nguyen-ho-vinh-phuoc.html",
-        "role": "THS.BS."
-      }
-    ]
+    "NTQ": {
+      "name": "Ngoại tổng quát",
+      "doctors": [
+        {
+          "name": "PHẠM VĂN ĐIỆP",
+          "specialty": "Ngoại tổng quát",
+          "profile_link": "https://bvbinhdan.com.vn/vn/ths-bs-pham-van-diep.html",
+          "role": "THS.BS."
+        },
+        {
+          "name": "ĐỖ NGỌC NGHĨA",
+          "specialty": "Ngoại tổng quát",
+          "profile_link": "https://bvbinhdan.com.vn/vn/ths-bs-d-ngoc-nghia.html",
+          "role": "THS.BS."
+        },
+        {
+          "name": "GIAO HỮU TRƯỜNG QUY",
+          "specialty": "Ngoại tổng quát",
+          "profile_link": "https://bvbinhdan.com.vn/vn/ths-bs-cki-giao-huu-truong-quy.html",
+          "role": "THS.BS.CKI."
+        },
+        {
+          "name": "PHẠM VĨNH PHÚ",
+          "specialty": "Ngoại tổng quát",
+          "profile_link": "https://bvbinhdan.com.vn/vn/ths-bs-cki-pham-vinh-phu.html",
+          "role": "THS.BS.CKI."
+        },
+        {
+          "name": "PHẠM HẢI TRIỀU",
+          "specialty": "Ngoại tổng quát",
+          "profile_link": "https://bvbinhdan.com.vn/vn/bs-cki-pham-hai-trieu.html",
+          "role": "BS.CKI."
+        },
+        {
+          "name": "BÙI ĐỨC THỊNH",
+          "specialty": "Ngoại tổng quát",
+          "profile_link": "https://bvbinhdan.com.vn/vn/bs-ckii-bui-duc-thinh.html",
+          "role": "BS.CKII."
+        }
+      ]
+    },
+    "NTN": {
+      "name": "Ngoại tiết niệu",
+      "doctors": [
+        {
+          "name": "TRẦN TẤN SANG",
+          "specialty": "Ngoại tiết niệu",
+          "profile_link": "https://bvbinhdan.com.vn/vn/ths-bs-cki-tran-tan-sang.html",
+          "role": "THS.BS.CKI."
+        },
+        {
+          "name": "BÙI QUAN THIÊN PHÚ",
+          "specialty": "Ngoại tiết niệu",
+          "profile_link": "https://bvbinhdan.com.vn/vn/ths-bs-bui-quan-thien-phu.html",
+          "role": "THS.BS."
+        },
+        {
+          "name": "NGUYỄN TIẾN ĐẠT",
+          "specialty": "Ngoại tiết niệu",
+          "profile_link": "https://bvbinhdan.com.vn/vn/bs-cki-nguyen-tien-dat.html",
+          "role": "BS.CKI."
+        },
+        {
+          "name": "NGUYỄN MINH DUẬT",
+          "specialty": "Ngoại tiết niệu",
+          "profile_link": "https://bvbinhdan.com.vn/vn/ths-bs-nguyen-minh-duat.html",
+          "role": "THS.BS."
+        },
+        {
+          "name": "DƯƠNG CAO TRÍ",
+          "specialty": "Ngoại tiết niệu",
+          "profile_link": "https://bvbinhdan.com.vn/vn/ths-bs-duong-cao-tr.html",
+          "role": "THS.BS."
+        },
+        {
+          "name": "TRẦN HỮU TOÀN",
+          "specialty": "Ngoại tiết niệu",
+          "profile_link": "https://bvbinhdan.com.vn/vn/bs-cki-tran-huu-toan.html",
+          "role": "BS.CKI."
+        },
+        {
+          "name": "NGUYỄN THÁI HOÀNG",
+          "specialty": "Ngoại tiết niệu",
+          "profile_link": "https://bvbinhdan.com.vn/vn/ths-bs-cki-nguyen-thai-hoang.html",
+          "role": "THS.BS.CKI."
+        }
+      ]
+    },
+    "PTTMM": {
+      "name": "Phẫu Thuật TIM - Mạch MÁU",
+      "doctors": [
+        {
+          "name": "NGUYỄN HOÀNG HUY",
+          "specialty": "PHẪU THUẬT TIM - MẠCH MÁU",
+          "profile_link": "https://bvbinhdan.com.vn/vn/ths-bs-cki-nguyen-hoang-huy.html",
+          "role": "THS.BS.CKI."
+        },
+        {
+          "name": "NGUYỄN MINH TRUNG",
+          "specialty": "PHẪU THUẬT TIM - MẠCH MÁU",
+          "profile_link": "https://bvbinhdan.com.vn/vn/ths-bs-nguyen-minh-trung.html",
+          "role": "THS.BS."
+        },
+        {
+          "name": "PHẠM NGỌC HOAN",
+          "specialty": "PHẪU THUẬT TIM - MẠCH MÁU",
+          "profile_link": "https://bvbinhdan.com.vn/vn/bs-ckii-pham-ngoc-hoan.html",
+          "role": "BS.CKII."
+        }
+      ]
+    },
+    "NNNIEU": {
+      "name": "Niệu NỮ",
+      "doctors": [
+        {
+          "name": "DƯƠNG ĐĂNG HIẾU",
+          "specialty": "NIỆU NỮ",
+          "profile_link": "https://bvbinhdan.com.vn/vn/ths-bs-cki-duong-dang-hieu.html",
+          "role": "THS.BS.CKI."
+        },
+        {
+          "name": "VŨ ANH TUẤN",
+          "specialty": "NIỆU NỮ",
+          "profile_link": "https://bvbinhdan.com.vn/vn/bs-cki-vu-anh-tuan.html",
+          "role": "BS.CKI."
+        },
+        {
+          "name": "LÊ NGUYỄN MINH HOÀNG",
+          "specialty": "NIỆU NỮ",
+          "profile_link": "https://bvbinhdan.com.vn/vn/ths-bs-le-nguyen-minh-hoang.html",
+          "role": "THS.BS."
+        }
+      ]
+    },
+    "NKNAMK": {
+      "name": "NAM khoa",
+      "doctors": [
+        {
+          "name": "ĐINH QUANG BÌNH",
+          "specialty": "Nam khoa",
+          "profile_link": "https://bvbinhdan.com.vn/vn/ths-bs-dinh-quang-binh.html",
+          "role": "THS.BS."
+        },
+        {
+          "name": "TRẦN ĐOÀN THIÊN QUỐC",
+          "specialty": "Nam khoa",
+          "profile_link": "https://bvbinhdan.com.vn/vn/ths-bs-cki-tran-doan-thien-quoc.html",
+          "role": "THS.BS.CKI."
+        },
+        {
+          "name": "LÊ ANH TUẤN",
+          "specialty": "Nam khoa",
+          "profile_link": "https://bvbinhdan.com.vn/vn/ths-bs-cki-le-anh-tuan.html",
+          "role": "THS.BS.CKI."
+        },
+        {
+          "name": "NGUYỄN HỒ VĨNH PHƯỚC",
+          "specialty": "Nam khoa",
+          "profile_link": "https://bvbinhdan.com.vn/vn/ths-bs-nguyen-ho-vinh-phuoc.html",
+          "role": "THS.BS."
+        }
+      ]
+    }
   }
 }
