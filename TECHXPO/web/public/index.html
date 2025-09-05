@@ -19,7 +19,7 @@
     * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
     html,body { margin:0; padding:0; font-family:var(--font); background:#020617; color:#f1f5f9; height:100%; }
     body { background-image:var(--bg-gradient); background-attachment:fixed; }
-    h1 { font-size:1.05rem; margin:0; font-weight:600; letter-spacing:.5px; }
+  h1 { font-size:1.15rem; margin:0; font-weight:650; letter-spacing:.6px; }
     button { cursor:pointer; font-weight:600; border:none; border-radius:1rem; padding:.75rem 1.15rem; font-size:.85rem; line-height:1; background:linear-gradient(135deg,#2563eb,#4f46e5); color:#fff; position:relative; overflow:hidden; }
     button:before { content:""; position:absolute; inset:0; background:linear-gradient(135deg,#60a5fa,#6366f1); opacity:0; transition:.4s; }
     button:hover:before { opacity:.15; }
@@ -50,8 +50,8 @@
   #infoPanel.glow-amber { box-shadow:0 0 0 2px rgba(245,158,11,.9),0 0 20px 6px rgba(245,158,11,.55),0 4px 34px -6px rgba(0,0,0,.55); transition:box-shadow .45s; animation:amberPulse 2.4s ease-in-out infinite; }
   @keyframes glowPulse { 0%,100%{ filter:brightness(1);} 50%{ filter:brightness(1.13);} }
   @keyframes amberPulse { 0%{ filter:brightness(1); box-shadow:0 0 0 2px rgba(245,158,11,.75),0 0 14px 3px rgba(245,158,11,.35),0 4px 34px -6px rgba(0,0,0,.55);} 50%{ filter:brightness(1.28); box-shadow:0 0 0 3px rgba(245,158,11,1),0 0 28px 10px rgba(245,158,11,.75),0 4px 40px -4px rgba(0,0,0,.65);} 100%{ filter:brightness(1); box-shadow:0 0 0 2px rgba(245,158,11,.75),0 0 14px 3px rgba(245,158,11,.35),0 4px 34px -6px rgba(0,0,0,.55);} }
-  #infoPanel h3 { margin:.1rem 0 1rem; font-size:.9rem; font-weight:600; letter-spacing:.6px; }
-  #infoBody { flex:1; overflow:auto; scrollbar-width:thin; }
+    #infoPanel h3 { margin:.1rem 0 1rem; font-size:1rem; font-weight:650; letter-spacing:.7px; }
+  #infoBody { flex:1; overflow:auto; scrollbar-width:thin; font-size:.78rem; line-height:1.5; }
   #infoBody::-webkit-scrollbar { width:8px; }
   #infoBody::-webkit-scrollbar-track { background:rgba(255,255,255,0.03); }
   #infoBody::-webkit-scrollbar-thumb { background:rgba(148,163,184,0.28); border-radius:20px; }
@@ -63,7 +63,7 @@
   .hangup-btn:active { transform:translate(-50%,-50%) scale(.94); }
   #waveBar:after { content:""; position:absolute; inset:0; background:linear-gradient(135deg,rgba(59,130,246,.07),rgba(139,92,246,.07)); pointer-events:none; }
   #remoteAudio { display:none; }
-  .grid-two { display:grid; grid-template-columns:1fr 1fr; gap:.55rem .9rem; font-size:.7rem; }
+  .grid-two { display:grid; grid-template-columns:1fr 1fr; gap:.55rem .9rem; font-size:.72rem; }
     .grid-two label { display:block; text-transform:uppercase; font-size:.55rem; opacity:.6; letter-spacing:.6px; margin-bottom:.15rem; }
     .badge { display:inline-block; padding:.2rem .6rem; font-size:.55rem; font-weight:600; letter-spacing:.5px; border-radius:999px; background:#334155; text-transform:uppercase; }
     .badge.ok { background:var(--ok); color:#022c1a; }
@@ -92,7 +92,7 @@
     .bk-img:after { content:""; position:absolute; inset:0; background:linear-gradient(to bottom, rgba(0,0,0,0) 40%, rgba(0,0,0,0.55) 85%, rgba(0,0,0,0.85) 100%); }
     .bk-hosp-overlay { position:absolute; left:.65rem; right:.65rem; bottom:.6rem; font-weight:600; font-size:.72rem; letter-spacing:.5px; z-index:2; text-shadow:0 2px 6px rgba(0,0,0,.65); line-height:1.15; }
     .bk-badge { position:absolute; top:.5rem; right:.5rem; font-size:.5rem; background:#2563eb; color:#fff; padding:.25rem .5rem; border-radius:.55rem; letter-spacing:.5px; font-weight:600; box-shadow:0 2px 6px -1px rgba(0,0,0,.55); z-index:2; }
-    .bk-meta { display:flex; flex-direction:column; gap:.25rem; padding:.55rem .65rem .7rem; font-size:.6rem; line-height:1.3; min-height:calc(50% - .55rem); }
+  .bk-meta { display:flex; flex-direction:column; gap:.25rem; padding:.55rem .65rem .7rem; font-size:.63rem; line-height:1.35; min-height:calc(50% - .55rem); }
     .bk-line span { opacity:.55; margin-right:.25rem; }
     .bk-score { position:absolute; top:.55rem; left:.6rem; font-size:.5rem; background:rgba(15,23,42,0.55); padding:.22rem .45rem; border-radius:.55rem; backdrop-filter:blur(4px); z-index:2; }
     .bk-speak { font-size:.58rem; opacity:.7; line-height:1.35; }
@@ -112,6 +112,12 @@
       #logPanel.show { transform:translate(50%,0); }
       #startBtn { width:150px; height:150px; }
     }
+    /* Circle expand transition */
+    #startBtn.expanding { animation:none; position:relative; z-index:50; overflow:visible; }
+  #startBtn.expanding:after { content:""; position:absolute; inset:0; border-radius:50%; background:radial-gradient(circle at 35% 30%,#2563eb 0%,#1d4ed8 60%,#1e3a8a 100%); animation:circleExpand 1.4s ease-out forwards; }
+    #startBtn.expanding > * { opacity:0; transition:.25s; }
+  @keyframes circleExpand { 0%{ transform:scale(1); opacity:1; } 55%{ transform:scale(10); opacity:1; } 80%{ transform:scale(18); opacity:.95; } 100%{ transform:scale(24); opacity:0; } }
+    body.transitioning #landing { pointer-events:none; }
   </style>
 </head>
 <body>
@@ -132,7 +138,7 @@
     </header>
     <section id="landing" class="fade-in">
       <h2>Bác sĩ Ảo Trực Tuyến</h2>
-      <p style="max-width:480px; font-size:.9rem; line-height:1.5; opacity:.85;">Nhấn để bắt đầu cuộc gọi âm thanh bảo mật. Hệ thống sẽ hỏi thông tin cơ bản và đặt lịch khám nếu cần.</p>
+  <p style="max-width:520px; font-size:1rem; line-height:1.55; opacity:.9; font-weight:450;">Nhấn để bắt đầu cuộc gọi âm thanh bảo mật. Hệ thống sẽ hỏi thông tin cơ bản và đặt lịch khám nếu cần.</p>
       <button id="startBtn">
         BẮT ĐẦU
         <span class="small">Cho phép Micro</span>

@@ -25,6 +25,10 @@ const infoBody = document.getElementById('infoBody')
 const infoActions = document.getElementById('infoActions')
 
 let room, localTrack, analyser, freqArray, audioCtx, remoteSource
+let firstRemoteAudio = false
+// Preload chime
+const chime = new Audio('data:audio/mp3;base64,//uQxAAAAAAAAAAAAAAAAAAAAAAAWGluZwAAAA8AAAACAAACcQCA//////////////////////////////////////////////8AAAAALGFuY2UAAAACAAAAYXRhAAAAAQAAAAD//w==') // tiny silent placeholder, replace with real asset if available
+chime.volume = 0.85
 let identityConfirmed = false
 let callStart = 0, timerInterval
 
@@ -42,7 +46,11 @@ function stopTimer(){ clearInterval(timerInterval); timerInterval=null; timerEl.
 
 async function fetchToken(identity){ const r = await fetch(`/api/token?identity=${encodeURIComponent(identity)}`); if(!r.ok) throw new Error('Token fetch failed'); return r.json() }
 
-function showCall(){ landing.classList.add('hidden'); inCall.classList.remove('hidden'); callBar.classList.add('active') }
+function showCall(){
+  landing.classList.add('hidden')
+  inCall.classList.remove('hidden')
+  callBar.classList.add('active')
+}
 function showLanding(){ landing.classList.remove('hidden'); inCall.classList.add('hidden'); callBar.classList.remove('active') }
 
 function sendData(obj){ if(!room) return; try { const payload = new TextEncoder().encode(JSON.stringify(obj)); room.localParticipant.publishData(payload) } catch(e){ log('Send data err '+ e.message) } }
@@ -258,6 +266,21 @@ function attachEvents(r){
       const msTrack = track.mediaStreamTrack || (track._mediaStreamTrack) // fallback internal
       initAudioAnalyserFromMediaStreamTrack(msTrack)
       log('Đã nhận audio từ agent')
+      if(!firstRemoteAudio){
+        firstRemoteAudio = true
+        // Play chime then transition UI if still on landing
+        try { chime.currentTime = 0; chime.play().catch(()=>{}) } catch{}
+        // Animate start button circle expansion before showing call
+        if(!inCall || inCall.classList.contains('hidden')){
+          document.body.classList.add('transitioning')
+          if(startBtn){
+            startBtn.classList.add('expanding')
+            setTimeout(()=>{ showCall(); startTimer(); startBtn.classList.remove('expanding'); document.body.classList.remove('transitioning') }, 1300)
+          } else {
+            showCall(); startTimer();
+          }
+        }
+      }
     }
   })
   r.on(RoomEvent.DataReceived, payload => {
@@ -324,6 +347,7 @@ function attachEvents(r){
 async function startCall(){
   startBtn.disabled = true
   statusDot.classList.add('connecting')
+  startBtn.querySelector('.small')?.classList.add('hidden')
   try {
     const identity = 'web-' + Math.random().toString(36).slice(2,8)
     const { url, token } = await fetchToken(identity)
@@ -333,8 +357,12 @@ async function startCall(){
     localTrack = track
     await room.connect(url, token, { autoSubscribe:true })
     await room.localParticipant.publishTrack(track)
-    showCall(); startTimer();
-    log('Đã tham gia phòng')
+    // Delay UI transition until first remote audio arrives; add connecting visual
+    startBtn.textContent = 'ĐANG KẾT NỐI...'
+    const span = document.createElement('span'); span.className='small'; span.textContent='Đợi phản hồi'; startBtn.appendChild(span)
+    log('Đã tham gia phòng (đợi audio)')
+    // Fallback: if no remote audio in 6s, proceed anyway
+    setTimeout(()=>{ if(!firstRemoteAudio){ showCall(); startTimer(); log('Không thấy audio, vào giao diện') } }, 6000)
   } catch(e){
     statusDot.classList.add('err')
     log('Join lỗi: '+ e.message)
@@ -348,7 +376,7 @@ async function hangup(silent){
   stopTimer(); identityConfirmed=false
   infoPanel.classList.remove('show')
   log('Đã thoát phòng')
-  if(!silent){ showLanding(); startBtn.disabled=false }
+  if(!silent){ showLanding(); startBtn.disabled=false; firstRemoteAudio=false; startBtn.textContent='BẮT ĐẦU'; const sm=document.createElement('span'); sm.className='small'; sm.textContent='Cho phép Micro'; startBtn.appendChild(sm) }
 }
 
 function mute(){ if(!localTrack) return; localTrack.mute(); btnMute.classList.add('hidden'); btnUnmute.classList.remove('hidden'); log('Mic OFF') }
