@@ -38,64 +38,47 @@ function buildInitialTable(){
 }
 
 function applyBookings(bookings){
-  // bookings: { CODE: { doctor: [slots] } }
   const slots = window.ALL_SLOTS;
-  // Clear existing booked marks
+  // Reset previous booked cells back to free (keep textContent blank)
   document.querySelectorAll('#table-container td.booked').forEach(td => { td.classList.remove('booked'); td.classList.add('free'); td.textContent=''; });
-  if(!bookings) return;
+  if(!bookings) { assignCellHandlers(); return; }
   for(const code in bookings){
     const docs = bookings[code];
     for(const doc in docs){
       const slotList = docs[doc];
-      const bookedSet = new Set(slotList);
-      for(const s of slots){
-        // no-op loop, kept for potential diff highlighting
-      }
-      slotList.forEach(slot => {
+      for(const slot of slotList){
         const cell = document.querySelector(`#table-container td[data-code="${encodeURIComponent(code)}"][data-doc="${encodeURIComponent(doc)}"][data-slot="${slot}"]`);
-        if(cell){
-          cell.classList.remove('free'); cell.classList.add('booked'); cell.textContent='X';
-          // Attach click for visit detail if not already
-          if(!cell.dataset.visitBound){
-            cell.addEventListener('click', async () => {
-              const hospital_code = document.getElementById('hospital_select').value;
-              const date = document.getElementById('date').value || new Date().toISOString().slice(0,10);
-              const doctor_name = decodeURIComponent(cell.dataset.doc);
-              const slot_time = cell.dataset.slot;
-              await showVisitDetail(hospital_code, date, doctor_name, slot_time);
-            });
-            cell.dataset.visitBound = '1';
-          }
-        }
-      });
+        if(cell){ cell.classList.remove('free'); cell.classList.add('booked'); cell.textContent='X'; }
+      }
     }
   }
+  assignCellHandlers();
 }
 
-function attachCellHandlersBasic(){
-  document.querySelectorAll('#table-container td.free').forEach(td => {
-    td.addEventListener('click', () => {
-      const hospital_code = document.getElementById('hospital_select').value;
-      const date = document.getElementById('date').value || new Date().toISOString().slice(0,10);
-      openBookingDialog({
-        hospital_code,
-        date,
-        department: decodeURIComponent(td.dataset.dep),
-        department_code: td.dataset.code ? decodeURIComponent(td.dataset.code) : null,
-        doctor_name: decodeURIComponent(td.dataset.doc),
-        slot_time: td.dataset.slot
-      });
-    });
-  });
-  // Booked cells: fetch visit detail if available
-  document.querySelectorAll('#table-container td.booked').forEach(td => {
-    td.addEventListener('click', async () => {
-      const hospital_code = document.getElementById('hospital_select').value;
-      const date = document.getElementById('date').value || new Date().toISOString().slice(0,10);
-      const doctor_name = decodeURIComponent(td.dataset.doc);
-      const slot_time = td.dataset.slot;
-      await showVisitDetail(hospital_code, date, doctor_name, slot_time);
-    });
+function attachCellHandlersBasic(){ assignCellHandlers(); }
+
+function assignCellHandlers(){
+  const hospital_code = document.getElementById('hospital_select').value;
+  const date = document.getElementById('date').value || new Date().toISOString().slice(0,10);
+  document.querySelectorAll('#table-container td[data-slot]').forEach(td => {
+    // Overwrite previous handler
+    td.onclick = null;
+    if(td.classList.contains('booked')){
+      td.onclick = async () => {
+        await showVisitDetail(hospital_code, date, decodeURIComponent(td.dataset.doc), td.dataset.slot);
+      };
+    } else if(td.classList.contains('free')) {
+      td.onclick = () => {
+        openBookingDialog({
+          hospital_code,
+          date,
+          department: decodeURIComponent(td.dataset.dep),
+          department_code: td.dataset.code ? decodeURIComponent(td.dataset.code) : null,
+          doctor_name: decodeURIComponent(td.dataset.doc),
+          slot_time: td.dataset.slot
+        });
+      };
+    }
   });
 }
 
@@ -105,32 +88,64 @@ async function showVisitDetail(hospital_code, date, doctor_name, slot_time){
     const url = `${API_BASE}/api/visit_detail?hospital_code=${encodeURIComponent(hospital_code)}&date=${encodeURIComponent(date)}&doctor_name=${encodeURIComponent(doctor_name)}&slot_time=${encodeURIComponent(slot_time)}`;
     const res = await fetch(url);
     if(res.status === 404){
-      popup(`<p>Chưa có dữ liệu wrap-up cho lịch này (đang xử lý hoặc chưa finalize).</p>`);
+      showModal({title: 'Thông báo', body: '<p>Chưa có dữ liệu wrap-up cho lịch này (đang xử lý hoặc chưa finalize).</p>'});
       return;
     }
     const data = await res.json();
     const p = data.payload || {};
     const booking = p.booking || {};
     const summary = (data.summary || '').replace(/\n/g,'<br>');
-    let html = `<h3>Phiếu thăm khám</h3>`;
-    html += `<p><b>Bệnh nhân:</b> ${p.patient_name || booking.patient_name || '(?)'}</p>`;
-    html += `<p><b>Điện thoại:</b> ${p.phone || booking.phone || '(?)'}</p>`;
-    html += `<p><b>Bác sĩ:</b> ${booking.doctor_name || p.doctor_name || '(?)'}</p>`;
-    html += `<p><b>Thời gian:</b> ${booking.slot_time || p.slot_time || slot_time}</p>`;
+    let body = '';
+    body += `<div class='kv'><span>Benh nhân:</span><strong>${p.patient_name || booking.patient_name || '(?)'}</strong></div>`;
+    body += `<div class='kv'><span>Điện thoại:</span><strong>${p.phone || booking.phone || '(?)'}</strong></div>`;
+    body += `<div class='kv'><span>Bác sĩ:</span><strong>${booking.doctor_name || p.doctor_name || '(?)'}</strong></div>`;
+    body += `<div class='kv'><span>Thời gian:</span><strong>${booking.slot_time || p.slot_time || slot_time}</strong></div>`;
     if(p.summary_struct){
-       try{ const ss = typeof p.summary_struct === 'string' ? JSON.parse(p.summary_struct) : p.summary_struct; if(ss.tentative_diagnoses){ html += `<p><b>Chẩn đoán sơ bộ:</b> ${ss.tentative_diagnoses}</p>`; }}catch(e){}
+      try { const ss = typeof p.summary_struct === 'string' ? JSON.parse(p.summary_struct) : p.summary_struct; if(ss.tentative_diagnoses){ body += `<div class='kv'><span>Chẩn đoán sơ bộ:</span><strong>${Array.isArray(ss.tentative_diagnoses)? ss.tentative_diagnoses.join(', '): ss.tentative_diagnoses}</strong></div>`;} }catch(e){}
     }
-    if(summary){ html += `<hr><div class='wrap-summary'>${summary}</div>`; }
-    popup(html);
-  }catch(e){ popup('<p>Lỗi lấy dữ liệu visit.</p>'); }
+    if(summary){ body += `<hr><div class='wrap-summary'>${summary}</div>`; }
+    showModal({title:'Phiếu thăm khám', body});
+  }catch(e){ showModal({title:'Lỗi', body:'<p>Lỗi lấy dữ liệu visit.</p>'}); }
 }
 
-function popup(inner){
-  const wrap = document.createElement('div');
-  wrap.className='dialog-backdrop';
-  wrap.innerHTML = `<div class='dialog'><div class='dialog-body'>${inner}</div><div class='dialog-actions'><button id='dlg-close'>Đóng</button></div></div>`;
-  wrap.querySelector('#dlg-close').onclick = ()=>wrap.remove();
-  document.body.appendChild(wrap);
+function ensureModalStyles(){
+  if(document.getElementById('modal-style-tag')) return;
+  const style = document.createElement('style');
+  style.id='modal-style-tag';
+  style.textContent = `
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;z-index:9999;}
+  .modal{background:#fff;min-width:340px;max-width:520px;width:55%;border-radius:10px;box-shadow:0 8px 30px rgba(0,0,0,.25);animation:pop .25s ease;display:flex;flex-direction:column;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;}
+  .modal-header{padding:12px 16px;border-bottom:1px solid #eee;display:flex;align-items:center;justify-content:space-between;font-weight:600;font-size:15px;}
+  .modal-close{background:none;border:none;font-size:18px;cursor:pointer;line-height:1;color:#555;}
+  .modal-body{padding:16px;max-height:60vh;overflow:auto;font-size:14px;}
+  .modal-footer{padding:10px 16px;border-top:1px solid #eee;text-align:right;}
+  .modal-footer button{padding:6px 14px;border:1px solid #1976d2;background:#1976d2;color:#fff;border-radius:4px;cursor:pointer;font-size:13px;}
+  .modal-footer button:hover{background:#125ea6;border-color:#125ea6;}
+  .kv{display:flex;gap:6px;margin:4px 0;font-size:13px;}
+  .kv span{color:#555;min-width:125px;}
+  .wrap-summary{white-space:pre-wrap;font-size:13px;line-height:1.4;color:#222;}
+  @keyframes pop{0%{transform:scale(.92);opacity:0;}100%{transform:scale(1);opacity:1;}}
+  `;
+  document.head.appendChild(style);
+}
+
+function showModal({title, body, actions}={}){
+  ensureModalStyles();
+  const overlay = document.createElement('div');
+  overlay.className='modal-overlay';
+  const modal = document.createElement('div');
+  modal.className='modal';
+  modal.innerHTML = `
+    <div class='modal-header'><div>${title||''}</div><button class='modal-close' aria-label='Đóng'>&times;</button></div>
+    <div class='modal-body'>${body||''}</div>
+    <div class='modal-footer'><button class='modal-close-btn'>Đóng</button></div>
+  `;
+  const closeAll = ()=> overlay.remove();
+  modal.querySelector('.modal-close').onclick = closeAll;
+  modal.querySelector('.modal-close-btn').onclick = closeAll;
+  overlay.onclick = (e)=>{ if(e.target === overlay) closeAll(); };
+  document.addEventListener('keydown', function esc(e){ if(e.key==='Escape'){ closeAll(); document.removeEventListener('keydown', esc);} });
+  overlay.appendChild(modal); document.body.appendChild(overlay);
 }
 
 function openBookingDialog(payload){
