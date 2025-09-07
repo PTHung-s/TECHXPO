@@ -210,12 +210,30 @@ def get_bookings_snapshot(hospital_code: str, departments: Iterable[str], date: 
             [hospital_code, date, *dep_norms]
         )
         for dep, doc, slot in cur.fetchall():
-            result["bookings"].setdefault(dep, {}).setdefault(doc, []).append(slot)
+            result["bookings"].setdefault(dep, {}).setdefault(doc, []).append(_normalize_hhmm(slot))
     return result
 
 # ---------------- Data Loading ----------------
 def _normalize_department(s: str) -> str:
     return " ".join(s.strip().split()).title()
+
+
+def _normalize_hhmm(slot: str) -> str:
+    """Return HH:MM with zero-padded hour and minute; tolerate '7:40' legacy values.
+    If parsing fails, return original string.
+    """
+    try:
+        slot = (slot or "").strip()
+        parts = slot.split(":")
+        if len(parts) != 2:
+            return slot
+        h = int(parts[0])
+        m = int(parts[1])
+        if 0 <= h < 24 and 0 <= m < 60:
+            return f"{h:02d}:{m:02d}"
+        return slot
+    except Exception:
+        return slot
 
 
 def _generic_extract_department_map(data: Any) -> Dict[str, List[Dict[str, Any]]]:
@@ -454,7 +472,7 @@ def _get_booked_for_doctor(conn: sqlite3.Connection,
                           WHERE hospital_code=? AND doctor_name=? AND date=?
                           ORDER BY slot_time""",
                        (hospital_code, doctor, date))
-    return [r[0] for r in cur.fetchall()]
+    return [_normalize_hhmm(r[0]) for r in cur.fetchall()]
 
 
 def _compress_free_slots(free_slots: List[str]) -> List[Dict[str, str]]:
@@ -763,10 +781,78 @@ def get_bookings_snapshot_by_codes(hospital_code: str, department_codes: Iterabl
             )
             for d_code, doctor, slot in cur.fetchall():
                 if d_code in codes:
-                    result["bookings"].setdefault(d_code, {}).setdefault(doctor, []).append(slot)
+                    result["bookings"].setdefault(d_code, {}).setdefault(doctor, []).append(_normalize_hhmm(slot))
         except Exception as e:
             _dlog(f"get_bookings_snapshot_by_codes error: {e}")
     return result
+
+def _get_active_holds_by_codes(conn: sqlite3.Connection,
+                               hospital_code: str,
+                               date: str,
+                               codes: List[str]) -> Dict[str, Dict[str, List[str]]]:
+    """Return {code: {doctor_name:[slot_time,...]}} for non-expired holds."""
+    if not codes:
+        return {}
+    now = time.time()
+    try:
+        conn.execute("DELETE FROM holds WHERE expires_at < ?", (now,))
+    except Exception:
+        pass
+    try:
+        placeholders = ",".join(["?"] * len(codes))
+        cur = conn.execute(
+            f"SELECT department_code, doctor_name, slot_time FROM holds "
+            f"WHERE hospital_code=? AND date=? AND expires_at>=? AND department_code IN ({placeholders})",
+            [hospital_code, date, now, *codes]
+        )
+        out: Dict[str, Dict[str, List[str]]] = {}
+        for d_code, doc, slot in cur.fetchall():
+            out.setdefault(d_code, {}).setdefault(doc, []).append(_normalize_hhmm(slot))
+        return out
+    except Exception as e:
+        _dlog(f"active_holds_by_codes error: {e}")
+        return {}
+
+
+def get_blocked_snapshot_by_codes(hospital_code: str,
+                                  department_codes: Iterable[str],
+                                  date: Optional[str] = None) -> Dict[str, Any]:
+    """Return merged view of bookings + active holds by department_code for a date.
+
+    Useful for Stage 2 to exclude not only booked but also held slots.
+    """
+    if not date:
+        date = dt.date.today().isoformat()
+    codes = [c for c in department_codes if c]
+    version = get_bookings_version()
+    out: Dict[str, Any] = {"hospital_code": hospital_code, "date": date, "version": version,
+                           "bookings": {}, "holds": {}, "blocked": {}}
+    if not codes:
+        return out
+    placeholders = ",".join(["?"] * len(codes))
+    with _connect() as conn:
+        # bookings
+        try:
+            cur = conn.execute(
+                f"SELECT department_code, doctor_name, slot_time FROM bookings "
+                f"WHERE hospital_code=? AND date=? AND department_code IN ({placeholders})",
+                [hospital_code, date, *codes]
+            )
+            for d_code, doc, slot in cur.fetchall():
+                out["bookings"].setdefault(d_code, {}).setdefault(doc, []).append(_normalize_hhmm(slot))
+        except Exception as e:
+            _dlog(f"blocked_snapshot bookings error: {e}")
+        # holds
+        out["holds"] = _get_active_holds_by_codes(conn, hospital_code, date, codes)
+    # merge to blocked
+    for code in codes:
+        bs = out.get("bookings", {}).get(code, {}) or {}
+        hs = out.get("holds", {}).get(code, {}) or {}
+        docs = set(bs.keys()) | set(hs.keys())
+        for d in docs:
+            out["blocked"].setdefault(code, {})[d] = sorted(set(bs.get(d, []) + hs.get(d, [])))
+    _dlog(f"blocked_snapshot: codes={codes} totals bookings={sum(len(v) for v in out['bookings'].values())} holds={sum(len(v) for v in out['holds'].values())}")
+    return out
 
 def backfill_department_codes(hospital_code: Optional[str] = None) -> Dict[str, Any]:
     """Populate department_code for legacy booking rows where NULL.
@@ -816,6 +902,7 @@ def backfill_department_codes(hospital_code: Optional[str] = None) -> Dict[str, 
 
 __all__.extend([
     "get_bookings_snapshot_by_codes",
+    "get_blocked_snapshot_by_codes",
     "backfill_department_codes",
 ])
 

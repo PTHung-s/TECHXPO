@@ -110,6 +110,12 @@ def build_all_tools(
         elif identity_state.get("draft_phone") and not identity_state.get("phone"):
             identity_state["phone"] = identity_state.get("draft_phone")
 
+        # Always set identity_confirmed if confirm=True; commit draft if missing
+        if confirm:
+            if not identity_state.get("patient_name") and identity_state.get("draft_name"):
+                identity_state["patient_name"] = identity_state["draft_name"]
+            if not identity_state.get("phone") and identity_state.get("draft_phone"):
+                identity_state["phone"] = identity_state["draft_phone"]
         if confirm and identity_state.get("patient_name") and identity_state.get("phone"):
             identity_state["identity_confirmed"] = True
             payload = {

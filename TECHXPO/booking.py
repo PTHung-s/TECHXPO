@@ -347,19 +347,17 @@ def _stage1_select_codes(client, model: str, history_text: str, departments_inde
 
 # ---------------- Stage 2 schedule aggregation ----------------
 def _gather_schedule(selected_department_codes: List[str], departments_index: Dict[str, List[Dict[str, str]]], date_str: str) -> Dict[str, Any]:
-    """Aggregate schedule strictly by department_code.
+    """Aggregate schedule strictly by department_code, excluding active holds.
 
-    Primary source of truth: schedule_logic.get_hospital_meta() now exposes
-    meta['departments_by_code'] = { code: { name, doctors:[...] } }.
-
-    We no longer rely on fuzzy name normalization; if a code is absent at a hospital
-    it is simply skipped for that hospital.
+    Data sources:
+      - Hospital meta departments_by_code -> doctor roster
+      - Blocked snapshot by codes -> booked + active holds (Dashboard.schedule_logic)
 
     Return shape (unchanged for Stage2):
-        { date, slots, hospitals: [ { hospital_code, departments: [ { department_code, department_name, doctors:[{name,free_slots}] } ] } ], selected_department_codes }
+      { date, slots, hospitals: [ { hospital_code, departments: [ { department_code, department_name, doctors:[{name,free_slots}] } ] } ], selected_department_codes }
     """
     try:
-        from Dashboard.schedule_logic import get_hospital_meta, get_bookings_snapshot, ALL_SLOTS
+        from Dashboard.schedule_logic import get_hospital_meta, get_blocked_snapshot_by_codes, ALL_SLOTS
     except Exception as e:
         print("[stage2] import schedule_logic failed:", e)
         return {"error": "schedule_logic_import_failed"}
@@ -397,6 +395,9 @@ def _gather_schedule(selected_department_codes: List[str], departments_index: Di
             # fallback: skip hospital (legacy path) to avoid name fuzz now
             continue
         dep_entries: List[Dict[str, Any]] = []
+        # One blocked snapshot per hospital for all selected codes
+        blocked = get_blocked_snapshot_by_codes(hosp_code, selected_department_codes, date_str)
+        blocked_map: Dict[str, Dict[str, List[str]]] = (blocked.get("blocked") or {}) if isinstance(blocked, dict) else {}
         for code in selected_department_codes:
             info = by_code.get(code)
             if not info:
@@ -404,15 +405,17 @@ def _gather_schedule(selected_department_codes: List[str], departments_index: Di
                 continue
             disp_name = _clean_display_name(info.get("name") or code_display.get(code) or code)
             doctors = info.get("doctors", []) or []
-            # Snapshot bookings by using display name (legacy storage still name-based)
-            snap = get_bookings_snapshot(hosp_code, [disp_name], date_str)
-            booked_map = snap.get("bookings", {}).get(disp_name, {}) if isinstance(snap, dict) else {}
+            doc_entries: List[Dict[str, Any]] = []
+            for doc in doctors:
+                blocked_slots = set((blocked_map.get(code, {}) or {}).get(doc, []))
+                free_slots = [s for s in ALL_SLOTS if s not in blocked_slots]
+                if BOOKING_DEBUG:
+                    _blog(f"[Stage2 free] {hosp_code}/{code}/{doc}: free={free_slots[:6]} count={len(free_slots)}")
+                doc_entries.append({"name": doc, "free_slots": free_slots})
             dep_entries.append({
                 "department_code": code,
                 "department_name": disp_name,
-                "doctors": [
-                    {"name": doc, "free_slots": [s for s in ALL_SLOTS if s not in set(booked_map.get(doc, []))]} for doc in doctors
-                ]
+                "doctors": doc_entries,
             })
             debug_map.append({"hospital": hosp_code, "code": code, "dep_name": disp_name, "doctor_count": len(doctors)})
         if dep_entries:

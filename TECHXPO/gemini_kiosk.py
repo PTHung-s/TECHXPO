@@ -17,7 +17,7 @@ import contextlib
 import logging
 from dataclasses import dataclass, field
 from typing import List, Optional, Set
-
+from pathlib import Path
 from dotenv import load_dotenv
 load_dotenv(".env.local") or load_dotenv()
 
@@ -335,14 +335,8 @@ async def entrypoint(ctx: JobContext):
     await ctx.connect(auto_subscribe=AutoSubscribe.AUDIO_ONLY)
     log.info("connected to room: %s", getattr(ctx.room, "name", "?"))
 
-    # 1b) Load clinic_defaults (cấu hình / thông tin tĩnh) dùng cho summarize_visit_json
-    clinic_defaults_path = os.getenv("CLINIC_DATA_PATH", "./clinic_data.json")
-    try:
-        with open(clinic_defaults_path, "r", encoding="utf-8") as f:
-            clinic_defaults = json.load(f)
-    except Exception as e:
-        log.warning("Không đọc được clinic defaults (%s): %s", clinic_defaults_path, e)
-        clinic_defaults = {}
+    # Không dùng clinic_defaults file; giữ tối giản
+    clinic_defaults = {}
 
     # 2) Gemini Live API (Realtime LLM có audio & tool calling)
     # Tên model theo docs: gemini-live-2.5-flash-preview (voice/video + tool calling)
@@ -419,6 +413,9 @@ async def entrypoint(ctx: JobContext):
             "session": session,
             "rag": rag,
             "reply_gate": None,
+            # Expose talker and facts extractor for tools (identity injection + finalize facts)
+            "talker": talker,
+            "extract_facts_and_summary": extract_facts_and_summary,
         })
 
         tools = build_all_tools(
