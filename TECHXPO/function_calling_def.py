@@ -110,12 +110,6 @@ def build_all_tools(
         elif identity_state.get("draft_phone") and not identity_state.get("phone"):
             identity_state["phone"] = identity_state.get("draft_phone")
 
-        # Always set identity_confirmed if confirm=True; commit draft if missing
-        if confirm:
-            if not identity_state.get("patient_name") and identity_state.get("draft_name"):
-                identity_state["patient_name"] = identity_state["draft_name"]
-            if not identity_state.get("phone") and identity_state.get("draft_phone"):
-                identity_state["phone"] = identity_state["draft_phone"]
         if confirm and identity_state.get("patient_name") and identity_state.get("phone"):
             identity_state["identity_confirmed"] = True
             payload = {
@@ -126,6 +120,12 @@ def build_all_tools(
                 "confirmed": True,
             }
             publish_data(payload)
+            # Đánh dấu để LLM không gọi lại tool xác nhận
+            state.add("system", f"IDENTITY_CONFIRMED name={identity_state.get('patient_name')} phone={identity_state.get('phone')}")
+            talker = shared.get("talker")
+            if talker is not None:
+                # chỉ giữ các tool còn cần thiết
+                await talker.update_tools([schedule_appointment, choose_booking_option, finalize_visit])
             # Inject personal context (facts + last summary) exactly once
             if not shared.get("personal_context_injected"):
                 try:
@@ -150,10 +150,18 @@ def build_all_tools(
                                     "type": "personal_context_injected",
                                     "has_facts": True,
                                 })
-                                # Đánh dấu cần gửi lời chào follow-up tự động
+                                # Đánh dấu cần gửi lời chào follow-up tự động và tự phát reply
                                 shared["needs_personal_greet"] = True
+                                rg = shared.get("reply_gate")
+                                if rg:
+                                        await rg.say("Hãy phản hồi ngắn gọn xác nhận đã cập nhật thông tin. Đừng gọi bất kỳ công cụ nào.")
                             except Exception:
                                 pass
+                    else:
+                        # Khách mới: không có personal context, chỉ cần trigger reply
+                        rg = shared.get("reply_gate")
+                        if rg:
+                            await rg.say("Hãy phản hồi ngắn gọn xác nhận đã cập nhật thông tin. Đừng gọi bất kỳ công cụ nào.")
                 except Exception:
                     pass
             return {"status": "confirmed", **payload}
@@ -173,6 +181,10 @@ def build_all_tools(
         preferred_time: Optional[str] = None,
         symptoms: Optional[str] = None,
     ) -> dict:
+        # Xóa kết quả đặt lịch cũ để bắt đầu một phiên mới, tránh đọc lại lịch cũ
+        shared["latest_booking"] = None
+        shared["allow_finalize"] = False
+
         if not identity_state.get("identity_confirmed"):
             return {"ok": False, "error": "identity_not_confirmed", "message": "Chưa xác nhận họ tên & SĐT."}
         # Ngăn spam khi đang chạy

@@ -307,24 +307,31 @@ def _log_evt(tag: str, role: str, text: str, extra: str = ""):
 
 # ================== Talker (Agent) có RAG ==================
 class Talker(Agent):
-    """Đơn giản hoá: bỏ toàn bộ cơ chế personal memory injection."""
-    def __init__(self, rag: MedicalRAG, buf: SessionBuf):
+    """Agent có RAG và tiêm facts động."""
+    def __init__(self, rag: MedicalRAG, buf: SessionBuf, shared: dict):
         super().__init__(instructions=SYSTEM_PROMPT)
         self.rag = rag
         self.buf = buf
+        self.shared = shared
+        self.base_instructions = SYSTEM_PROMPT
 
     async def on_user_turn_completed(self, turn_ctx: ChatContext, new_message):
-        # Ghi lại user để summarize (giữ logic nhẹ)
         user_text = (getattr(new_message, "text_content", "") or "").strip()
         if not user_text:
-            collected = []
-            for m in getattr(turn_ctx, "user_messages", []) or []:
-                t = (getattr(m, "text_content", "") or "").strip()
-                if t:
-                    collected.append(t)
+            collected = [m.text_content for m in getattr(turn_ctx, "user_messages", []) if m.text_content]
             user_text = "\n".join(collected).strip()
         if user_text and (not self.buf.lines or not self.buf.lines[-1].endswith(user_text)):
             self.buf.add("user", user_text)
+        
+        # Dynamic facts injection
+        extract_fn = self.shared.get("extract_facts_and_summary")
+        if extract_fn and self.buf.lines:
+            transcript = "\n".join(self.buf.lines)
+            facts_result = await asyncio.to_thread(extract_fn, transcript, "", "")
+            live_facts = (facts_result.get("facts") or "").strip()
+            if live_facts:
+                new_instr = self.base_instructions + f"\n\n# LIVE FACTS (from this call)\n{live_facts}"
+                await self.update_instructions(new_instr)
 
 # ================== Entrypoint ==================
 async def entrypoint(ctx: JobContext):
@@ -384,7 +391,9 @@ async def entrypoint(ctx: JobContext):
         if session is not None:
             with contextlib.suppress(Exception):
                 await session.aclose()
-        talker = Talker(rag=rag, buf=state)
+        
+        # Pass shared dict to Talker for dynamic facts
+        talker = Talker(rag=rag, buf=state, shared=shared)
         session = AgentSession(llm=llm)
         room_io = RoomInputOptions(noise_cancellation=noise_cancellation.BVC())
 

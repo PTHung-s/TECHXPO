@@ -292,6 +292,7 @@ def _stage1_select_codes(client, model: str, history_text: str, departments_inde
         "# DANH SÁCH MÃ KHOA\n" + "\n".join(lines) + "\n\n" +
         "# HỘI THOẠI\n" + history_text + "\n\n" +
         "# YÊU CẦU\nTrả JSON: {\"codes\":[""MÃ1"",...]} (1-3). Không bịa. Chỉ JSON."
+        "Chắc chắn có tên và mã khoa phù hợp với nhu cầu của bệnh nhân, thật chi tiết nha ví dụ ho, sổ mũi thì gửi mã khoa tai mũi họng. Bên cạnh đó tìm thật kĩ để trả ra mã khoa thăm khám phù hợp để tôi có thể dò mã tìm khoa khám cho bệnh nhân"
     )
 
     def _call() -> str:
