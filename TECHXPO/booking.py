@@ -122,6 +122,7 @@ class BookingOption(BaseModel):
     slot_time: str = Field(..., description="YYYY-MM-DD HH:MM")
     room: Optional[str] = None
     score: Optional[float] = None
+    image_url: Optional[str] = Field(None, description="URL hình ảnh của bệnh viện")
 
 class BookingResult(BaseModel):
     options: List[BookingOption] = Field(..., description="Danh sách tối đa 3 lựa chọn")
@@ -144,9 +145,7 @@ def _blog(msg: str):
         print(f"[booking_debug] {msg}")
 
 def _resolve_hospital_image(hospital_code: str) -> Optional[str]:
-    """Return relative path to hospital image if exists. Looks for PNG with code upper.
-    Example: BV_TAMANH -> web/public/images/BV_TAMANH.png
-    Returns just filename so frontend can prefix path, or None if not found."""
+    """Tìm file ảnh cho bệnh viện và trả về URL path."""
     if not hospital_code:
         return None
     fname = f"{hospital_code.upper()}.png"
@@ -154,7 +153,7 @@ def _resolve_hospital_image(hospital_code: str) -> Optional[str]:
     rel_dir = os.path.join(base, "web", "public", "images")
     path = os.path.join(rel_dir, fname)
     if os.path.isfile(path):
-        return fname
+        return f"/images/{os.path.basename(path)}"
     return None
 
 # ---------------- Stage 1 (Department code selection – simplified) ----------------
@@ -504,7 +503,8 @@ def _sanitize_stage2_options(schedule_data: Dict[str, Any], result_dict: Dict[st
                 o["department"] = _clean_display_name(canonical_name)
             hn = hospital_names.get(hosp)
             if hn:
-                o["hospital"] = _clean_display_name(hn)
+                o["hospital"] = hn
+            o["image_url"] = _resolve_hospital_image(hosp)
             valid_opts.append(o)
         if removed and BOOKING_DEBUG:
             _blog(f"Stage2 sanitize removed={len(removed)} details={removed[:3]}")

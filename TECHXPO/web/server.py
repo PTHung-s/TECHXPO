@@ -82,3 +82,10 @@ app.mount("/", StaticFiles(directory=STATIC_DIR, html=True), name="static")
 if os.path.isdir(IMAGES_DIR) and IMAGES_DIR != STATIC_DIR:
     # mount explicit images route if images folder is sibling of public
     app.mount("/images", StaticFiles(directory=IMAGES_DIR), name="images")
+
+# --- THÊM VÀO ĐÂY ---
+# Chỉ cho server biết cách phục vụ các file ảnh từ thư mục web/public/images
+# Khi frontend yêu cầu /images/BV_NAMSAIGON.png, server sẽ tìm file đó trong thư mục này.
+images_dir = os.path.join(os.path.dirname(__file__), "..", "web", "public", "images")
+app.mount("/images", StaticFiles(directory=images_dir), name="images")
+# --------------------

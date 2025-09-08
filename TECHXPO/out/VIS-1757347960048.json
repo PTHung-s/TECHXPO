@@ -1,0 +1,263 @@
+{
+  "patient_name": "Phạm Tuấn Hưng",
+  "phone": "0336018126",
+  "booking": {
+    "options": [
+      {
+        "hospital": "BV_NAMSAIGON",
+        "hospital_code": "BV_NAMSAIGON",
+        "department": "TAI - MŨI - Họng",
+        "department_code": "TMH",
+        "doctor_name": "NGUYỄN TRƯƠNG KHƯƠNG",
+        "slot_time": "2025-09-08 07:40",
+        "room": null,
+        "score": null,
+        "image_url": "/images/BV_NAMSAIGON.png"
+      },
+      {
+        "hospital": "BV_NAMSAIGON",
+        "hospital_code": "BV_NAMSAIGON",
+        "department": "TAI - MŨI - Họng",
+        "department_code": "TMH",
+        "doctor_name": "LÊ NHẬT VINH",
+        "slot_time": "2025-09-08 08:00",
+        "room": null,
+        "score": null,
+        "image_url": "/images/BV_NAMSAIGON.png"
+      },
+      {
+        "hospital": "BV_NAMSAIGON",
+        "hospital_code": "BV_NAMSAIGON",
+        "department": "TAI - MŨI - Họng",
+        "department_code": "TMH",
+        "doctor_name": "NGUYỄN TRƯƠNG KHƯƠNG",
+        "slot_time": "2025-09-08 08:00",
+        "room": null,
+        "score": null,
+        "image_url": "/images/BV_NAMSAIGON.png"
+      }
+    ],
+    "chosen": {
+      "hospital": "BV_NAMSAIGON",
+      "hospital_code": "BV_NAMSAIGON",
+      "department": "TAI - MŨI - Họng",
+      "department_code": "TMH",
+      "doctor_name": "NGUYỄN TRƯƠNG KHƯƠNG",
+      "slot_time": "2025-09-08 08:00",
+      "room": null,
+      "score": null,
+      "image_url": "/images/BV_NAMSAIGON.png"
+    },
+    "rationale": "Dựa trên yêu cầu khám tai mũi họng và triệu chứng ho khan, sổ mũi trong, hệ thống đã tìm thấy các lịch khám phù hợp tại khoa Tai Mũi Họng của bệnh viện BV_NAMSAIGON. Lịch khám sớm nhất là vào lúc 07:40 ngày 08 tháng 09 năm 2025 với bác sĩ NGUYỄN TRƯƠNG KHƯƠNG.",
+    "patient_name": "Phạm Tuấn Hưng",
+    "phone": "0336018126",
+    "meta": {
+      "selected_department_codes": [
+        "TMH"
+      ],
+      "selected_departments": [
+        "TAI - MŨI - Họng"
+      ],
+      "two_stage": true,
+      "schedule": {
+        "date": "2025-09-08",
+        "slots": {
+          "start": "07:40",
+          "end": "16:40",
+          "slot_minutes": 20
+        },
+        "hospitals": [
+          {
+            "hospital_code": "BV_NAMSAIGON",
+            "hospital_name": "BV_NAMSAIGON",
+            "departments": [
+              {
+                "department_code": "TMH",
+                "department_name": "TAI - MŨI - Họng",
+                "doctors": [
+                  {
+                    "name": "LÊ NHẬT VINH",
+                    "free_slots": [
+                      "08:00",
+                      "08:20",
+                      "08:40",
+                      "09:00",
+                      "09:20",
+                      "09:40",
+                      "10:00",
+                      "10:20",
+                      "10:40",
+                      "11:00",
+                      "11:20",
+                      "11:40",
+                      "12:00",
+                      "12:20",
+                      "12:40",
+                      "13:00",
+                      "13:20",
+                      "13:40",
+                      "14:00",
+                      "14:20",
+                      "14:40",
+                      "15:00",
+                      "15:20",
+                      "15:40",
+                      "16:00",
+                      "16:20",
+                      "16:40"
+                    ]
+                  },
+                  {
+                    "name": "NGUYỄN TRƯƠNG KHƯƠNG",
+                    "free_slots": [
+                      "07:40",
+                      "08:00",
+                      "08:20",
+                      "08:40",
+                      "09:00",
+                      "09:20",
+                      "09:40",
+                      "10:00",
+                      "10:20",
+                      "10:40",
+                      "11:00",
+                      "11:20",
+                      "11:40",
+                      "12:00",
+                      "12:20",
+                      "12:40",
+                      "13:00",
+                      "13:20",
+                      "13:40",
+                      "14:00",
+                      "14:20",
+                      "14:40",
+                      "15:00",
+                      "15:20",
+                      "15:40",
+                      "16:00",
+                      "16:20",
+                      "16:40"
+                    ]
+                  }
+                ]
+              }
+            ],
+            "hospital_image": "/images/BV_NAMSAIGON.png"
+          }
+        ],
+        "selected_department_codes": [
+          "TMH"
+        ]
+      },
+      "dept_index_map": {
+        "BV_BINHDAN": {
+          "NTQ": "Ngoại tổng quát",
+          "NTN": "Ngoại tiết niệu",
+          "PTTMM": "Phẫu Thuật TIM - Mạch MÁU",
+          "NNNIEU": "Niệu NỮ",
+          "NKNAMK": "NAM khoa"
+        },
+        "BV_NAMSAIGON": {
+          "TMH": "TAI - MŨI - Họng",
+          "NTKCS": "Ngoại Thần Kinh - CỘT Sống",
+          "NLN": "Ngoại Lồng Ngực",
+          "CTCHCX": "Chấn Thương Chỉnh Hình, CƠ - Xương - Khớp",
+          "NTH": "Ngoại Tổng HỢP",
+          "KBKHAM": "Khám Bệnh",
+          "NTH1": "NỘI Tổng HỢP",
+          "GMHS": "GÂY MÊ - HỒI SỨC",
+          "HSTCCC": "HỒI SỨC Tích CỰC - CẤP CỨU",
+          "COHA": "Chẩn Đoán Hình Ảnh",
+          "VLTLPH": "VẬT LÝ TRỊ Liệu - Phục HỒI Chức Năng",
+          "KDKHOA": "Khoa Dược",
+          "PKM": "Phòng khám MẮT"
+        },
+        "BV_TAMANH": {
+          "TTTM": "Trung TÂM TIM mạch",
+          "TTTNTH": "Trung TÂM Tiết niệu - Thận HỌC - NAM khoa",
+          "TTSPK": "Trung TÂM SẢN PHỤ Khoa",
+          "TTNSPT": "Trung TÂM NỘI SOI & Phẫu thuật NỘI SOI tiêu HÓA",
+          "TTSS": "Trung TÂM SƠ sinh",
+          "KNKHOA": "Khoa NHI",
+          "TTTMH": "Trung TÂM TAI MŨI Họng",
+          "KUB": "Khoa UNG bướu",
+          "TTXN": "Trung TÂM XÉT nghiệm",
+          "TTCOHA": "Trung TÂM Chẩn đoán hình ảnhĐiện quang CAN thiệp",
+          "KHSCCI": "Khoa HỒI SỨC CẤP CỨU (Icu)",
+          "TTKHTK": "Trung TÂM Khoa HỌC Thần kinh",
+          "TTCTCH": "Trung TÂM Chấn thương chỉnh hình",
+          "KNTH": "Khoa Ngoại Tổng HỢP",
+          "KNLNMM": "Khoa Ngoại Lồng ngực - Mạch MÁU",
+          "KNVAMC": "Khoa Ngoại VÚ - ĐẦU MẶT CỔ",
+          "KNTH1": "Khoa NỘI tổng HỢP",
+          "KCCTH": "Khoa CẤP CỨU Tổng HỢP",
+          "TTHTSS": "Trung TÂM HỖ TRỢ sinh SẢN",
+          "KKSNK": "Khoa Kiểm soát nhiễm khuẩn",
+          "KKB": "Khoa Khám bệnh",
+          "TTYHBT": "Trung TÂM Y HỌC BÀO thai",
+          "KDLTMD": "Khoa DA Liễu - Thẩm MỸ DA",
+          "KDKHOA": "Khoa Dược",
+          "KTNNH": "Khoa Tiết niệu - NAM HỌC",
+          "KNN": "Khoa Ngoại NHI",
+          "TTTMCT": "Trung TÂM TIM mạch CAN thiệp",
+          "KTHGMT": "Khoa Tiêu HÓA - GAN MẬT - TỤY",
+          "KPHCN": "Khoa Phục HỒI chức năng",
+          "KPTKVN": "Khoa phẫu thuật khớp VÀ NỘI SOI",
+          "TTMCNC": "Trung TÂM MẮT Công nghệ CAO",
+          "KDDTC": "Khoa Dinh dưỡng Tiết CHẾ",
+          "KCXK": "Khoa CƠ xương khớp",
+          "KGPBTB": "Khoa Giải phẫu bệnh& TẾ BÀO",
+          "KRHM": "Khoa Răng HÀM MẶT",
+          "TTTCBK": "Trung TÂM tiêm chủng Bvđk TÂM ANH",
+          "KMDLS": "Khoa Miễn dịch LÂM sàng",
+          "KSCNVI": "Kiểm soát CÂN nặng VÀ Điều TRỊ BÉO PHÌ"
+        }
+      }
+    },
+    "symptoms": "Ho khan, sổ mũi trong được 2 ngày, muốn khám tai mũi họng",
+    "persist_result": {
+      "soft_hold": {
+        "ok": true,
+        "message": "held",
+        "session_id": "default"
+      },
+      "schedule_backend": {
+        "ok": true,
+        "message": "booked",
+        "finalize_persist": true,
+        "mode": "promote_hold"
+      }
+    }
+  },
+  "summary_struct": {
+    "patient_name": "Phạm Tuấn Hưng",
+    "phone": "0336018126",
+    "customer_id": "(không rõ)",
+    "doctor_name": "NGUYỄN TRƯƠNG KHƯƠNG",
+    "appointment_time": "2025-09-08 08:00",
+    "room": "",
+    "queue_number": "",
+    "symptoms": "[{\"name\": \"Ho khan\", \"severity\": null, \"duration\": \"2 ngày\"}, {\"name\": \"Sổ mũi trong\", \"severity\": null, \"duration\": \"2 ngày\"}]",
+    "tentative_diagnoses": "[\"Cảm lạnh thông thường\"]",
+    "tests_recommended": "[]",
+    "medications_advised": "[]",
+    "diet_notes": "Nghỉ ngơi, uống nhiều nước và theo dõi thêm.",
+    "follow_up": "Tái khám nếu các triệu chứng không thuyên giảm sau một tuần.",
+    "warnings": "Đi khám bác sĩ nếu các triệu chứng kéo dài hơn một tuần hoặc có sốt cao."
+  },
+  "facts_pretty": "- thong_tin_ca_nhan:\n  - ho_ten: Phạm Tuấn Hưng\n  - so_dien_thoai: 0336018126\n- so_thich_thai_do:\n  - de_dang_xac_nhan_thong_tin: True\n  - khong_uu_tien_bac_si_cu_the_ban_dau: True\n  - thai_do_noi_chuyen: trực tiếp, rõ ràng",
+  "summary_pretty": "Lỗi xử lý: 503 UNAVAILABLE. {'error': {'code': 503, 'message': 'The model is overloaded. Please try again later.', 'status': 'UNAVAILABLE'}}",
+  "booking_index": {
+    "hospital_code": "BV_NAMSAIGON",
+    "department_code": "TMH",
+    "doctor_name": "NGUYỄN TRƯƠNG KHƯƠNG",
+    "date": "2025-09-08",
+    "slot_time": "08:00"
+  },
+  "hospital_code": "BV_NAMSAIGON",
+  "date": "2025-09-08",
+  "slot_time": "08:00",
+  "doctor_name": "NGUYỄN TRƯƠNG KHƯƠNG",
+  "appointment_time": "2025-09-08 08:00"
+}
