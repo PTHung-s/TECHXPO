@@ -114,7 +114,7 @@ def _first_json_like_from_parts(resp) -> Optional[str]:
 # ---------------- Structured Output schema (Pydantic) ----------------
 class BookingOption(BaseModel):
     # Vẫn giữ backward compatibility: hospital & department (name) có thể có
-    hospital: Optional[str] = Field(None, description="Tên bệnh viện (tùy chọn, có thể bỏ nếu chỉ dùng mã)")
+    hospital_name: Optional[str] = Field(None, description="Tên bệnh viện (tùy chọn, bắt buộc để biết bệnh viện tên gì)")
     hospital_code: Optional[str] = Field(None, description="Mã bệnh viện")
     department: Optional[str] = Field(None, description="Tên khoa (hiển thị)")
     department_code: Optional[str] = Field(None, description="Mã khoa")
@@ -286,13 +286,52 @@ def _stage1_select_codes(client, model: str, history_text: str, departments_inde
     lines = [f"{c} - {code_name[c]}" for c in sorted(valid)]
 
     print(lines)
-    prompt = (
-        "Bạn là một người lựa chọn khoa thăm khám bước bước đầu cho bệnh nhân, dựa vào các dấu hiệu bệnh, yêu cầu, và lịch sử hội thoại. Kết hợp với các code và tên Khoa thăm khám để chọn ra 1-3 khoa phù hợp. Chú ý phải trả ra mã Khoa thăm khám để người tiếp theo có thể dùng mã đó để xử lí tiếp."
-        "# DANH SÁCH MÃ KHOA\n" + "\n".join(lines) + "\n\n" +
-        "# HỘI THOẠI\n" + history_text + "\n\n" +
-        "# YÊU CẦU\nTrả JSON: {\"codes\":[""MÃ1"",...]} (1-3). Không bịa. Chỉ JSON."
-        "Chắc chắn có tên và mã khoa phù hợp với nhu cầu của bệnh nhân, thật chi tiết nha ví dụ ho, sổ mũi thì gửi mã khoa tai mũi họng. Bên cạnh đó tìm thật kĩ để trả ra mã khoa thăm khám phù hợp để tôi có thể dò mã tìm khoa khám cho bệnh nhân"
-    )
+    prompt = f"""You are an expert medical coordinator assistant. Your task is to select the appropriate department codes from the provided list based on the user's query.
+
+# INSTRUCTIONS
+1.  Analyze the user's query to understand their medical needs.
+2.  Find the most relevant department(s) from the "Available Departments" list.
+3.  You MUST respond with a JSON object containing a single key "codes", which is a list of strings.
+4.  The strings in the "codes" list MUST be valid codes from the provided list.
+5.  If no department matches the user's query, return an empty list: {{"codes": []}}.
+6.  DO NOT invent codes. DO NOT add any extra text or explanation outside the JSON object.
+7.  Prioritize the most specific department. For example, if the user mentions "mắt" (eyes), choose "KMAT" (Khoa Mắt) over "KBKHAM" (Khám Bệnh).
+
+# AVAILABLE DEPARTMENTS
+{", ".join(f'{c} ({code_name.get(c, "")})' for c in sorted(valid))}
+
+# EXAMPLES
+## Example 1
+User query: "tôi bị đau họng và sổ mũi"
+Your response:
+```json
+{{
+  "codes": ["TMH"]
+}}
+```
+
+## Example 2
+User query: "tôi muốn khám sức khỏe tổng quát"
+Your response:
+```json
+{{
+  "codes": ["KBKHAM"]
+}}
+```
+
+## Example 3
+User query: "tôi bị trầm cảm"
+Your response:
+```json
+{{
+  "codes": []
+}}
+```
+
+# YOUR TASK
+User query: "{history_text}"
+Your response:
+"""
 
     def _call() -> str:
         r = client.models.generate_content(
@@ -386,6 +425,21 @@ def _gather_schedule(selected_department_codes: List[str], departments_index: Di
                 hospital_codes.append(os.path.splitext(f)[0])
     out_hospitals: List[Dict[str, Any]] = []
     debug_map: List[Dict[str, Any]] = []
+
+    def _fallback_hospital_name(code: str) -> Optional[str]:
+        """Try load hospital_name directly from Booking_data/<code>.json if meta doesn't provide it."""
+        for d in ("Booking_data", "Booking_Data"):
+            try:
+                path = os.path.join(base_dir, d, f"{code}.json")
+                if os.path.isfile(path):
+                    with open(path, "r", encoding="utf-8") as f:
+                        js = json.load(f)
+                    name = js.get("hospital_name")
+                    if isinstance(name, str) and name.strip():
+                        return name.strip()
+            except Exception:
+                continue
+        return None
     for hosp_code in hospital_codes:
         meta = get_hospital_meta(hosp_code)
         if not meta:
@@ -419,9 +473,16 @@ def _gather_schedule(selected_department_codes: List[str], departments_index: Di
             })
             debug_map.append({"hospital": hosp_code, "code": code, "dep_name": disp_name, "doctor_count": len(doctors)})
         if dep_entries:
+            # Prefer meta hospital_name; fallback to JSON file if missing or equal to code
+            hname = meta.get("hospital_name") or meta.get("name")
+            if not hname or hname == hosp_code:
+                fb = _fallback_hospital_name(hosp_code)
+                if fb:
+                    hname = fb
+            hname = hname or hosp_code
             out_hospitals.append({
                 "hospital_code": hosp_code,
-                "hospital_name": meta.get("hospital_name") or meta.get("name") or hosp_code,
+                "hospital_name": hname,
                 "departments": dep_entries,
                 "hospital_image": _resolve_hospital_image(hosp_code)
             })
@@ -453,7 +514,9 @@ def _sanitize_stage2_options(schedule_data: Dict[str, Any], result_dict: Dict[st
             hcode = h.get("hospital_code")
             if not hcode:
                 continue
-            hospital_names[hcode] = _clean_display_name(h.get("hospital_name") or hcode)
+            # Lấy trực tiếp hospital_name (giữ nguyên dấu) – nếu thiếu dùng mã
+            h_name = h.get("hospital_name") or hcode
+            hospital_names[hcode] = h_name
             dep_map: Dict[str, Dict[str, List[str]]] = {}
             for dep in h.get("departments", []):
                 dcode = dep.get("department_code")
@@ -473,6 +536,7 @@ def _sanitize_stage2_options(schedule_data: Dict[str, Any], result_dict: Dict[st
                     continue
                 for doc in dep.get("doctors", []):
                     free_map[(hcode, dcode, doc.get("name"))] = set(doc.get("free_slots", []))
+        
         opts = result_dict.get("options") or []
         valid_opts = []
         removed = []
@@ -487,37 +551,74 @@ def _sanitize_stage2_options(schedule_data: Dict[str, Any], result_dict: Dict[st
                 removed.append({"hospital":hosp,"reason":"hospital_not_in_schedule"}); continue
             if dep_code not in hosp_allowed[hosp]:
                 removed.append({"hospital":hosp,"department_code":dep_code,"reason":"department_not_in_schedule"}); continue
+            
             docs_allowed = hosp_allowed[hosp][dep_code]["doctors"]
             if doc not in docs_allowed:
                 removed.append({"hospital":hosp,"department_code":dep_code,"doctor":doc,"reason":"doctor_not_in_schedule"}); continue
+            
             if slot and slot not in free_map.get((hosp, dep_code, doc), set()):
                 removed.append({"hospital":hosp,"department_code":dep_code,"doctor":doc,"slot":slot,"reason":"slot_not_free"}); continue
+            
             # normalize + enforce canonical names
             o["hospital_code"] = hosp
             o["department_code"] = dep_code
+            
             # derive display name
             canonical_name = (dept_index_map or {}).get(hosp, {}).get(dep_code) if dept_index_map else None
             if not canonical_name:
                 canonical_name = hosp_allowed[hosp][dep_code]["name"]
+            
             if canonical_name:
                 o["department"] = _clean_display_name(canonical_name)
+            
             hn = hospital_names.get(hosp)
             if hn:
+                # Provide both legacy display key 'hospital' and explicit 'hospital_name'
                 o["hospital"] = hn
+                o["hospital_name"] = hn
+            
             o["image_url"] = _resolve_hospital_image(hosp)
             valid_opts.append(o)
+        
         if removed and BOOKING_DEBUG:
             _blog(f"Stage2 sanitize removed={len(removed)} details={removed[:3]}")
+        
         result_dict["options"] = valid_opts
+        
         # chosen fix
         chosen = result_dict.get("chosen")
-        if chosen and chosen not in valid_opts:
-            result_dict["chosen"] = valid_opts[0] if valid_opts else None
+        if chosen and isinstance(chosen, dict) and chosen not in valid_opts:
+            # If chosen is invalid, try to find a valid equivalent in the options
+            is_invalid = True
+            for opt in valid_opts:
+                if (opt.get("doctor_name") == chosen.get("doctor_name") and
+                    opt.get("slot_time") == chosen.get("slot_time")):
+                    result_dict["chosen"] = opt
+                    is_invalid = False
+                    break
+            if is_invalid:
+                result_dict["chosen"] = valid_opts[0] if valid_opts else None
+        
+        # Final pass ensure all options/chosen have hospital_name
+        for _o in result_dict.get("options", []):
+            hc = _o.get("hospital_code")
+            if hc and not _o.get("hospital_name") and hc in hospital_names:
+                _o["hospital_name"] = hospital_names[hc]
+            if hc and not _o.get("hospital") and hc in hospital_names:
+                _o["hospital"] = hospital_names[hc]
+        chosen = result_dict.get("chosen")
+        if chosen and isinstance(chosen, dict):
+            hc = chosen.get("hospital_code")
+            if hc and hc in hospital_names:
+                if not chosen.get("hospital_name"):
+                    chosen["hospital_name"] = hospital_names[hc]
+                if not chosen.get("hospital"):
+                    chosen["hospital"] = hospital_names[hc]
+
         if not valid_opts:
             # ensure empty if nothing valid
             result_dict["options"] = []
-            if result_dict.get("chosen") is not None and not isinstance(result_dict.get("chosen"), dict):
-                result_dict["chosen"] = None
+            result_dict["chosen"] = None
     except Exception as e:
         if BOOKING_DEBUG:
             _blog(f"Stage2 sanitize error: {e}")
@@ -526,7 +627,7 @@ def _stage2_build_booking(client, model: str, history_text: str, schedule_data: 
     user_prompt = (
         "# DATA\n" + json.dumps(schedule_data, ensure_ascii=False) + "\n\n" +
         "# HỘI THOẠI\n" + history_text + "\n\n" +
-        "# YÊU CẦU\nTạo tối đa 3 options hợp lệ. Mỗi option: hospital_code, department_code, doctor_name, slot_time=DATE HH:MM (dùng free_slots). "
+        "# YÊU CẦU\nTạo tối đa 3 options hợp lệ. Mỗi option phải có: hospital_name (Tên bệnh viện, bắt buộc có cái này để biết bệnh viện tên gì), hospital_code (Mã bệnh viện), department_code, doctor_name, slot_time (dùng free_slots). "
         "Chọn 1 vào 'chosen'. Không bịa. Nếu không còn slot: options=[] và chosen=null."
     )
     try:
@@ -542,6 +643,7 @@ def _stage2_build_booking(client, model: str, history_text: str, schedule_data: 
             ),
         )
         raw_txt = (resp.text or "")
+        print(_json_dumps(raw_txt))
         if raw_txt:
             _blog(f"Stage2 raw text len={len(raw_txt)} preview={raw_txt[:300].replace(chr(10),' ')}")
     except genai_errors.APIError as e:
@@ -569,6 +671,8 @@ def _stage2_build_booking(client, model: str, history_text: str, schedule_data: 
                 result_dict = json.loads(txt)
             except Exception:
                 result_dict = _extract_json(txt)
+    
+
     if not isinstance(result_dict, dict) or not result_dict:
         return {"error": "empty_or_malformed_json", "raw": resp.text or ""}
     try:
@@ -578,6 +682,7 @@ def _stage2_build_booking(client, model: str, history_text: str, schedule_data: 
     except Exception:
         pass
     return result_dict
+
 
 
 def book_appointment(

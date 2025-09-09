@@ -8,6 +8,14 @@ import time
 from typing import Optional, Callable, Dict, Any
 from livekit.agents import function_tool, RunContext
 from storage import get_customer_by_phone, build_personal_context, get_recent_visits
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+log = logging.getLogger(__name__)
+
+def _fn_log(msg: str):
+    log.info(f"[FnDef] {msg}")
 
 # Regex helpers (Vietnam local mobile carriers starting 03/05/07/08/09)
 PHONE_RE_FULL = re.compile(r"^0(3|5|7|8|9)\d{8}$")
@@ -270,10 +278,12 @@ def build_all_tools(
                     result["symptoms"] = symptoms
                 shared["latest_booking"] = result
                 shared["allow_finalize"] = True
+                # LOGGING: In ra các options trước khi gửi đi để kiểm tra hospital_name
+                _fn_log(f"Publishing booking options with hospital names: {result.get('options', [])[:2]}")
+
                 publish_data({
                     "type": "booking_result",
                     "booking": result,
-                    "multi": bool(result.get("options")),
                 })
                 # Kết thúc guard
                 if shared.get("booking_guard_added"):

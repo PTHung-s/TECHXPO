@@ -217,13 +217,15 @@ function showBooking(result){
     // Render multiple options + highlight chosen if available
     const chosen = payload.chosen || payload.options[0]
     const cards = payload.options.map((opt,idx)=>{
-      const isChosen = chosen && (opt.slot_time===chosen.slot_time && opt.doctor_name===chosen.doctor_name && opt.hospital===chosen.hospital)
-      const img = opt.image_url ? `<img src='${opt.image_url}' alt='${opt.hospital||''}' loading='lazy'/>` : `<div class='no-img-fallback'></div>`
+    const hospLabel = opt.hospital_name || opt.hospital || opt.hospital_code || 'Bệnh viện'
+    const chosenHosp = chosen?.hospital_name || chosen?.hospital || chosen?.hospital_code
+    const isChosen = chosen && (opt.slot_time===chosen.slot_time && opt.doctor_name===chosen.doctor_name && hospLabel===chosenHosp)
+    const img = opt.image_url ? `<img src='${opt.image_url}' alt='${hospLabel}' loading='lazy'/>` : `<div class='no-img-fallback'></div>`
       return `<div class='bk-card${isChosen?' chosen':''}' data-idx='${idx}'>
         <div class='bk-img'>
           ${isChosen?`<div class='bk-badge'>Chọn</div>`:''}
           ${img}
-          <div class='bk-hosp-overlay'>${opt.hospital||'Bệnh viện'}</div>
+      <div class='bk-hosp-overlay'>${hospLabel}</div>
         </div>
         <div class='bk-meta'>
           ${opt.department?`<div class='bk-line'><span>Khoa:</span> ${opt.department}</div>`:''}
@@ -240,6 +242,7 @@ function showBooking(result){
   } else {
     const b = payload
     infoBody.innerHTML = `<div style='display:grid;gap:.35rem;font-size:.65rem;'>
+  ${(b.hospital_name||b.hospital)?`<div><b>Bệnh viện:</b> ${b.hospital_name||b.hospital}</div>`:''}
       ${b.department?`<div><b>Khoa:</b> ${b.department}</div>`:''}
       ${b.doctor_name?`<div><b>Bác sĩ:</b> ${b.doctor_name}</div>`:''}
       ${(b.slot_time||b.appointment_time)?`<div><b>Thời gian:</b> ${b.slot_time||b.appointment_time}</div>`:''}
@@ -250,6 +253,33 @@ function showBooking(result){
   }
   infoActions.style.display='none'
 }
+
+function renderBookingOptions(options) {
+  const wrap = document.getElementById('bookingOptions');
+  if (!wrap) return;
+  wrap.innerHTML = '';
+  options.forEach((opt, idx) => {
+    const hospitalName = opt.hospital_name || opt.hospital || opt.hospital_code || 'Bệnh viện';
+    const dep = opt.department || opt.department_name || opt.department_code || '';
+    const doc = opt.doctor_name || '';
+    const time = opt.slot_time || '';
+    const img = opt.image_url || '/images/default.png';
+    const card = document.createElement('div');
+    card.className = 'booking-card';
+    card.innerHTML = `
+      <div class="booking-card-img" style="background-image:url('${img}')"></div>
+      <div class="booking-card-body">
+        <div class="booking-hospital">${hospitalName}</div>
+        <div class="booking-dep">Khoa: ${dep}</div>
+        <div class="booking-doc">BS: ${doc}</div>
+        <div class="booking-time">Giờ: ${time}</div>
+      </div>`;
+    card.onclick = () => chooseOption(idx);
+    wrap.appendChild(card);
+  });
+}
+
+// Nếu trước đó có hàm khác (updateBookingCards / showBookingOptions) gọi, thay nó gọi renderBookingOptions(data.options)
 
 function attachEvents(r){
   r.on(RoomEvent.ConnectionStateChanged, st => {
