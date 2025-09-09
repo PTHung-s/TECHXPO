@@ -118,7 +118,7 @@ class BookingOption(BaseModel):
     hospital_code: Optional[str] = Field(None, description="Mã bệnh viện")
     department: Optional[str] = Field(None, description="Tên khoa (hiển thị)")
     department_code: Optional[str] = Field(None, description="Mã khoa")
-    doctor_name: str = Field(..., description="Tên bác sĩ")
+    doctor_name: str = Field(..., description="Tên bác sĩ, cần được viết hoa thường chuẩn tên tiếng việt, không viết hoa caplock full tên")
     slot_time: str = Field(..., description="YYYY-MM-DD HH:MM")
     room: Optional[str] = None
     score: Optional[float] = None
@@ -508,120 +508,36 @@ STAGE2_SYSTEM = (
 
 def _sanitize_stage2_options(schedule_data: Dict[str, Any], result_dict: Dict[str, Any], dept_index_map: Optional[Dict[str, Dict[str, str]]] = None) -> None:
     try:
-        hosp_allowed: Dict[str, Dict[str, Dict[str, List[str]]]] = {}
         hospital_names: Dict[str, str] = {}
-        for h in schedule_data.get("hospitals", []):
+        for h in schedule_data.get("hospitals", []) or []:
             hcode = h.get("hospital_code")
             if not hcode:
                 continue
-            # Lấy trực tiếp hospital_name (giữ nguyên dấu) – nếu thiếu dùng mã
-            h_name = h.get("hospital_name") or hcode
-            hospital_names[hcode] = h_name
-            dep_map: Dict[str, Dict[str, List[str]]] = {}
-            for dep in h.get("departments", []):
-                dcode = dep.get("department_code")
-                if not dcode:
-                    continue
-                dname = dep.get("department_name") or dcode
-                docs = [d.get("name") for d in dep.get("doctors", []) if d.get("name")]
-                dep_map[dcode] = {"name": dname, "doctors": docs}
-            hosp_allowed[hcode] = dep_map
-        # Build free slot map keyed by (hospital_code, department_code, doctor)
-        free_map: Dict[Tuple[str,str,str], set] = {}
-        for h in schedule_data.get("hospitals", []):
-            hcode = h.get("hospital_code")
-            for dep in h.get("departments", []):
-                dcode = dep.get("department_code")
-                if not dcode:
-                    continue
-                for doc in dep.get("doctors", []):
-                    free_map[(hcode, dcode, doc.get("name"))] = set(doc.get("free_slots", []))
-        
+            hospital_names[hcode] = h.get("hospital_name") or hcode
         opts = result_dict.get("options") or []
-        valid_opts = []
-        removed = []
         for o in opts:
             if not isinstance(o, dict):
-                removed.append({"reason":"not_dict"}); continue
+                continue
             hosp = o.get("hospital_code") or o.get("hospital")
-            dep_code = o.get("department_code")  # must be present
-            doc = o.get("doctor_name")
-            slot = (o.get("slot_time") or "").split(" ")[-1]
-            if hosp not in hosp_allowed:
-                removed.append({"hospital":hosp,"reason":"hospital_not_in_schedule"}); continue
-            if dep_code not in hosp_allowed[hosp]:
-                removed.append({"hospital":hosp,"department_code":dep_code,"reason":"department_not_in_schedule"}); continue
-            
-            docs_allowed = hosp_allowed[hosp][dep_code]["doctors"]
-            if doc not in docs_allowed:
-                removed.append({"hospital":hosp,"department_code":dep_code,"doctor":doc,"reason":"doctor_not_in_schedule"}); continue
-            
-            if slot and slot not in free_map.get((hosp, dep_code, doc), set()):
-                removed.append({"hospital":hosp,"department_code":dep_code,"doctor":doc,"slot":slot,"reason":"slot_not_free"}); continue
-            
-            # normalize + enforce canonical names
-            o["hospital_code"] = hosp
-            o["department_code"] = dep_code
-            
-            # derive display name
-            canonical_name = (dept_index_map or {}).get(hosp, {}).get(dep_code) if dept_index_map else None
-            if not canonical_name:
-                canonical_name = hosp_allowed[hosp][dep_code]["name"]
-            
-            if canonical_name:
-                o["department"] = _clean_display_name(canonical_name)
-            
-            hn = hospital_names.get(hosp)
-            if hn:
-                # Provide both legacy display key 'hospital' and explicit 'hospital_name'
-                o["hospital"] = hn
-                o["hospital_name"] = hn
-            
-            o["image_url"] = _resolve_hospital_image(hosp)
-            valid_opts.append(o)
-        
-        if removed and BOOKING_DEBUG:
-            _blog(f"Stage2 sanitize removed={len(removed)} details={removed[:3]}")
-        
-        result_dict["options"] = valid_opts
-        
-        # chosen fix
+            if hosp:
+                o["hospital_code"] = hosp
+                if hosp in hospital_names:
+                    o.setdefault("hospital_name", hospital_names[hosp])
+                    o.setdefault("hospital", hospital_names[hosp])
+                o.setdefault("image_url", _resolve_hospital_image(hosp))
+        # Enrich chosen similarly
         chosen = result_dict.get("chosen")
-        if chosen and isinstance(chosen, dict) and chosen not in valid_opts:
-            # If chosen is invalid, try to find a valid equivalent in the options
-            is_invalid = True
-            for opt in valid_opts:
-                if (opt.get("doctor_name") == chosen.get("doctor_name") and
-                    opt.get("slot_time") == chosen.get("slot_time")):
-                    result_dict["chosen"] = opt
-                    is_invalid = False
-                    break
-            if is_invalid:
-                result_dict["chosen"] = valid_opts[0] if valid_opts else None
-        
-        # Final pass ensure all options/chosen have hospital_name
-        for _o in result_dict.get("options", []):
-            hc = _o.get("hospital_code")
-            if hc and not _o.get("hospital_name") and hc in hospital_names:
-                _o["hospital_name"] = hospital_names[hc]
-            if hc and not _o.get("hospital") and hc in hospital_names:
-                _o["hospital"] = hospital_names[hc]
-        chosen = result_dict.get("chosen")
-        if chosen and isinstance(chosen, dict):
-            hc = chosen.get("hospital_code")
-            if hc and hc in hospital_names:
-                if not chosen.get("hospital_name"):
-                    chosen["hospital_name"] = hospital_names[hc]
-                if not chosen.get("hospital"):
-                    chosen["hospital"] = hospital_names[hc]
-
-        if not valid_opts:
-            # ensure empty if nothing valid
-            result_dict["options"] = []
-            result_dict["chosen"] = None
+        if isinstance(chosen, dict):
+            hosp = chosen.get("hospital_code") or chosen.get("hospital")
+            if hosp:
+                chosen.setdefault("hospital_code", hosp)
+                if hosp in hospital_names:
+                    chosen.setdefault("hospital_name", hospital_names[hosp])
+                    chosen.setdefault("hospital", hospital_names[hosp])
+                chosen.setdefault("image_url", _resolve_hospital_image(hosp))
     except Exception as e:
         if BOOKING_DEBUG:
-            _blog(f"Stage2 sanitize error: {e}")
+            _blog(f"Stage2 sanitize (relaxed) error: {e}")
 
 def _stage2_build_booking(client, model: str, history_text: str, schedule_data: Dict[str, Any], dept_index_map: Optional[Dict[str, Dict[str, str]]] = None) -> Dict[str, Any]:
     user_prompt = (
@@ -643,7 +559,7 @@ def _stage2_build_booking(client, model: str, history_text: str, schedule_data: 
             ),
         )
         raw_txt = (resp.text or "")
-        print(_json_dumps(raw_txt))
+       
         if raw_txt:
             _blog(f"Stage2 raw text len={len(raw_txt)} preview={raw_txt[:300].replace(chr(10),' ')}")
     except genai_errors.APIError as e:
@@ -681,6 +597,7 @@ def _stage2_build_booking(client, model: str, history_text: str, schedule_data: 
         _blog(f"Stage2 parsed options={len(opts)} chosen_keys={list((result_dict.get('chosen') or {} or {}).keys())}")
     except Exception:
         pass
+    print(_json_dumps(result_dict))
     return result_dict
 
 
@@ -688,7 +605,7 @@ def _stage2_build_booking(client, model: str, history_text: str, schedule_data: 
 def book_appointment(
     history_text: str,
     clinic_data_path: str,
-    model: str = "gemini-2.5-flash",
+    model: str = "gemini-2.5-flash-lite",
     extra_paths: Optional[List[str]] = None,
     *,
     two_stage: bool = True,
@@ -758,7 +675,28 @@ def book_appointment(
             dept_index_map[hosp] = inner
 
     if two_stage and not schedule_data.get("error"):
-        result_dict = _stage2_build_booking(client, model, history_text, schedule_data, dept_index_map)
+        # Stage2 retry logic up to 3 attempts if options missing or error
+        max_attempts = 3
+        attempt = 0
+        result_dict = {}
+        last_error = None
+        while attempt < max_attempts:
+            attempt += 1
+            result_dict = _stage2_build_booking(client, model, history_text, schedule_data, dept_index_map)
+            opts = (result_dict or {}).get("options") or []
+            has_valid = isinstance(opts, list) and len(opts) > 0
+            if not has_valid:
+                # log and retry if possible
+                err = result_dict.get("error") if isinstance(result_dict, dict) else None
+                last_error = err or "no_options"
+                _blog(f"Stage2 attempt {attempt} failed (opts={len(opts)} err={last_error}); retrying..." if attempt < max_attempts else f"Stage2 attempt {attempt} failed; giving up")
+                if attempt < max_attempts:
+                    continue
+            break
+        # Attach retry metadata if multiple attempts
+        if attempt > 1:
+            if isinstance(result_dict, dict):
+                result_dict.setdefault("_stage2_retry", {"attempts": attempt, "last_error": last_error})
     else:
         # Legacy path: reuse previous single-stage logic using clinic_data_path(s)
         _blog("Falling back to legacy single-stage booking flow")

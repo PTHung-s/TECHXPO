@@ -4,6 +4,16 @@ let META = null; // Expect code-centric meta: {departments_by_code:{code:{name,d
 let LAST_VERSION = null;
 let POLL_TIMER = null;
 
+// Inject minimal styles for held state if not already present
+(() => {
+  if(document.getElementById('held-style-tag')) return;
+  const style = document.createElement('style');
+  style.id='held-style-tag';
+  style.textContent = `#table-container td.held{background:#ffeb99 !important;color:#444;font-weight:600;}
+  #legend-held{display:inline-block;padding:2px 6px;background:#ffeb99;border:1px solid #f0d060;margin-left:6px;font-size:12px;border-radius:3px;}`;
+  document.head.appendChild(style);
+})();
+
 function fmtStatus(msg){
   document.getElementById('status').textContent = msg;
 }
@@ -37,18 +47,28 @@ function buildInitialTable(){
   attachCellHandlersBasic();
 }
 
-function applyBookings(bookings){
-  const slots = window.ALL_SLOTS;
-  // Reset previous booked cells back to free (keep textContent blank)
-  document.querySelectorAll('#table-container td.booked').forEach(td => { td.classList.remove('booked'); td.classList.add('free'); td.textContent=''; });
-  if(!bookings) { assignCellHandlers(); return; }
-  for(const code in bookings){
-    const docs = bookings[code];
-    for(const doc in docs){
-      const slotList = docs[doc];
-      for(const slot of slotList){
-        const cell = document.querySelector(`#table-container td[data-code="${encodeURIComponent(code)}"][data-doc="${encodeURIComponent(doc)}"][data-slot="${slot}"]`);
-        if(cell){ cell.classList.remove('free'); cell.classList.add('booked'); cell.textContent='X'; }
+function applyBookings(bookings, holds){
+  // Reset previous state cells
+  document.querySelectorAll('#table-container td.booked, #table-container td.held').forEach(td => { td.className='free'; td.textContent=''; });
+  if(bookings){
+    for(const code in bookings){
+      const docs = bookings[code];
+      for(const doc in docs){
+        for(const slot of docs[doc]){
+          const cell = document.querySelector(`#table-container td[data-code="${encodeURIComponent(code)}"][data-doc="${encodeURIComponent(doc)}"][data-slot="${slot}"]`);
+          if(cell){ cell.classList.remove('free'); cell.classList.add('booked'); cell.textContent='X'; }
+        }
+      }
+    }
+  }
+  if(holds){
+    for(const code in holds){
+      const docs = holds[code];
+      for(const doc in docs){
+        for(const slot of docs[doc]){
+          const cell = document.querySelector(`#table-container td[data-code="${encodeURIComponent(code)}"][data-doc="${encodeURIComponent(doc)}"][data-slot="${slot}"]`);
+          if(cell && !cell.classList.contains('booked')){ cell.classList.remove('free'); cell.classList.add('held'); cell.textContent='H'; }
+        }
       }
     }
   }
@@ -94,7 +114,39 @@ async function showVisitDetail(hospital_code, date, doctor_name, slot_time){
     const data = await res.json();
     const p = data.payload || {};
     const booking = p.booking || {};
-    const summary = (data.summary || '').replace(/\n/g,'<br>');
+    let summaryRaw = data.summary || '';
+    let summary = '';
+    if(summaryRaw){
+      const escapeHtml = (str='') => str
+        .replace(/&/g,'&amp;')
+        .replace(/</g,'&lt;')
+        .replace(/>/g,'&gt;')
+        .replace(/"/g,'&quot;')
+        .replace(/'/g,'&#39;');
+      // Gộp thành 1 dòng để cắt theo cặp 'Nhãn:'
+      summaryRaw = summaryRaw.replace(/[\r\n]+/g,' ').replace(/\s{2,}/g,' ').trim();
+      // Chuyển list JSON ["A","B"] -> A, B
+      summaryRaw = summaryRaw.replace(/\[\s*"([^\]]+?)"\s*\]/g,(m,inner)=> inner.split(/"\s*,\s*"/).join(', '));
+      const re = /([A-Za-zÀ-ỹĐđ][A-Za-zÀ-ỹ0-9 ,\/()'"%-]{1,90}?):\s*/g;
+      let match; const labels=[]; // collect label metadata
+      while((match = re.exec(summaryRaw))){ labels.push({label:match[1].trim(), start:match.index, end:re.lastIndex}); }
+      const rows=[];
+      for(let i=0;i<labels.length;i++){
+        const cur = labels[i];
+        const next = labels[i+1];
+        let value = summaryRaw.slice(cur.end, next ? next.start : summaryRaw.length).trim();
+        if(/^[0-9]{1,2}:[0-9]{2}$/.test(cur.label)) continue; // tránh thời gian
+        if(!/[A-Za-zÀ-ỹ]/.test(cur.label)) continue;
+        rows.push({label:cur.label, value});
+      }
+      if(rows.length === 0){
+        // Fallback: chia câu -> mỗi câu 1 dòng (không có nhãn)
+        const sentences = summaryRaw.split(/(?<=[.!?])\s+/).filter(Boolean);
+        summary = `<table class="summary-table">${sentences.map(s=>`<tr><td colspan='2'>${escapeHtml(s)}</td></tr>`).join('')}</table>`;
+      } else {
+        summary = `<table class="summary-table">${rows.map(r=>`<tr><th>${escapeHtml(r.label)}</th><td>${escapeHtml(r.value)}</td></tr>`).join('')}</table>`;
+      }
+    }
     let body = '';
     body += `<div class='kv'><span>Benh nhân:</span><strong>${p.patient_name || booking.patient_name || '(?)'}</strong></div>`;
     body += `<div class='kv'><span>Điện thoại:</span><strong>${p.phone || booking.phone || '(?)'}</strong></div>`;
@@ -103,7 +155,7 @@ async function showVisitDetail(hospital_code, date, doctor_name, slot_time){
     if(p.summary_struct){
       try { const ss = typeof p.summary_struct === 'string' ? JSON.parse(p.summary_struct) : p.summary_struct; if(ss.tentative_diagnoses){ body += `<div class='kv'><span>Chẩn đoán sơ bộ:</span><strong>${Array.isArray(ss.tentative_diagnoses)? ss.tentative_diagnoses.join(', '): ss.tentative_diagnoses}</strong></div>`;} }catch(e){}
     }
-    if(summary){ body += `<hr><div class='wrap-summary'>${summary}</div>`; }
+  if(summary){ body += `<hr><div class='wrap-summary'>${summary}</div>`; }
     showModal({title:'Phiếu thăm khám', body});
   }catch(e){ showModal({title:'Lỗi', body:'<p>Lỗi lấy dữ liệu visit.</p>'}); }
 }
@@ -121,9 +173,17 @@ function ensureModalStyles(){
   .modal-footer{padding:10px 16px;border-top:1px solid #eee;text-align:right;}
   .modal-footer button{padding:6px 14px;border:1px solid #1976d2;background:#1976d2;color:#fff;border-radius:4px;cursor:pointer;font-size:13px;}
   .modal-footer button:hover{background:#125ea6;border-color:#125ea6;}
-  .kv{display:flex;gap:6px;margin:4px 0;font-size:13px;}
+  .kv{display:flex;gap:6px;margin:4px 0;font-size:13px;text-align:left;}
   .kv span{color:#555;min-width:125px;}
-  .wrap-summary{white-space:pre-wrap;font-size:13px;line-height:1.4;color:#222;}
+  .wrap-summary{white-space:pre-wrap;font-size:13px;line-height:1.4;color:#222;text-align:left;}
+  .wrap-summary .sum-line{font-size:13px;line-height:1.45;}
+  .wrap-summary .sum-line strong{font-weight:600;color:#111;display:inline-block;min-width:140px;}
+  .wrap-summary .sum-line .sum-val{color:#444;font-weight:400;}
+  .wrap-summary .summary-table{width:100%;border-collapse:collapse;margin-top:4px;font-size:13px;}
+  .wrap-summary .summary-table th{background:#f5f7fa;text-align:left !important;vertical-align:top;padding:4px 6px;font-weight:600;width:38%;border:1px solid #e2e5e9;}
+  .wrap-summary .summary-table td{padding:4px 6px;border:1px solid #e2e5e9;color:#333;text-align:left !important;}
+  .wrap-summary .summary-table tr:nth-child(even) th{background:#eef2f6;}
+  .wrap-summary .summary-table tr:hover td,.wrap-summary .summary-table tr:hover th{background:#fffbe6;}
   @keyframes pop{0%{transform:scale(.92);opacity:0;}100%{transform:scale(1);opacity:1;}}
   `;
   document.head.appendChild(style);
@@ -208,7 +268,7 @@ async function pollBookings(){
     const data = await res.json();
     if(!data.unchanged){
       LAST_VERSION = data.version;
-      applyBookings(data.bookings);
+      applyBookings(data.bookings, data.holds);
       fmtStatus('Bookings v'+data.version+' @ '+ new Date().toLocaleTimeString());
     }
   }catch(e){ fmtStatus('Bookings poll error'); }

@@ -1,0 +1,334 @@
+{
+  "patient_name": "Phạm Tuấn Hưng",
+  "phone": "0336018126",
+  "booking": {
+    "options": [
+      {
+        "hospital_name": "Bệnh viện Tâm Anh",
+        "hospital_code": "BV_TAMANH",
+        "department": "Khoa DA Liễu - Thẩm MỸ DA",
+        "department_code": "KDLTMD",
+        "doctor_name": "Huỳnh Công Trí",
+        "slot_time": "2025-09-09 07:40",
+        "room": null,
+        "score": null,
+        "image_url": "/images/BV_TAMANH.png",
+        "hospital": "Bệnh viện Tâm Anh"
+      },
+      {
+        "hospital_name": "Bệnh viện Tâm Anh",
+        "hospital_code": "BV_TAMANH",
+        "department": "Khoa DA Liễu - Thẩm MỸ DA",
+        "department_code": "KDLTMD",
+        "doctor_name": "Lý Thiên Phúc",
+        "slot_time": "2025-09-09 07:40",
+        "room": null,
+        "score": null,
+        "image_url": "/images/BV_TAMANH.png",
+        "hospital": "Bệnh viện Tâm Anh"
+      },
+      {
+        "hospital_name": "Bệnh viện Tâm Anh",
+        "hospital_code": "BV_TAMANH",
+        "department": "Khoa DA Liễu - Thẩm MỸ DA",
+        "department_code": "KDLTMD",
+        "doctor_name": "Quách Thị Bích Vân",
+        "slot_time": "2025-09-09 07:40",
+        "room": null,
+        "score": null,
+        "image_url": "/images/BV_TAMANH.png",
+        "hospital": "Bệnh viện Tâm Anh"
+      }
+    ],
+    "chosen": {
+      "hospital_name": "Bệnh viện Tâm Anh",
+      "hospital_code": "BV_TAMANH",
+      "department": "Khoa DA Liễu - Thẩm MỸ DA",
+      "department_code": "KDLTMD",
+      "doctor_name": "Huỳnh Công Trí",
+      "slot_time": "2025-09-09 07:40",
+      "room": null,
+      "score": null,
+      "image_url": "/images/BV_TAMANH.png",
+      "hospital": "Bệnh viện Tâm Anh"
+    },
+    "rationale": null,
+    "patient_name": "Phạm Tuấn Hưng",
+    "phone": "0336018126",
+    "meta": {
+      "selected_department_codes": [
+        "KDLTMD"
+      ],
+      "selected_departments": [
+        "Khoa DA Liễu - Thẩm MỸ DA"
+      ],
+      "two_stage": true,
+      "schedule": {
+        "date": "2025-09-09",
+        "slots": {
+          "start": "07:40",
+          "end": "16:40",
+          "slot_minutes": 20
+        },
+        "hospitals": [
+          {
+            "hospital_code": "BV_TAMANH",
+            "hospital_name": "Bệnh viện Tâm Anh",
+            "departments": [
+              {
+                "department_code": "KDLTMD",
+                "department_name": "Khoa DA Liễu - Thẩm MỸ DA",
+                "doctors": [
+                  {
+                    "name": "HUỲNH CÔNG TRÍ",
+                    "free_slots": [
+                      "07:40",
+                      "08:00",
+                      "08:20",
+                      "08:40",
+                      "09:00",
+                      "09:20",
+                      "09:40",
+                      "10:00",
+                      "10:20",
+                      "10:40",
+                      "11:00",
+                      "11:20",
+                      "11:40",
+                      "12:00",
+                      "12:20",
+                      "12:40",
+                      "13:00",
+                      "13:20",
+                      "13:40",
+                      "14:00",
+                      "14:20",
+                      "14:40",
+                      "15:00",
+                      "15:20",
+                      "15:40",
+                      "16:00",
+                      "16:20",
+                      "16:40"
+                    ]
+                  },
+                  {
+                    "name": "LÝ THIÊN PHÚC",
+                    "free_slots": [
+                      "07:40",
+                      "08:00",
+                      "08:20",
+                      "08:40",
+                      "09:00",
+                      "09:20",
+                      "09:40",
+                      "10:00",
+                      "10:20",
+                      "10:40",
+                      "11:00",
+                      "11:20",
+                      "11:40",
+                      "12:00",
+                      "12:20",
+                      "12:40",
+                      "13:00",
+                      "13:20",
+                      "13:40",
+                      "14:00",
+                      "14:20",
+                      "14:40",
+                      "15:00",
+                      "15:20",
+                      "15:40",
+                      "16:00",
+                      "16:20",
+                      "16:40"
+                    ]
+                  },
+                  {
+                    "name": "QUÁCH THỊ BÍCH VÂN",
+                    "free_slots": [
+                      "07:40",
+                      "08:00",
+                      "08:20",
+                      "08:40",
+                      "09:00",
+                      "09:20",
+                      "09:40",
+                      "10:00",
+                      "10:20",
+                      "10:40",
+                      "11:00",
+                      "11:20",
+                      "11:40",
+                      "12:00",
+                      "12:20",
+                      "12:40",
+                      "13:00",
+                      "13:20",
+                      "13:40",
+                      "14:00",
+                      "14:20",
+                      "14:40",
+                      "15:00",
+                      "15:20",
+                      "15:40",
+                      "16:00",
+                      "16:20",
+                      "16:40"
+                    ]
+                  },
+                  {
+                    "name": "ĐẶNG THỊ NGỌC BÍCH",
+                    "free_slots": [
+                      "07:40",
+                      "08:00",
+                      "08:20",
+                      "08:40",
+                      "09:00",
+                      "09:20",
+                      "09:40",
+                      "10:00",
+                      "10:20",
+                      "10:40",
+                      "11:00",
+                      "11:20",
+                      "11:40",
+                      "12:00",
+                      "12:20",
+                      "12:40",
+                      "13:00",
+                      "13:20",
+                      "13:40",
+                      "14:00",
+                      "14:20",
+                      "14:40",
+                      "15:00",
+                      "15:20",
+                      "15:40",
+                      "16:00",
+                      "16:20",
+                      "16:40"
+                    ]
+                  }
+                ]
+              }
+            ],
+            "hospital_image": "/images/BV_TAMANH.png"
+          }
+        ],
+        "selected_department_codes": [
+          "KDLTMD"
+        ]
+      },
+      "dept_index_map": {
+        "BV_BINHDAN": {
+          "NTQ": "Ngoại tổng quát",
+          "NTN": "Ngoại tiết niệu",
+          "PTTMM": "Phẫu Thuật TIM - Mạch MÁU",
+          "NNNIEU": "Niệu NỮ",
+          "NKNAMK": "NAM khoa"
+        },
+        "BV_NAMSAIGON": {
+          "TMH": "TAI - MŨI - Họng",
+          "NTKCS": "Ngoại Thần Kinh - CỘT Sống",
+          "NLN": "Ngoại Lồng Ngực",
+          "CTCHCX": "Chấn Thương Chỉnh Hình, CƠ - Xương - Khớp",
+          "NTH": "Ngoại Tổng HỢP",
+          "KBKHAM": "Khám Bệnh",
+          "NTH1": "NỘI Tổng HỢP",
+          "GMHS": "GÂY MÊ - HỒI SỨC",
+          "HSTCCC": "HỒI SỨC Tích CỰC - CẤP CỨU",
+          "COHA": "Chẩn Đoán Hình Ảnh",
+          "VLTLPH": "VẬT LÝ TRỊ Liệu - Phục HỒI Chức Năng",
+          "KDKHOA": "Khoa Dược",
+          "PKM": "Phòng khám MẮT"
+        },
+        "BV_TAMANH": {
+          "TTTM": "Trung TÂM TIM mạch",
+          "TTTNTH": "Trung TÂM Tiết niệu - Thận HỌC - NAM khoa",
+          "TTSPK": "Trung TÂM SẢN PHỤ Khoa",
+          "TTNSPT": "Trung TÂM NỘI SOI & Phẫu thuật NỘI SOI tiêu HÓA",
+          "TTSS": "Trung TÂM SƠ sinh",
+          "KNKHOA": "Khoa NHI",
+          "TTTMH": "Trung TÂM TAI MŨI Họng",
+          "KUB": "Khoa UNG bướu",
+          "TTXN": "Trung TÂM XÉT nghiệm",
+          "TTCOHA": "Trung TÂM Chẩn đoán hình ảnhĐiện quang CAN thiệp",
+          "KHSCCI": "Khoa HỒI SỨC CẤP CỨU (Icu)",
+          "TTKHTK": "Trung TÂM Khoa HỌC Thần kinh",
+          "TTCTCH": "Trung TÂM Chấn thương chỉnh hình",
+          "KNTH": "Khoa Ngoại Tổng HỢP",
+          "KNLNMM": "Khoa Ngoại Lồng ngực - Mạch MÁU",
+          "KNVAMC": "Khoa Ngoại VÚ - ĐẦU MẶT CỔ",
+          "KNTH1": "Khoa NỘI tổng HỢP",
+          "KCCTH": "Khoa CẤP CỨU Tổng HỢP",
+          "TTHTSS": "Trung TÂM HỖ TRỢ sinh SẢN",
+          "KKSNK": "Khoa Kiểm soát nhiễm khuẩn",
+          "KKB": "Khoa Khám bệnh",
+          "TTYHBT": "Trung TÂM Y HỌC BÀO thai",
+          "KDLTMD": "Khoa DA Liễu - Thẩm MỸ DA",
+          "KDKHOA": "Khoa Dược",
+          "KTNNH": "Khoa Tiết niệu - NAM HỌC",
+          "KNN": "Khoa Ngoại NHI",
+          "TTTMCT": "Trung TÂM TIM mạch CAN thiệp",
+          "KTHGMT": "Khoa Tiêu HÓA - GAN MẬT - TỤY",
+          "KPHCN": "Khoa Phục HỒI chức năng",
+          "KPTKVN": "Khoa phẫu thuật khớp VÀ NỘI SOI",
+          "TTMCNC": "Trung TÂM MẮT Công nghệ CAO",
+          "KDDTC": "Khoa Dinh dưỡng Tiết CHẾ",
+          "KCXK": "Khoa CƠ xương khớp",
+          "KGPBTB": "Khoa Giải phẫu bệnh& TẾ BÀO",
+          "KRHM": "Khoa Răng HÀM MẶT",
+          "TTTCBK": "Trung TÂM tiêm chủng Bvđk TÂM ANH",
+          "KMDLS": "Khoa Miễn dịch LÂM sàng",
+          "KSCNVI": "Kiểm soát CÂN nặng VÀ Điều TRỊ BÉO PHÌ"
+        }
+      }
+    },
+    "symptoms": "Nổi mẩn đỏ ở tay, có ngứa, không lan ra các vùng da khác, không dùng thuốc gì",
+    "persist_result": {
+      "soft_hold": {
+        "ok": false,
+        "message": "doctor_not_found_in_department",
+        "session_id": "default"
+      },
+      "schedule_backend": {
+        "ok": false,
+        "message": "doctor_not_found_in_department",
+        "finalize_persist": true,
+        "mode": "direct_fallback"
+      }
+    }
+  },
+  "summary_struct": {
+    "patient_name": "Phạm Tuấn Hưng",
+    "phone": "0336018126",
+    "customer_id": "(không rõ)",
+    "doctor_name": "Huỳnh Công Trí",
+    "appointment_time": "2025-09-09 07:40",
+    "room": "",
+    "queue_number": "",
+    "symptoms": "[{\"name\": \"Nổi mẩn đỏ ở tay\", \"severity\": null, \"duration\": \"(không rõ)\"}, {\"name\": \"Ngứa\", \"severity\": null, \"duration\": \"(không rõ)\"}]",
+    "tentative_diagnoses": "[]",
+    "tests_recommended": "[]",
+    "medications_advised": "[]",
+    "diet_notes": "(không rõ)",
+    "follow_up": "(không rõ)",
+    "warnings": "(không rõ)"
+  },
+  "facts_pretty": "- thong_tin_ca_nhan:\n  - ho_ten: Phạm Tuấn Hưng\n  - so_dien_thoai: 0336018126\n- tien_su_benh:\n  - lan_kham_gan_nhat: 09/09/2025 tại Bệnh viện Tâm Anh, Khoa Da liễu - Thẩm Mỹ Da, với triệu chứng nổi mẩn đỏ ở tay, có ngứa.\n- thuoc_dang_dung_thuong_xuyen: Không sử dụng thuốc gì.\n- cac_trieu_chung_man_tinh_tai_phat:\n  - 1: Ho\n  - 2: Sổ mũi\n  - 3: Đau họng\n- so_thich_thai_do:\n  - thai_do_noi_chuyen: trực tiếp, rõ ràng\n  - dong_y_voi_lich_kham_de_xuat: True",
+  "summary_pretty": "- ly_do_kham_chinh: Đặt lịch khám do nổi mẩn đỏ và ngứa ở tay.\n- trieu_chung_hien_tai:\n  - noi_man_do_o_tay: True\n  - ngua: True\n  - lan_ra_vung_khac: không\n  - su_dung_thuoc: không\n  - thoi_gian_xuat_hien: Không rõ\n- chan_doan_so_bo: Chưa có.\n- ke_hoach_dieu_tri_xet_nghiem:\n  - loai_kham: Khám chuyên khoa Da liễu - Thẩm Mỹ Da\n  - benh_vien: Bệnh viện Tâm Anh\n  - bac_si: Huỳnh Công Trí\n  - thoi_gian: 07:40 ngày 09 tháng 09 năm 2025\n- luu_y_dac_biet: Tình trạng hiện tại là một vấn đề sức khỏe mới, không liên quan đến các triệu chứng hô hấp trước đây.",
+  "booking_index": {
+    "hospital_code": "BV_TAMANH",
+    "department_code": "KDLTMD",
+    "doctor_name": "Huỳnh Công Trí",
+    "date": "2025-09-09",
+    "slot_time": "07:40"
+  },
+  "hospital_code": "BV_TAMANH",
+  "date": "2025-09-09",
+  "slot_time": "07:40",
+  "doctor_name": "Huỳnh Công Trí",
+  "appointment_time": "2025-09-09 07:40"
+}

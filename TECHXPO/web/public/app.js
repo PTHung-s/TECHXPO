@@ -31,6 +31,19 @@ const chime = new Audio('data:audio/mp3;base64,//uQxAAAAAAAAAAAAAAAAAAAAAAAWGluZ
 chime.volume = 0.85
 let identityConfirmed = false
 let callStart = 0, timerInterval
+// Reset UI state between calls
+function resetUI(){
+  // Clear booking / info content
+  infoTitle.textContent = 'Thông tin'
+  infoBody.innerHTML = '<span style="font-size:.9rem;opacity:.6;">Đang nhận dữ liệu...</span>'
+  infoActions.innerHTML = ''
+  infoPanel.className = ''
+  infoPanel.id = 'infoPanel' // ensure id intact (class reset)
+  // Clear log
+  logEl.innerHTML = ''
+  // Flags
+  identityConfirmed = false
+}
 
 function log(msg){
   const atBottom = logEl.scrollTop + logEl.clientHeight >= logEl.scrollHeight - 5
@@ -182,7 +195,7 @@ function showIdentity(data){
   infoPanel.classList.add('show')
   // Visual glow for propose / confirm handled externally by caller
   infoTitle.textContent = 'Thông tin bệnh nhân'
-  infoBody.innerHTML = `<div class="grid-two" style="display:grid;grid-template-columns:1fr 1fr;gap:.55rem .9rem;font-size:.65rem;">\n  <div><label style='display:block;font-size:.5rem;opacity:.55;text-transform:uppercase;letter-spacing:.5px;'>Họ tên</label>${data.patient_name || '<i>(chưa)</i>'}</div>\n  <div><label style='display:block;font-size:.5rem;opacity:.55;text-transform:uppercase;letter-spacing:.5px;'>SĐT</label>${data.phone || '<i>(chưa)</i>'}</div>\n</div>`
+  infoBody.innerHTML = `<div class="identity-block">\n    <div>\n      <span class='identity-label'>Họ tên</span>\n      <span class='identity-line'>${data.patient_name || '<i>(chưa)</i>'}</span>\n    </div>\n    <div>\n      <span class='identity-label'>SĐT</span>\n      <span class='identity-line'>${data.phone || '<i>(chưa)</i>'}</span>\n    </div>\n  </div>`
   infoActions.innerHTML = ''
   if(identityConfirmed){
     const btn = document.createElement('button')
@@ -378,6 +391,8 @@ async function startCall(){
   startBtn.disabled = true
   statusDot.classList.add('connecting')
   startBtn.querySelector('.small')?.classList.add('hidden')
+  // Reset UI so new call không thấy card cũ
+  resetUI()
   try {
     const identity = 'web-' + Math.random().toString(36).slice(2,8)
     const { url, token } = await fetchToken(identity)

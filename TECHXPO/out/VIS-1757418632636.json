@@ -1,0 +1,34 @@
+{
+  "patient_name": "Phạm Tuấn Hưng",
+  "phone": "0336018126",
+  "booking": null,
+  "summary_struct": {
+    "patient_name": "Phạm Tuấn Hưng",
+    "phone": "0336018126",
+    "customer_id": "(không rõ)",
+    "doctor_name": "LÊ NHẬT VINH",
+    "appointment_time": "2025-09-09 07:40",
+    "room": "",
+    "queue_number": "",
+    "symptoms": "[{\"name\": \"Ho\", \"severity\": \"nặng hơn\", \"duration\": \"(không rõ)\"}, {\"name\": \"Sổ mũi\", \"severity\": \"nặng hơn\", \"duration\": \"(không rõ)\"}, {\"name\": \"Đau họng\", \"severity\": \"nặng hơn\", \"duration\": \"(không rõ)\"}]",
+    "tentative_diagnoses": "[\"Nghi ngờ nhiễm trùng đường hô hấp trên\"]",
+    "tests_recommended": "[]",
+    "medications_advised": "[]",
+    "diet_notes": "Uống nhiều nước ấm, ăn thức ăn mềm, dễ tiêu, tránh đồ lạnh và cay nóng.",
+    "follow_up": "Tái khám theo lịch hẹn ngày 09/09/2025 để bác sĩ chẩn đoán và đưa ra phác đồ điều trị.",
+    "warnings": "Bệnh nhân không có triệu chứng sốt, tức ngực hay khó thở. Nếu các triệu chứng này xuất hiện hoặc tình trạng nặng hơn, cần đến cơ sở y tế gần nhất ngay lập tức."
+  },
+  "facts_pretty": "- thong_tin_ca_nhan:\n  - ho_ten: Phạm Tuấn Hưng\n  - so_dien_thoai: 0336018126\n- tien_su_benh:\n  - lan_kham_gan_nhat: 08/09/2025 với triệu chứng ho, sổ mũi, đau họng\n  - trieu_chung_man_tinh_tai_phat:\n    - 1: Ho\n    - 2: Sổ mũi\n    - 3: Đau họng\n- so_thich_thai_do:\n  - thai_do_noi_chuyen: trực tiếp, rõ ràng\n  - dong_y_voi_lich_kham_de_xuat: True",
+  "summary_pretty": "- ly_do_kham_chinh: Đặt lịch khám do ho, sổ mũi, đau họng tái phát và nặng hơn.\n- trieu_chung_hien_tai:\n  - ho: tái phát, nặng hơn\n  - so_mui: tái phát, nặng hơn\n  - dau_hong: tái phát, nặng hơn\n  - khac: không sốt, không tức ngực, không khó thở\n- chan_doan_so_bo: Chưa có.\n- ke_hoach_dieu_tri_xet_nghiem:\n  - loai_kham: Khám chuyên khoa Tai - Mũi - Họng\n  - benh_vien: Bệnh viện Nam Sài Gòn\n  - bac_si: LÊ NHẬT VINH\n  - thoi_gian: 07:40 ngày 09/09/2025\n- luu_y_dac_biet:\n  - 1: Triệu chứng tái phát và nặng hơn sau lần khám gần nhất vào ngày 08/09/2025.\n  - 2: Cần thăm khám bác sĩ để chẩn đoán chính xác.",
+  "booking_index": {
+    "hospital_code": null,
+    "department_code": null,
+    "doctor_name": "LÊ NHẬT VINH",
+    "date": "2025-09-09",
+    "slot_time": "07:40"
+  },
+  "date": "2025-09-09",
+  "slot_time": "07:40",
+  "doctor_name": "LÊ NHẬT VINH",
+  "appointment_time": "2025-09-09 07:40"
+}

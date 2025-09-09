@@ -2,7 +2,7 @@
 DB (schedule.db) only stores bookings (NOT doctor definitions).
 """
 from __future__ import annotations
-import os, json, sqlite3, threading, datetime as dt, unicodedata
+import os, json, sqlite3, threading, datetime as dt, unicodedata, re
 from pathlib import Path
 from typing import List, Dict, Any, Iterable, Optional, Tuple
 import time
@@ -216,6 +216,17 @@ def get_bookings_snapshot(hospital_code: str, departments: Iterable[str], date: 
 # ---------------- Data Loading ----------------
 def _normalize_department(s: str) -> str:
     return " ".join(s.strip().split()).title()
+
+# --- Doctor name normalization (case & accent insensitive) ---
+def _norm_doctor(s: str) -> str:
+    if not s:
+        return ""
+    # Remove accents
+    s_norm = unicodedata.normalize("NFD", s)
+    s_no_acc = ''.join(ch for ch in s_norm if unicodedata.category(ch) != 'Mn')
+    # Collapse non-alnum to single space
+    s_no_acc = re.sub(r"[^A-Za-z0-9]+", " ", s_no_acc)
+    return s_no_acc.strip().lower()
 
 
 def _normalize_hhmm(slot: str) -> str:
@@ -558,16 +569,28 @@ def book_slot(hospital_code: str,
     dep_norm = _normalize_department(department)
     # Verification
     ok_doctor = False
+    provided_norm = _norm_doctor(doctor_name)
+    canonical = None
     if department_code:
         code_map = get_doctors_for_department_codes(hospital_code, [department_code])
         docs_list = code_map.get(department_code) or []
-        ok_doctor = doctor_name in docs_list
+        for d in docs_list:
+            if _norm_doctor(d) == provided_norm:
+                canonical = d
+                ok_doctor = True
+                break
     if not ok_doctor:
         docs_map = get_doctors_for_departments(hospital_code, [dep_norm])
-        if dep_norm in docs_map and doctor_name in docs_map[dep_norm]:
-            ok_doctor = True
+        if dep_norm in docs_map:
+            for d in docs_map[dep_norm]:
+                if _norm_doctor(d) == provided_norm:
+                    canonical = d
+                    ok_doctor = True
+                    break
     if not ok_doctor:
         return False, "doctor_not_found_in_department"
+    if canonical:
+        doctor_name = canonical  # store canonical form in DB
     with _DB_LOCK:
         with _connect() as c:
             try:
@@ -624,17 +647,28 @@ def create_hold(hospital_code: str,
         return False, "invalid_slot_time"
     dep_norm = _normalize_department(department)
     # doctor existence
+    provided_norm = _norm_doctor(doctor_name)
     valid = False
+    canonical = None
     if department_code:
         code_map = get_doctors_for_department_codes(hospital_code, [department_code])
-        if doctor_name in (code_map.get(department_code) or []):
-            valid = True
+        for d in (code_map.get(department_code) or []):
+            if _norm_doctor(d) == provided_norm:
+                canonical = d
+                valid = True
+                break
     if not valid:
         docs_map = get_doctors_for_departments(hospital_code, [dep_norm])
-        if dep_norm in docs_map and doctor_name in docs_map[dep_norm]:
-            valid = True
+        if dep_norm in docs_map:
+            for d in docs_map[dep_norm]:
+                if _norm_doctor(d) == provided_norm:
+                    canonical = d
+                    valid = True
+                    break
     if not valid:
         return False, "doctor_not_found_in_department"
+    if canonical:
+        doctor_name = canonical
     now = time.time()
     exp = now + max(60, ttl_seconds)
     with _DB_LOCK:
@@ -661,6 +695,7 @@ def create_hold(hospital_code: str,
                              VALUES (?,?,?,?,?,?,?,?,?)""",
                           (hospital_code, dep_norm, doctor_name, date, slot_time, session_id, now, exp, department_code))
                 c.commit()
+                _bump_bookings_version()
                 return True, "held"
             except Exception as e:
                 _dlog(f"Hold insert error: {e}")
@@ -675,6 +710,7 @@ def cancel_holds_for_session(session_id: str):
             try:
                 c.execute("DELETE FROM holds WHERE session_id=?", (session_id,))
                 c.commit()
+                _bump_bookings_version()
             except Exception as e:
                 _dlog(f"cancel_holds_for_session error: {e}")
 
@@ -711,7 +747,7 @@ def promote_hold_to_booking(session_id: str,
                     pass
                 return False, "hold_expired"
             final_code = department_code or hold_code
-            # attempt booking
+            # attempt booking (original logic)
             try:
                 c.execute("""INSERT INTO bookings(hospital_code, department, doctor_name, date, slot_time, department_code)
                              VALUES (?,?,?,?,?,?)""",
@@ -758,8 +794,8 @@ def get_bookings_snapshot_by_codes(hospital_code: str, department_codes: Iterabl
     codes = [c for c in department_codes if c]
     version = get_bookings_version()
     if not codes:
-        return {"hospital_code": hospital_code, "date": date, "version": version, "bookings": {}}
-    result: Dict[str, Any] = {"hospital_code": hospital_code, "date": date, "version": version, "bookings": {}}
+        return {"hospital_code": hospital_code, "date": date, "version": version, "bookings": {}, "holds": {}}
+    result: Dict[str, Any] = {"hospital_code": hospital_code, "date": date, "version": version, "bookings": {}, "holds": {}}
     placeholders = ",".join(["?"] * len(codes))
     with _connect() as conn:
         # Count legacy rows (NULL department_code) for visibility; do not attempt name mapping.
@@ -782,6 +818,13 @@ def get_bookings_snapshot_by_codes(hospital_code: str, department_codes: Iterabl
             for d_code, doctor, slot in cur.fetchall():
                 if d_code in codes:
                     result["bookings"].setdefault(d_code, {}).setdefault(doctor, []).append(_normalize_hhmm(slot))
+            # merge active holds
+            try:
+                holds_map = _get_active_holds_by_codes(conn, hospital_code, date, list(codes))
+                if holds_map:
+                    result["holds"] = holds_map
+            except Exception as e:
+                _dlog(f"get_bookings_snapshot_by_codes holds merge error: {e}")
         except Exception as e:
             _dlog(f"get_bookings_snapshot_by_codes error: {e}")
     return result

@@ -1,5 +1,5 @@
 # storage.py
-import sqlite3, hashlib, os, json, time
+import sqlite3, hashlib, os, json, time, unicodedata
 from typing import Dict, List
 
 DB_PATH = os.getenv("KIOSK_DB", "kiosk.db")
@@ -136,6 +136,14 @@ def update_customer_facts_summary(customer_id: str, facts: str, summary: str):
     conn.commit()
     conn.close()
 
+def _norm_doctor_name(s: str) -> str:
+    if not s:
+        return ""
+    # Accent strip + lowercase + collapse spaces
+    nf = unicodedata.normalize('NFD', s)
+    no_acc = ''.join(ch for ch in nf if not unicodedata.category(ch).startswith('M'))
+    return ' '.join(no_acc.lower().strip().split())
+
 def find_visit_by_booking(hospital_code: str, date: str, doctor_name: str, slot_time: str):
     """Search latest visit whose payload.booking matches booking identifiers.
 
@@ -145,9 +153,8 @@ def find_visit_by_booking(hospital_code: str, date: str, doctor_name: str, slot_
     # Quick LIKE pattern include slot_time and doctor_name
     conn = _conn(); cur = conn.cursor()
     pattern_slot = f'%"slot_time": "{slot_time}"%'
-    pattern_doc = f'%"doctor_name": "{doctor_name}"%'
-    # Broad filter: most recent first
-    cur.execute("SELECT visit_id, created_at, payload_json, summary, facts_extracted FROM visits WHERE payload_json LIKE ? AND payload_json LIKE ? ORDER BY created_at DESC LIMIT 15", (pattern_slot, pattern_doc))
+    # Only filter by slot to avoid missing due to different doctor_name casing produced by LLM
+    cur.execute("SELECT visit_id, created_at, payload_json, summary, facts_extracted FROM visits WHERE payload_json LIKE ? ORDER BY created_at DESC LIMIT 30", (pattern_slot,))
     rows = cur.fetchall(); conn.close()
     import json as _json
     for vid, created_at, payload_json, summary, facts in rows:
@@ -161,7 +168,7 @@ def find_visit_by_booking(hospital_code: str, date: str, doctor_name: str, slot_
             if (
                 (not hospital_code or b_index.get('hospital_code') == hospital_code) and
                 (not date or b_index.get('date') == date) and
-                b_index.get('doctor_name') == doctor_name and
+                _norm_doctor_name(b_index.get('doctor_name')) == _norm_doctor_name(doctor_name) and
                 b_index.get('slot_time') == slot_time
             ):
                 return {
@@ -188,8 +195,8 @@ def find_visit_by_booking(hospital_code: str, date: str, doctor_name: str, slot_
         date_candidates = [
             b.get('date'), chosen.get('date'), payload.get('date'), created_at.split(' ')[0] if created_at else None
         ]
-        # Normalize comparison (exact for now; could lower() later)
-        match_doc = any(d == doctor_name for d in doc_candidates if d)
+        # Case / accent-insensitive doctor match; others exact for now
+        match_doc = any(_norm_doctor_name(d) == _norm_doctor_name(doctor_name) for d in doc_candidates if d)
         match_slot = any(s == slot_time for s in slot_candidates if s)
         match_hosp = any(h == hospital_code for h in hosp_candidates if h) or not any(hosp_candidates)  # allow missing
         match_date = any(dt == date for dt in date_candidates if dt) or not any(date_candidates)       # allow missing

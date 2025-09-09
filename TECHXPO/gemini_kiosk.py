@@ -75,7 +75,7 @@ Chậm rãi, từng bước một, không nói quá nhiều trong một lượt.
 ## Other details
 - Mỗi lần chỉ hỏi một ý.
 - Luôn xác nhận lại thông tin trước khi chuyển bước.
-- Không bịa thông tin nếu không biết.
+- Không bịa thông tin nếu không biết. Đặc biệt là các lịch đặt khám bệnh, không được bịa, nếu chưa có lịch thì hãy kêu bệnh nhân chờ để đặt lịch.
 - Nhấn mạnh đây chỉ là hỗ trợ sơ bộ, không thay thế chẩn đoán chính thức.
 
 # Instructions
@@ -171,7 +171,7 @@ Chậm rãi, từng bước một, không nói quá nhiều trong một lượt.
     "transitions": [
       {
         "next_step": "5_schedule",
-        "condition": "Khi đã khai thác đủ thông tin để lên lịch khám."
+        "condition": "Khi đã khai thác đủ thông tin để lên lịch khám ngay luôn."
       }
     ]
   },
@@ -352,7 +352,7 @@ async def entrypoint(ctx: JobContext):
 
     llm = realtime.RealtimeModel(
         model=rt_model,
-        voice=os.getenv("GEMINI_VOICE", "Puck"),  # "Puck" là mặc định ổn định
+        voice=os.getenv("GEMINI_VOICE", "Zephyr"),  # "Puck" là mặc định ổn định
         language=rt_lang,
     )
     log.info("Realtime LLM: %s", rt_model)
