@@ -12,11 +12,49 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
-from TECHXPO.web.server import app as kiosk_app  # token server & static kiosk
-from TECHXPO.Dashboard.server import app as dashboard_app  # existing dashboard app
+# Project layout: working directory contains 'web' and 'Dashboard' packages directly.
+import importlib, sys, os
+MODULE_CANDIDATES = [
+  ("web.server", "kiosk_app"),
+  ("Dashboard.server", "dashboard_app"),
+  ("TECHXPO.web.server", "kiosk_app"),
+  ("TECHXPO.Dashboard.server", "dashboard_app"),
+]
 
+kiosk_app = None
+dashboard_app = None
+
+def _try_import(mod_path):
+  try:
+    return importlib.import_module(mod_path)
+  except ModuleNotFoundError:
+    return None
+
+# Ensure both potential roots on path
+cur = os.path.dirname(__file__)
+sys.path.append(cur)
+sys.path.append(os.path.join(cur, 'TECHXPO'))
+
+for m, kind in MODULE_CANDIDATES:
+  mod = _try_import(m)
+  if not mod:
+    continue
+  if kind == 'kiosk_app' and kiosk_app is None and hasattr(mod, 'app'):
+    kiosk_app = getattr(mod, 'app')
+  if kind == 'dashboard_app' and dashboard_app is None and hasattr(mod, 'app'):
+    dashboard_app = getattr(mod, 'app')
+  if kiosk_app and dashboard_app:
+    break
+
+if not kiosk_app or not dashboard_app:
+  raise RuntimeError("Could not locate kiosk_app or dashboard_app modules")
+
+from fastapi.responses import RedirectResponse
+
+# This is the main app that will host everything
 app = FastAPI(title="Unified Kiosk + Dashboard")
 
+# Add middleware to the main app
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -25,14 +63,17 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Mount kiosk root at '/' (kiosk_app already has its own /api + static)
-app.mount("/", kiosk_app)
+# Add a redirect from /dashboard to /dashboard/
+@app.get("/dashboard", include_in_schema=False)
+def redirect_dashboard():
+    return RedirectResponse(url="/dashboard/")
 
-# Re-mount dashboard under /dashboard.
-# dashboard_app already serves static at '/' internally; when mounted at /dashboard
-# the static UI will be accessible at /dashboard/index.html (and /dashboard/)
+# IMPORTANT: Mount the more specific path FIRST
 app.mount("/dashboard", dashboard_app)
+
+# Mount the root/catch-all path LAST
+app.mount("/", kiosk_app)
 
 @app.get("/healthz-unified")
 def healthz_unified():
-    return {"ok": True, "components": ["kiosk", "dashboard"]}
+  return {"ok": True, "components": ["kiosk", "dashboard"]}

@@ -39,14 +39,6 @@ app.add_middleware(
 BASE_DIR = Path(__file__).resolve().parents[1]
 STATIC_DIR = BASE_DIR / "Dashboard" / "static"
 
-# Mount tại /dashboard (có thể đổi thành "/")
-app.mount("/dashboard", StaticFiles(directory=STATIC_DIR, html=True), name="dashboard")
-
-# Tuỳ chọn: chuyển root "/" về index
-@app.get("/")
-def root():
-    return FileResponse(STATIC_DIR / "index.html")
-
 
 class BookRequest(BaseModel):
     hospital_code: str
@@ -224,18 +216,6 @@ def _startup():
 def api_hospitals():
     return list_hospitals()
 
-# ---- Static serving ----
-BASE_DIR = Path(__file__).resolve().parents[1]
-STATIC_DIR = BASE_DIR / "Dashboard" / "static"
+# ---- Static serving (MUST remain last so API routes above take precedence) ----
 if STATIC_DIR.is_dir():
-    # Mount at root so /styles.css, /app.js accessible
     app.mount("/", StaticFiles(directory=STATIC_DIR, html=True), name="static")
-
-    @app.get("/index.html")
-    def _index_alias():
-        return FileResponse(STATIC_DIR / "index.html")
-
-
-@app.get("/api/hospitals")
-def api_hospitals():
-    return list_hospitals()

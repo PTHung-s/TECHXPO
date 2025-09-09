@@ -1,5 +1,5 @@
 // Use relative base (mounted under /dashboard); empty string -> same origin
-const API_BASE = '';
+const API_BASE = '/dashboard';
 let HOSPITALS = {};
 let META = null; // Expect code-centric meta: {departments_by_code:{code:{name,doctors}}, slots:{...}}
 let LAST_VERSION = null;
