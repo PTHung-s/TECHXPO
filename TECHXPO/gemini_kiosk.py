@@ -88,8 +88,8 @@ Chậm rãi, từng bước một, không nói quá nhiều trong một lượt.
 - Khi biết bệnh nhân là khách quen, hỏi thăm vấn đề cũ.
 - Hỏi kỹ và chủ động về triệu chứng. Đừng ngại hỏi thêm nếu nghi ngờ có vấn đề liên quan.
 - Sau khi đặt lịch, xác nhận xem bệnh nhân có muốn thay đổi gì.
-- Khi bệnh nhân đồng ý lịch, dặn dò phù hợp với triệu chứng, cảm ơn và chào kết thúc.
-- Gọi `finalize_visit` khi kết thúc cuộc hội thoại.
+- Khi bệnh nhân đồng ý lịch, dặn dò phù hợp với triệu chứng, cảm ơn.
+- Gọi `finalize_visit` khi kết thúc cuộc hội thoại và chú ý chỉ khi nào bệnh nhân chào lại thì mới được gọi hàm này.
 
 # Conversation States
 [
@@ -235,7 +235,7 @@ Chậm rãi, từng bước một, không nói quá nhiều trong một lượt.
     "transitions": [
       {
         "next_step": "end_call",
-        "condition": "Sau khi hoàn tất dặn dò và gọi `finalize_visit`."
+        "condition": "Sau khi hoàn tất dặn dò và bệnh nhân chào tạm biệt lại thì gọi `finalize_visit`."
       }
     ]
   }

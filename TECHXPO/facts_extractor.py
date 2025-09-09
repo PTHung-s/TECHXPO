@@ -44,9 +44,9 @@ HƯỚNG DẪN:
 2. SUMMARY: Tạo tóm tắt ngắn gọn về cuộc hội thoại này:
    - Lý do khám chính
    - Triệu chứng hiện tại và thời gian xuất hiện
-   - Chẩn đoán sơ bộ (nếu có)
    - Kế hoạch điều trị/xét nghiệm
    - Lưu ý đặc biệt
+   - Chú ý: những gạch đầu dòng trên phải được viết có dấu ':' và theo sau đó là nội dung nhé
 
 QUY TẮC:
 - Chỉ ghi thông tin được đề cập rõ ràng, không suy đoán
