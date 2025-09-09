@@ -38,4 +38,4 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=40s --retries=3 \
 # RUN_AGENT=1 => khởi động worker; nếu 0 chỉ chạy web
 CMD ["bash","-lc","echo '[docker] RUN_AGENT='${RUN_AGENT}' AGENT_NAME='${AGENT_NAME}; \
 if [ \"$RUN_AGENT\" = '1' ]; then echo '[docker] launching agent worker'; python -u gemini_kiosk.py dev & fi; \
-echo '[docker] unified server starting on ' ${PORT}; exec uvicorn run_server:app --host 0.0.0.0 --port ${PORT}"]
+echo '[docker] unified server starting on ' ${PORT}; exec uvicorn TECHXPO.run_server:app --host 0.0.0.0 --port ${PORT}"]
