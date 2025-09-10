@@ -24,7 +24,7 @@ from .schedule_logic import (
     get_bookings_snapshot_by_codes,
     backfill_department_codes,
 )
-from storage import find_visit_by_booking, get_or_create_customer  # reuse if needed
+from ..storage import find_visit_by_booking, get_or_create_customer  # reuse if needed
 
 app = FastAPI(title="Doctor Schedule Dashboard", version="0.1.0")
 

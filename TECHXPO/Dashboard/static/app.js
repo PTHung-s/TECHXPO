@@ -1,4 +1,4 @@
-const API_BASE = 'http://localhost:8090';
+const API_BASE = ''; // Use relative path to call API on the same host
 let HOSPITALS = {};
 let META = null; // Expect code-centric meta: {departments_by_code:{code:{name,doctors}}, slots:{...}}
 let LAST_VERSION = null;
