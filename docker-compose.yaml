@@ -1,0 +1,39 @@
+version: '3.9'
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: techxpo/app:latest
+    container_name: techxpo-api
+    environment:
+      - APP_MODULE=web.server:app
+      - PORT=8000
+      - RUN_AGENT=1
+      - AGENT_NAME=kiosk
+      # pass-throughs (override via .env/.env.local mounted if needed)
+      # - LIVEKIT_URL=
+      # - LIVEKIT_API_KEY=
+      # - LIVEKIT_API_SECRET=
+    ports:
+      - "8000:8000"
+    working_dir: /app/TECHXPO
+    restart: unless-stopped
+
+  dashboard:
+    image: techxpo/app:latest
+    container_name: techxpo-dashboard
+    depends_on:
+      - api
+    environment:
+      - APP_MODULE=Dashboard.server:app
+      - PORT=8090
+      - RUN_AGENT=0
+    ports:
+      - "8090:8090"
+    working_dir: /app/TECHXPO
+    restart: unless-stopped
+
+# To build and start both: docker compose up --build
+# The image is shared by both services; each overrides APP_MODULE + PORT.

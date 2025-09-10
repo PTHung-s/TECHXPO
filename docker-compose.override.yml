@@ -1,0 +1,9 @@
+services:
+  api:
+    volumes:
+      - /opt/techxpo/data/kiosk.db:/app/TECHXPO/kiosk.db
+      - /opt/techxpo/data/schedule.db:/app/TECHXPO/Dashboard/schedule.db
+  dashboard:
+    volumes:
+      - /opt/techxpo/data/kiosk.db:/app/TECHXPO/kiosk.db
+      - /opt/techxpo/data/schedule.db:/app/TECHXPO/Dashboard/schedule.db
