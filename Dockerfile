@@ -32,10 +32,13 @@ ENV AGENT_NAME=kiosk \
 WORKDIR /app/TECHXPO
 
 EXPOSE 8080
+EXPOSE 8090
 HEALTHCHECK --interval=30s --timeout=5s --start-period=40s --retries=3 \
   CMD curl -fsS http://localhost:${PORT}/healthz || exit 1
 
-# RUN_AGENT=1 => khởi động worker; nếu 0 chỉ chạy web
-CMD ["bash","-lc","echo '[docker] RUN_AGENT='${RUN_AGENT}' AGENT_NAME='${AGENT_NAME}; \
-if [ \"$RUN_AGENT\" = '1' ]; then echo '[docker] launching agent worker'; python -u gemini_kiosk.py dev & fi; \
-echo '[docker] launching web'; exec uvicorn web.server:app --host 0.0.0.0 --port ${PORT}"]
+# Add entrypoint script to run services
+COPY TECHXPO/entrypoint.sh /app/TECHXPO/entrypoint.sh
+RUN chmod +x /app/TECHXPO/entrypoint.sh
+
+# RUN_AGENT=1 => khởi động worker; RUN_DASHBOARD=1 => bật dashboard
+CMD ["/app/TECHXPO/entrypoint.sh"]

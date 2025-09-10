@@ -1,0 +1,93 @@
+version: "3.9"
+
+name: techxpo
+
+networks:
+  web:
+    external: false
+
+volumes:
+  caddy_data:
+  caddy_config:
+  booking_data:
+  dashboard_data:
+  kiosk_data:
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: techxpo:latest
+    container_name: techxpo-app
+    env_file:
+      - ./TECHXPO/TECHXPO/.env
+    environment:
+      RUN_AGENT: "1"
+      RUN_DASHBOARD: "0"
+      PORT: "8080"
+      PYTHONPATH: /app/TECHXPO
+      KIOSK_DB: /data/kiosk.db
+      KIOSK_OUT: /data/out
+    restart: unless-stopped
+    networks:
+      - web
+    volumes:
+      - booking_data:/app/TECHXPO/Booking_data
+      - dashboard_data:/app/TECHXPO/Dashboard
+      - kiosk_data:/data
+    expose:
+      - "8080"
+
+  dashboard:
+    image: techxpo:latest
+    container_name: techxpo-dashboard
+    depends_on:
+      - app
+    working_dir: /app/TECHXPO
+    command: ["bash","-lc","uvicorn Dashboard.server:app --host 0.0.0.0 --port 8090"]
+    env_file:
+      - ./TECHXPO/TECHXPO/.env
+    environment:
+      PYTHONPATH: /app/TECHXPO
+      KIOSK_DB: /data/kiosk.db
+      KIOSK_OUT: /data/out
+    restart: unless-stopped
+    networks:
+      - web
+    volumes:
+      - booking_data:/app/TECHXPO/Booking_data
+      - dashboard_data:/app/TECHXPO/Dashboard
+      - kiosk_data:/data
+    expose:
+      - "8090"
+
+  caddy:
+    image: caddy:2
+    container_name: techxpo-proxy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      KIOSK_HOST: ${KIOSK_HOST}
+      DASHBOARD_HOST: ${DASHBOARD_HOST}
+      CADDY_EMAIL: ${CADDY_EMAIL}
+    networks:
+      - web
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+
+  duckdns:
+    image: lscr.io/linuxserver/duckdns:latest
+    container_name: techxpo-duckdns
+    environment:
+      TZ: UTC
+      SUBDOMAINS: ${DUCKDNS_SUBDOMAINS}
+      TOKEN: ${DUCKDNS_TOKEN}
+      LOG_FILE: "true"
+    networks:
+      - web
+    restart: unless-stopped

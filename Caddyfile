@@ -1,0 +1,17 @@
+{
+	# Caddy will use this email for Let's Encrypt registration
+	email {$CADDY_EMAIL}
+}
+
+# Kiosk web + token server
+{$KIOSK_HOST} {
+	encode gzip
+	reverse_proxy app:8080
+}
+
+# Dashboard
+{$DASHBOARD_HOST} {
+	encode gzip
+	# Proxy all routes (API + static) to the dashboard app
+	reverse_proxy dashboard:8090
+}
