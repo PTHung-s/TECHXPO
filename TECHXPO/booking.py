@@ -130,7 +130,7 @@ class BookingResult(BaseModel):
     rationale: Optional[str] = None
     patient_name: Optional[str] = None
     phone: Optional[str] = None
-    speak_text: Optional[str] = Field(..., description="Câu thoại ngắn gọn, ngôn ngữ tự nhiên dễ nghe, dễ hiểu để giới thiệu các option lịch đã đặt. Chú ý lịch thì nói ngày giờ chứ không nói năm nhé")
+    speak_text: Optional[str] = Field(..., description="Thông báo các lựa chọn ra một cách dễ nghe, ngôn ngữ đời thường, chỉ đọc ngày giờ chứ không đọc năm.")
 
 
 SYSTEM = (
@@ -274,21 +274,6 @@ def _derive_code_from_name(name: str) -> str:
     return letters or 'DEPT'
 
 def _stage1_select_codes(client, model: str, history_text: str, departments_index: Dict[str, List[Dict[str, str]]]) -> List[str]:
-    # LOG STAGE 1 INPUT
-    _blog("=" * 60)
-    _blog("STAGE 1 BOOKING - INPUT LOGGING")
-    _blog("=" * 60)
-    _blog(f"Model: {model}")
-    _blog(f"History text length: {len(history_text)}")
-    _blog(f"History text content:\n{history_text}")
-    _blog(f"Departments index keys: {list(departments_index.keys()) if departments_index else 'None'}")
-    if departments_index:
-        for hosp_code, dept_list in departments_index.items():
-            _blog(f"Hospital {hosp_code}: {len(dept_list)} departments")
-            for dept in dept_list[:3]:  # Show first 3 departments per hospital
-                _blog(f"  - {dept}")
-    _blog("=" * 60)
-    
     if not departments_index:
         _blog("Stage1 skip: no departments_index"); return []
     code_name: Dict[str, str] = {}
@@ -300,7 +285,7 @@ def _stage1_select_codes(client, model: str, history_text: str, departments_inde
     valid = set(code_name.keys())
     lines = [f"{c} - {code_name[c]}" for c in sorted(valid)]
 
-    _blog(f"Available department codes: {sorted(valid)}")
+    print(lines)
     prompt = f"""You are an expert medical coordinator assistant. Your task is to select the appropriate department codes from the provided list based on the user's query.
 
 # INSTRUCTIONS
@@ -348,14 +333,6 @@ User query: "{history_text}"
 Your response:
 """
 
-    # LOG STAGE 1 PROMPT
-    _blog("STAGE 1 PROMPT TO LLM:")
-    _blog("-" * 40)
-    _blog(f"System instruction: {STAGE1_SYSTEM}")
-    _blog("-" * 40)
-    _blog(f"User prompt:\n{prompt}")
-    _blog("=" * 60)
-
     def _call() -> str:
         r = client.models.generate_content(
             model=model,
@@ -367,28 +344,8 @@ Your response:
                 response_mime_type="application/json",
             ),
         )
-        
-        # LOG STAGE 1 RAW OUTPUT
-        raw_output = r.text or ""
-        _blog("STAGE 1 LLM RAW OUTPUT:")
-        _blog("-" * 40)
-        _blog(f"Raw output length: {len(raw_output)}")
-        _blog(f"Raw output content:\n{raw_output}")
-        _blog("-" * 40)
-        
-        # Log response metadata if available
-        try:
-            if hasattr(r, 'candidates') and r.candidates:
-                candidate = r.candidates[0]
-                if hasattr(candidate, 'finish_reason'):
-                    _blog(f"Finish reason: {candidate.finish_reason}")
-                if hasattr(candidate, 'safety_ratings'):
-                    _blog(f"Safety ratings: {candidate.safety_ratings}")
-        except Exception as e:
-            _blog(f"Error logging response metadata: {e}")
-        
-        _blog("=" * 60)
-        return raw_output
+        print(r.text)
+        return r.text or ""
 
     attempts = 0
     picked: List[str] = []
@@ -399,58 +356,32 @@ Your response:
             raw = _call()
             if raw:
                 _blog(f"Stage1 raw text len={len(raw)} preview={raw[:150].replace(chr(10),' ')}")
-            
-            # LOG STAGE 1 PARSING PROCESS
-            _blog(f"STAGE 1 PARSING ATTEMPT {attempts}:")
-            _blog("-" * 40)
-            
             if BOOKING_DEBUG:
                 print("[stage1 raw full]\n" + raw)
             data = {}
             
             try:
                 if raw:
-                    fixed_raw = _fix_truncated_json(raw)
-                    _blog(f"Fixed JSON: {fixed_raw}")
-                    data = json.loads(fixed_raw)
-                    _blog(f"Parsed JSON data: {data}")
-            except Exception as parse_error:
-                _blog(f"JSON parsing error: {parse_error}")
+                    data = json.loads(_fix_truncated_json(raw))
+            except Exception:
                 data = {}
-                
             for key in ("codes", "selected_codes", "selected"):
                 arr = data.get(key)
-                _blog(f"Checking key '{key}': {arr}")
                 if isinstance(arr, list):
                     for c in arr:
                         if isinstance(c, str) and c in valid and c not in picked:
                             picked.append(c)
-                            _blog(f"Added valid code: {c}")
-                        elif isinstance(c, str) and c not in valid:
-                            _blog(f"Invalid code rejected: {c}")
                         if len(picked) >= 5:
                             break
                 if picked:
                     break
             if not picked:
-                _blog("No codes found in JSON, trying salvage...")
                 picked = _salvage_codes(raw, valid)
                 if picked:
-                    _blog(f"Stage1 salvage found codes: {picked}")
-            
-            _blog(f"Stage1 attempt {attempts} result: {picked}")
-            _blog("-" * 40)
+                    _blog("Stage1 salvage")
         except Exception as e:
             _blog(f"Stage1 error attempt{attempts}: {e}")
-    
-    # LOG STAGE 1 FINAL RESULT
-    _blog("STAGE 1 FINAL RESULT:")
-    _blog("-" * 40)
-    _blog(f"Final selected codes: {picked}")
-    _blog(f"Total attempts: {attempts}")
-    _blog(f"Valid codes available: {sorted(valid)}")
-    _blog("=" * 60)
-    
+    _blog(f"Stage1 parsed codes={picked} attempts={attempts}")
     return picked
 
 # ---------------- Stage 2 schedule aggregation ----------------
@@ -844,3 +775,5 @@ def book_appointment(
         result_dict["meta"]["dept_index_map"] = dept_index_map
 
     return result_dict
+
+
