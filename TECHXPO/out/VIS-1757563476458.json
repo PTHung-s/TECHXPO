@@ -1,0 +1,367 @@
+{
+  "patient_name": "Phạm Tuấn Hưng",
+  "phone": "0336018126",
+  "booking": {
+    "options": [
+      {
+        "hospital_name": "Bệnh viện Nam Sài Gòn",
+        "hospital_code": "BV_NAMSAIGON",
+        "department": "Khám Bệnh",
+        "department_code": "KBKHAM",
+        "doctor_name": "Nguyễn Hữu Lĩnh",
+        "slot_time": "2025-09-11 12:00",
+        "room": null,
+        "score": null,
+        "image_url": "/images/BV_NAMSAIGON.png",
+        "hospital": "Bệnh viện Nam Sài Gòn"
+      },
+      {
+        "hospital_name": "Bệnh viện Nam Sài Gòn",
+        "hospital_code": "BV_NAMSAIGON",
+        "department": "Khám Bệnh",
+        "department_code": "KBKHAM",
+        "doctor_name": "Nguyễn Mỹ Bảo Anh",
+        "slot_time": "2025-09-11 12:20",
+        "room": null,
+        "score": null,
+        "image_url": "/images/BV_NAMSAIGON.png",
+        "hospital": "Bệnh viện Nam Sài Gòn"
+      },
+      {
+        "hospital_name": "Bệnh viện Nam Sài Gòn",
+        "hospital_code": "BV_NAMSAIGON",
+        "department": "Khám Bệnh",
+        "department_code": "KBKHAM",
+        "doctor_name": "Nguyễn Thị Thu Hương",
+        "slot_time": "2025-09-11 12:40",
+        "room": null,
+        "score": null,
+        "image_url": "/images/BV_NAMSAIGON.png",
+        "hospital": "Bệnh viện Nam Sài Gòn"
+      }
+    ],
+    "chosen": {
+      "hospital_name": "Bệnh viện Nam Sài Gòn",
+      "hospital_code": "BV_NAMSAIGON",
+      "department": "Khám Bệnh",
+      "department_code": "KBKHAM",
+      "doctor_name": "Nguyễn Hữu Lĩnh",
+      "slot_time": "2025-09-11 12:00",
+      "room": null,
+      "score": null,
+      "image_url": "/images/BV_NAMSAIGON.png",
+      "hospital": "Bệnh viện Nam Sài Gòn"
+    },
+    "rationale": null,
+    "patient_name": "Phạm Tuấn Hưng",
+    "phone": "0336018126",
+    "meta": {
+      "selected_department_codes": [
+        "KBKHAM"
+      ],
+      "selected_departments": [
+        "Khám Bệnh"
+      ],
+      "two_stage": true,
+      "schedule": {
+        "date": "2025-09-11",
+        "slots": {
+          "start": "07:40",
+          "end": "16:40",
+          "slot_minutes": 20
+        },
+        "hospitals": [
+          {
+            "hospital_code": "BV_NAMSAIGON",
+            "hospital_name": "Bệnh viện Nam Sài Gòn",
+            "departments": [
+              {
+                "department_code": "KBKHAM",
+                "department_name": "Khám Bệnh",
+                "doctors": [
+                  {
+                    "name": "NGUYỄN HỮU LĨNH",
+                    "free_slots": [
+                      "07:40",
+                      "08:00",
+                      "08:20",
+                      "08:40",
+                      "09:00",
+                      "09:20",
+                      "09:40",
+                      "10:00",
+                      "10:20",
+                      "10:40",
+                      "11:00",
+                      "11:20",
+                      "11:40",
+                      "12:00",
+                      "12:20",
+                      "12:40",
+                      "13:00",
+                      "13:20",
+                      "13:40",
+                      "14:00",
+                      "14:20",
+                      "14:40",
+                      "15:00",
+                      "15:20",
+                      "15:40",
+                      "16:00",
+                      "16:20",
+                      "16:40"
+                    ]
+                  },
+                  {
+                    "name": "NGUYỄN MỸ BẢO ANH",
+                    "free_slots": [
+                      "07:40",
+                      "08:00",
+                      "08:20",
+                      "08:40",
+                      "09:00",
+                      "09:20",
+                      "09:40",
+                      "10:00",
+                      "10:20",
+                      "10:40",
+                      "11:00",
+                      "11:20",
+                      "11:40",
+                      "12:00",
+                      "12:20",
+                      "12:40",
+                      "13:00",
+                      "13:20",
+                      "13:40",
+                      "14:00",
+                      "14:20",
+                      "14:40",
+                      "15:00",
+                      "15:20",
+                      "15:40",
+                      "16:00",
+                      "16:20",
+                      "16:40"
+                    ]
+                  },
+                  {
+                    "name": "NGUYỄN THỊ THU HƯƠNG",
+                    "free_slots": [
+                      "07:40",
+                      "08:00",
+                      "08:20",
+                      "08:40",
+                      "09:00",
+                      "09:20",
+                      "09:40",
+                      "10:00",
+                      "10:20",
+                      "10:40",
+                      "11:00",
+                      "11:20",
+                      "11:40",
+                      "12:00",
+                      "12:20",
+                      "12:40",
+                      "13:00",
+                      "13:20",
+                      "13:40",
+                      "14:00",
+                      "14:20",
+                      "14:40",
+                      "15:00",
+                      "15:20",
+                      "15:40",
+                      "16:00",
+                      "16:20",
+                      "16:40"
+                    ]
+                  },
+                  {
+                    "name": "PHẠM THỊ VÂN THANH",
+                    "free_slots": [
+                      "07:40",
+                      "08:00",
+                      "08:20",
+                      "08:40",
+                      "09:00",
+                      "09:20",
+                      "09:40",
+                      "10:00",
+                      "10:20",
+                      "10:40",
+                      "11:00",
+                      "11:20",
+                      "11:40",
+                      "12:00",
+                      "12:20",
+                      "12:40",
+                      "13:00",
+                      "13:20",
+                      "13:40",
+                      "14:00",
+                      "14:20",
+                      "14:40",
+                      "15:00",
+                      "15:20",
+                      "15:40",
+                      "16:00",
+                      "16:20",
+                      "16:40"
+                    ]
+                  },
+                  {
+                    "name": "TRƯƠNG THỊ MAI HƯƠNG",
+                    "free_slots": [
+                      "07:40",
+                      "08:00",
+                      "08:20",
+                      "08:40",
+                      "09:00",
+                      "09:20",
+                      "09:40",
+                      "10:00",
+                      "10:20",
+                      "10:40",
+                      "11:00",
+                      "11:20",
+                      "11:40",
+                      "12:00",
+                      "12:20",
+                      "12:40",
+                      "13:00",
+                      "13:20",
+                      "13:40",
+                      "14:00",
+                      "14:20",
+                      "14:40",
+                      "15:00",
+                      "15:20",
+                      "15:40",
+                      "16:00",
+                      "16:20",
+                      "16:40"
+                    ]
+                  }
+                ]
+              }
+            ],
+            "hospital_image": "/images/BV_NAMSAIGON.png"
+          }
+        ],
+        "selected_department_codes": [
+          "KBKHAM"
+        ]
+      },
+      "dept_index_map": {
+        "BV_BINHDAN": {
+          "NTQ": "Ngoại tổng quát",
+          "NTN": "Ngoại tiết niệu",
+          "PTTMM": "Phẫu Thuật TIM - Mạch MÁU",
+          "NNNIEU": "Niệu NỮ",
+          "NKNAMK": "NAM khoa"
+        },
+        "BV_NAMSAIGON": {
+          "TMH": "TAI - MŨI - Họng",
+          "NTKCS": "Ngoại Thần Kinh - CỘT Sống",
+          "NLN": "Ngoại Lồng Ngực",
+          "CTCHCX": "Chấn Thương Chỉnh Hình, CƠ - Xương - Khớp",
+          "NTH": "Ngoại Tổng HỢP",
+          "KBKHAM": "Khám Bệnh",
+          "NTH1": "NỘI Tổng HỢP",
+          "GMHS": "GÂY MÊ - HỒI SỨC",
+          "HSTCCC": "HỒI SỨC Tích CỰC - CẤP CỨU",
+          "COHA": "Chẩn Đoán Hình Ảnh",
+          "VLTLPH": "VẬT LÝ TRỊ Liệu - Phục HỒI Chức Năng",
+          "KDKHOA": "Khoa Dược",
+          "PKM": "Phòng khám MẮT"
+        },
+        "BV_TAMANH": {
+          "TTTM": "Trung TÂM TIM mạch",
+          "TTTNTH": "Trung TÂM Tiết niệu - Thận HỌC - NAM khoa",
+          "TTSPK": "Trung TÂM SẢN PHỤ Khoa",
+          "TTNSPT": "Trung TÂM NỘI SOI & Phẫu thuật NỘI SOI tiêu HÓA",
+          "TTSS": "Trung TÂM SƠ sinh",
+          "KNKHOA": "Khoa NHI",
+          "TTTMH": "Trung TÂM TAI MŨI Họng",
+          "KUB": "Khoa UNG bướu",
+          "TTXN": "Trung TÂM XÉT nghiệm",
+          "TTCOHA": "Trung TÂM Chẩn đoán hình ảnhĐiện quang CAN thiệp",
+          "KHSCCI": "Khoa HỒI SỨC CẤP CỨU (Icu)",
+          "TTKHTK": "Trung TÂM Khoa HỌC Thần kinh",
+          "TTCTCH": "Trung TÂM Chấn thương chỉnh hình",
+          "KNTH": "Khoa Ngoại Tổng HỢP",
+          "KNLNMM": "Khoa Ngoại Lồng ngực - Mạch MÁU",
+          "KNVAMC": "Khoa Ngoại VÚ - ĐẦU MẶT CỔ",
+          "KNTH1": "Khoa NỘI tổng HỢP",
+          "KCCTH": "Khoa CẤP CỨU Tổng HỢP",
+          "TTHTSS": "Trung TÂM HỖ TRỢ sinh SẢN",
+          "KKSNK": "Khoa Kiểm soát nhiễm khuẩn",
+          "KKB": "Khoa Khám bệnh",
+          "TTYHBT": "Trung TÂM Y HỌC BÀO thai",
+          "KDLTMD": "Khoa DA Liễu - Thẩm MỸ DA",
+          "KDKHOA": "Khoa Dược",
+          "KTNNH": "Khoa Tiết niệu - NAM HỌC",
+          "KNN": "Khoa Ngoại NHI",
+          "TTTMCT": "Trung TÂM TIM mạch CAN thiệp",
+          "KTHGMT": "Khoa Tiêu HÓA - GAN MẬT - TỤY",
+          "KPHCN": "Khoa Phục HỒI chức năng",
+          "KPTKVN": "Khoa phẫu thuật khớp VÀ NỘI SOI",
+          "TTMCNC": "Trung TÂM MẮT Công nghệ CAO",
+          "KDDTC": "Khoa Dinh dưỡng Tiết CHẾ",
+          "KCXK": "Khoa CƠ xương khớp",
+          "KGPBTB": "Khoa Giải phẫu bệnh& TẾ BÀO",
+          "KRHM": "Khoa Răng HÀM MẶT",
+          "TTTCBK": "Trung TÂM tiêm chủng Bvđk TÂM ANH",
+          "KMDLS": "Khoa Miễn dịch LÂM sàng",
+          "KSCNVI": "Kiểm soát CÂN nặng VÀ Điều TRỊ BÉO PHÌ"
+        }
+      }
+    },
+    "symptoms": "khám tổng quát định kỳ",
+    "persist_result": {
+      "soft_hold": {
+        "ok": true,
+        "message": "held",
+        "session_id": "default"
+      },
+      "schedule_backend": {
+        "ok": true,
+        "message": "booked",
+        "finalize_persist": true,
+        "mode": "direct_fallback"
+      }
+    }
+  },
+  "summary_struct": {
+    "patient_name": "Phạm Tuấn Hưng",
+    "phone": "0336018126",
+    "customer_id": "(không rõ)",
+    "doctor_name": "Nguyễn Hữu Lĩnh",
+    "appointment_time": "2025-09-11 12:00",
+    "room": "",
+    "queue_number": "",
+    "symptoms": "[{\"name\": \"khám tổng quát định kỳ\", \"severity\": null, \"duration\": null}]",
+    "tentative_diagnoses": "[]",
+    "tests_recommended": "[]",
+    "medications_advised": "[]",
+    "diet_notes": "(không rõ)",
+    "follow_up": "(không rõ)",
+    "warnings": "(không rõ)"
+  },
+  "facts_pretty": "Thông tin cá nhân: Phạm Tuấn Hưng, SĐT 0336018126. Tiền sử bệnh: Đã từng khám tổng quát định kỳ. Dị ứng: Không. Thói quen sinh hoạt: Ngồi nghiêng, làm việc xuyên khuya. Thuốc đang dùng: Không. Bệnh di truyền gia đình: Không. Các triệu chứng mạn tính/tái phát: Ho, sổ mũi, đau họng, đau lưng, mỏi lưng. Thái độ: Trực tiếp, rõ ràng, đồng ý với lịch khám đề xuất.",
+  "summary_pretty": "Lý do khám chính: Khám tổng quát định kỳ để kiểm tra sức khỏe. Triệu chứng hiện tại và thời gian xuất hiện: Không có triệu chứng gì hết. Chẩn đoán sơ bộ: N/A. Kế hoạch điều trị/xét nghiệm: Đặt lịch khám tổng quát định kỳ tại Bệnh viện Nam Sài Gòn, khoa Khám Bệnh với Bác sĩ Nguyễn Hữu Lĩnh vào lúc 12 giờ trưa, ngày 11 tháng 9 năm 2025. Lưu ý đặc biệt: N/A.",
+  "booking_index": {
+    "hospital_code": "BV_NAMSAIGON",
+    "department_code": "KBKHAM",
+    "doctor_name": "Nguyễn Hữu Lĩnh",
+    "date": "2025-09-11",
+    "slot_time": "12:00"
+  },
+  "hospital_code": "BV_NAMSAIGON",
+  "date": "2025-09-11",
+  "slot_time": "12:00",
+  "doctor_name": "Nguyễn Hữu Lĩnh",
+  "appointment_time": "2025-09-11 12:00"
+}

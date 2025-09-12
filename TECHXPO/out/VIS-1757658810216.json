@@ -1,0 +1,329 @@
+{
+  "patient_name": "Phạm Tuấn Hưng",
+  "phone": "0336018126",
+  "booking": {
+    "options": [],
+    "chosen": {
+      "hospital_name": null,
+      "hospital_code": null,
+      "department": null,
+      "department_code": null,
+      "doctor_name": "null",
+      "slot_time": "null",
+      "room": null,
+      "score": null,
+      "image_url": null
+    },
+    "rationale": "Không tìm thấy khoa Tim mạch trong dữ liệu bệnh viện được cung cấp.",
+    "patient_name": null,
+    "phone": null,
+    "speak_text": "Rất tiếc, hiện tại không có khoa Tim mạch nào trong danh sách bệnh viện để đặt lịch khám.",
+    "_stage2_retry": {
+      "attempts": 3,
+      "last_error": "no_options"
+    },
+    "meta": {
+      "selected_department_codes": [
+        "KBKHAM",
+        "TMH"
+      ],
+      "selected_departments": [
+        "Khám Bệnh",
+        "TAI - MŨI - Họng"
+      ],
+      "two_stage": true,
+      "schedule": {
+        "date": "2025-09-12",
+        "slots": {
+          "start": "07:40",
+          "end": "16:40",
+          "slot_minutes": 20
+        },
+        "hospitals": [
+          {
+            "hospital_code": "BV_NAMSAIGON",
+            "hospital_name": "Bệnh viện Nam Sài Gòn",
+            "departments": [
+              {
+                "department_code": "KBKHAM",
+                "department_name": "Khám Bệnh",
+                "doctors": [
+                  {
+                    "name": "NGUYỄN HỮU LĨNH",
+                    "free_slots": [
+                      "07:40",
+                      "08:00",
+                      "08:20",
+                      "08:40",
+                      "09:00",
+                      "09:20",
+                      "09:40",
+                      "10:00",
+                      "10:20",
+                      "10:40",
+                      "11:00",
+                      "11:20",
+                      "11:40",
+                      "12:00",
+                      "12:20",
+                      "12:40",
+                      "13:00",
+                      "13:20",
+                      "13:40",
+                      "14:00",
+                      "14:20",
+                      "14:40",
+                      "15:00",
+                      "15:20",
+                      "15:40",
+                      "16:00",
+                      "16:20",
+                      "16:40"
+                    ]
+                  },
+                  {
+                    "name": "NGUYỄN MỸ BẢO ANH",
+                    "free_slots": [
+                      "07:40",
+                      "08:00",
+                      "08:20",
+                      "08:40",
+                      "09:00",
+                      "09:20",
+                      "09:40",
+                      "10:00",
+                      "10:20",
+                      "10:40",
+                      "11:00",
+                      "11:20",
+                      "11:40",
+                      "12:00",
+                      "12:20",
+                      "12:40",
+                      "13:00",
+                      "13:20",
+                      "13:40",
+                      "14:00",
+                      "14:20",
+                      "14:40",
+                      "15:00",
+                      "15:20",
+                      "15:40",
+                      "16:00",
+                      "16:20",
+                      "16:40"
+                    ]
+                  },
+                  {
+                    "name": "NGUYỄN THỊ THU HƯƠNG",
+                    "free_slots": [
+                      "07:40",
+                      "08:00",
+                      "08:20",
+                      "08:40",
+                      "09:00",
+                      "09:20",
+                      "09:40",
+                      "10:00",
+                      "10:20",
+                      "10:40",
+                      "11:00",
+                      "11:20",
+                      "11:40",
+                      "12:00",
+                      "12:20",
+                      "12:40",
+                      "13:00",
+                      "13:20",
+                      "13:40",
+                      "14:00",
+                      "14:20",
+                      "14:40",
+                      "15:00",
+                      "15:20",
+                      "15:40",
+                      "16:00",
+                      "16:20",
+                      "16:40"
+                    ]
+                  },
+                  {
+                    "name": "PHẠM THỊ VÂN THANH",
+                    "free_slots": [
+                      "07:40",
+                      "08:00",
+                      "08:20",
+                      "08:40",
+                      "09:00",
+                      "09:20",
+                      "09:40",
+                      "10:00",
+                      "10:20",
+                      "10:40",
+                      "11:00",
+                      "11:20",
+                      "11:40",
+                      "12:00",
+                      "12:20",
+                      "12:40",
+                      "13:00",
+                      "13:20",
+                      "13:40",
+                      "14:00",
+                      "14:20",
+                      "14:40",
+                      "15:00",
+                      "15:20",
+                      "15:40",
+                      "16:00",
+                      "16:20",
+                      "16:40"
+                    ]
+                  },
+                  {
+                    "name": "TRƯƠNG THỊ MAI HƯƠNG",
+                    "free_slots": [
+                      "07:40",
+                      "08:00",
+                      "08:20",
+                      "08:40",
+                      "09:00",
+                      "09:20",
+                      "09:40",
+                      "10:00",
+                      "10:20",
+                      "10:40",
+                      "11:00",
+                      "11:20",
+                      "11:40",
+                      "12:00",
+                      "12:20",
+                      "12:40",
+                      "13:00",
+                      "13:20",
+                      "13:40",
+                      "14:00",
+                      "14:20",
+                      "14:40",
+                      "15:00",
+                      "15:20",
+                      "15:40",
+                      "16:00",
+                      "16:20",
+                      "16:40"
+                    ]
+                  }
+                ]
+              },
+              {
+                "department_code": "TMH",
+                "department_name": "TAI - MŨI - Họng",
+                "doctors": [
+                  {
+                    "name": "LÊ NHẬT VINH",
+                    "free_slots": [
+                      "07:40",
+                      "08:00",
+                      "08:20",
+                      "08:40",
+                      "09:00",
+                      "09:20",
+                      "09:40",
+                      "10:00",
+                      "10:20",
+                      "10:40",
+                      "11:00",
+                      "11:20",
+                      "11:40",
+                      "12:00",
+                      "12:20",
+                      "12:40",
+                      "13:00",
+                      "13:20",
+                      "13:40",
+                      "14:00",
+                      "14:20",
+                      "14:40",
+                      "15:00",
+                      "15:20",
+                      "15:40",
+                      "16:00",
+                      "16:20",
+                      "16:40"
+                    ]
+                  },
+                  {
+                    "name": "NGUYỄN TRƯƠNG KHƯƠNG",
+                    "free_slots": [
+                      "07:40",
+                      "08:00",
+                      "08:20",
+                      "08:40",
+                      "09:00",
+                      "09:20",
+                      "09:40",
+                      "10:00",
+                      "10:20",
+                      "10:40",
+                      "11:00",
+                      "11:20",
+                      "11:40",
+                      "12:00",
+                      "12:20",
+                      "12:40",
+                      "13:00",
+                      "13:20",
+                      "13:40",
+                      "14:00",
+                      "14:20",
+                      "14:40",
+                      "15:00",
+                      "15:20",
+                      "15:40",
+                      "16:00",
+                      "16:20",
+                      "16:40"
+                    ]
+                  }
+                ]
+              }
+            ],
+            "hospital_image": "/images/BV_NAMSAIGON.png"
+          }
+        ],
+        "selected_department_codes": [
+          "KBKHAM",
+          "TMH"
+        ]
+      }
+    },
+    "symptoms": "Đau ngực, triệu chứng kéo dài một ngày, muốn khám vào buổi chiều."
+  },
+  "summary_struct": {
+    "patient_name": "Phạm Tuấn Hưng",
+    "phone": "0336018126",
+    "customer_id": "(không rõ)",
+    "doctor_name": "(không rõ)",
+    "appointment_time": "(không rõ)",
+    "room": "",
+    "queue_number": "",
+    "symptoms": "[{\"name\": \"Đau ngực\", \"severity\": null, \"duration\": \"một ngày\"}]",
+    "tentative_diagnoses": "[\"Nghi vấn bệnh tim mạch\"]",
+    "tests_recommended": "[]",
+    "medications_advised": "[]",
+    "diet_notes": "(không rõ)",
+    "follow_up": "(không rõ)",
+    "warnings": "Không tìm thấy khoa Tim mạch trong dữ liệu bệnh viện được cung cấp."
+  },
+  "facts_pretty": "Thông tin cá nhân: Phạm Tuấn Hưng, SĐT 0336018126. Tiền sử bệnh: Đã từng khám tổng quát định kỳ. Dị ứng: Không. Thói quen sinh hoạt: Ngồi nghiêng, làm việc xuyên khuya. Thuốc đang dùng: Không. Bệnh di truyền gia đình: Không. Các triệu chứng mạn tính/tái phát: Ho, sổ mũi, đau họng, đau lưng, mỏi lưng. Sở thích, phong cách, thái độ nói chuyện: Trực tiếp, rõ ràng, đồng ý với lịch khám đề xuất.",
+  "summary_pretty": "Lỗi xử lý: 503 UNAVAILABLE. {'error': {'code': 503, 'message': 'The model is overloaded. Please try again later.', 'status': 'UNAVAILABLE'}}",
+  "booking_index": {
+    "hospital_code": null,
+    "department_code": null,
+    "doctor_name": "null",
+    "date": null,
+    "slot_time": null
+  },
+  "doctor_name": "(không rõ)",
+  "appointment_time": "(không rõ)"
+}

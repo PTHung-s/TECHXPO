@@ -1,0 +1,378 @@
+{
+  "patient_name": "Phạm Tuấn Hưng",
+  "phone": "0336018126",
+  "booking": {
+    "options": [
+      {
+        "hospital_name": "Bệnh viện Nam Sài Gòn",
+        "hospital_code": "BV_NAMSAIGON",
+        "department": "TAI - MŨI - Họng",
+        "department_code": "TMH",
+        "doctor_name": "LÊ NHẬT VINH",
+        "slot_time": "2025-09-12 07:40",
+        "room": null,
+        "score": null,
+        "image_url": "/images/BV_NAMSAIGON.png",
+        "hospital": "Bệnh viện Nam Sài Gòn"
+      },
+      {
+        "hospital_name": "Bệnh viện Nam Sài Gòn",
+        "hospital_code": "BV_NAMSAIGON",
+        "department": "TAI - MŨI - Họng",
+        "department_code": "TMH",
+        "doctor_name": "NGUYỄN TRƯƠNG KHƯƠNG",
+        "slot_time": "2025-09-12 07:40",
+        "room": null,
+        "score": null,
+        "image_url": "/images/BV_NAMSAIGON.png",
+        "hospital": "Bệnh viện Nam Sài Gòn"
+      },
+      {
+        "hospital_name": "Bệnh viện Nam Sài Gòn",
+        "hospital_code": "BV_NAMSAIGON",
+        "department": "Khám Bệnh",
+        "department_code": "KBKHAM",
+        "doctor_name": "NGUYỄN HỮU LĨNH",
+        "slot_time": "2025-09-12 07:40",
+        "room": null,
+        "score": null,
+        "image_url": "/images/BV_NAMSAIGON.png",
+        "hospital": "Bệnh viện Nam Sài Gòn"
+      }
+    ],
+    "chosen": {
+      "hospital_name": "Bệnh viện Nam Sài Gòn",
+      "hospital_code": "BV_NAMSAIGON",
+      "department": "TAI - MŨI - Họng",
+      "department_code": "TMH",
+      "doctor_name": "LÊ NHẬT VINH",
+      "slot_time": "2025-09-12 07:40",
+      "room": null,
+      "score": null,
+      "image_url": "/images/BV_NAMSAIGON.png",
+      "hospital": "Bệnh viện Nam Sài Gòn"
+    },
+    "rationale": "Với các triệu chứng ho khan, sổ mũi trong và đau họng nhẹ, khoa Tai - Mũi - Họng hoặc Khám Bệnh đều phù hợp. Chúng tôi đã chọn các bác sĩ có lịch trống sớm nhất tại Bệnh viện Nam Sài Gòn để tiện cho khách hàng.",
+    "patient_name": null,
+    "phone": null,
+    "meta": {
+      "selected_department_codes": [
+        "KBKHAM",
+        "TMH"
+      ],
+      "selected_departments": [
+        "Khám Bệnh",
+        "TAI - MŨI - Họng"
+      ],
+      "two_stage": true,
+      "schedule": {
+        "date": "2025-09-12",
+        "slots": {
+          "start": "07:40",
+          "end": "16:40",
+          "slot_minutes": 20
+        },
+        "hospitals": [
+          {
+            "hospital_code": "BV_NAMSAIGON",
+            "hospital_name": "Bệnh viện Nam Sài Gòn",
+            "departments": [
+              {
+                "department_code": "KBKHAM",
+                "department_name": "Khám Bệnh",
+                "doctors": [
+                  {
+                    "name": "NGUYỄN HỮU LĨNH",
+                    "free_slots": [
+                      "07:40",
+                      "08:00",
+                      "08:20",
+                      "08:40",
+                      "09:00",
+                      "09:20",
+                      "09:40",
+                      "10:00",
+                      "10:20",
+                      "10:40",
+                      "11:00",
+                      "11:20",
+                      "11:40",
+                      "12:00",
+                      "12:20",
+                      "12:40",
+                      "13:00",
+                      "13:20",
+                      "13:40",
+                      "14:00",
+                      "14:20",
+                      "14:40",
+                      "15:00",
+                      "15:20",
+                      "15:40",
+                      "16:00",
+                      "16:20",
+                      "16:40"
+                    ]
+                  },
+                  {
+                    "name": "NGUYỄN MỸ BẢO ANH",
+                    "free_slots": [
+                      "07:40",
+                      "08:00",
+                      "08:20",
+                      "08:40",
+                      "09:00",
+                      "09:20",
+                      "09:40",
+                      "10:00",
+                      "10:20",
+                      "10:40",
+                      "11:00",
+                      "11:20",
+                      "11:40",
+                      "12:00",
+                      "12:20",
+                      "12:40",
+                      "13:00",
+                      "13:20",
+                      "13:40",
+                      "14:00",
+                      "14:20",
+                      "14:40",
+                      "15:00",
+                      "15:20",
+                      "15:40",
+                      "16:00",
+                      "16:20",
+                      "16:40"
+                    ]
+                  },
+                  {
+                    "name": "NGUYỄN THỊ THU HƯƠNG",
+                    "free_slots": [
+                      "07:40",
+                      "08:00",
+                      "08:20",
+                      "08:40",
+                      "09:00",
+                      "09:20",
+                      "09:40",
+                      "10:00",
+                      "10:20",
+                      "10:40",
+                      "11:00",
+                      "11:20",
+                      "11:40",
+                      "12:00",
+                      "12:20",
+                      "12:40",
+                      "13:00",
+                      "13:20",
+                      "13:40",
+                      "14:00",
+                      "14:20",
+                      "14:40",
+                      "15:00",
+                      "15:20",
+                      "15:40",
+                      "16:00",
+                      "16:20",
+                      "16:40"
+                    ]
+                  },
+                  {
+                    "name": "PHẠM THỊ VÂN THANH",
+                    "free_slots": [
+                      "07:40",
+                      "08:00",
+                      "08:20",
+                      "08:40",
+                      "09:00",
+                      "09:20",
+                      "09:40",
+                      "10:00",
+                      "10:20",
+                      "10:40",
+                      "11:00",
+                      "11:20",
+                      "11:40",
+                      "12:00",
+                      "12:20",
+                      "12:40",
+                      "13:00",
+                      "13:20",
+                      "13:40",
+                      "14:00",
+                      "14:20",
+                      "14:40",
+                      "15:00",
+                      "15:20",
+                      "15:40",
+                      "16:00",
+                      "16:20",
+                      "16:40"
+                    ]
+                  },
+                  {
+                    "name": "TRƯƠNG THỊ MAI HƯƠNG",
+                    "free_slots": [
+                      "07:40",
+                      "08:00",
+                      "08:20",
+                      "08:40",
+                      "09:00",
+                      "09:20",
+                      "09:40",
+                      "10:00",
+                      "10:20",
+                      "10:40",
+                      "11:00",
+                      "11:20",
+                      "11:40",
+                      "12:00",
+                      "12:20",
+                      "12:40",
+                      "13:00",
+                      "13:20",
+                      "13:40",
+                      "14:00",
+                      "14:20",
+                      "14:40",
+                      "15:00",
+                      "15:20",
+                      "15:40",
+                      "16:00",
+                      "16:20",
+                      "16:40"
+                    ]
+                  }
+                ]
+              },
+              {
+                "department_code": "TMH",
+                "department_name": "TAI - MŨI - Họng",
+                "doctors": [
+                  {
+                    "name": "LÊ NHẬT VINH",
+                    "free_slots": [
+                      "07:40",
+                      "08:00",
+                      "08:20",
+                      "08:40",
+                      "09:00",
+                      "09:20",
+                      "09:40",
+                      "10:00",
+                      "10:20",
+                      "10:40",
+                      "11:00",
+                      "11:20",
+                      "11:40",
+                      "12:00",
+                      "12:20",
+                      "12:40",
+                      "13:00",
+                      "13:20",
+                      "13:40",
+                      "14:00",
+                      "14:20",
+                      "14:40",
+                      "15:00",
+                      "15:20",
+                      "15:40",
+                      "16:00",
+                      "16:20",
+                      "16:40"
+                    ]
+                  },
+                  {
+                    "name": "NGUYỄN TRƯƠNG KHƯƠNG",
+                    "free_slots": [
+                      "07:40",
+                      "08:00",
+                      "08:20",
+                      "08:40",
+                      "09:00",
+                      "09:20",
+                      "09:40",
+                      "10:00",
+                      "10:20",
+                      "10:40",
+                      "11:00",
+                      "11:20",
+                      "11:40",
+                      "12:00",
+                      "12:20",
+                      "12:40",
+                      "13:00",
+                      "13:20",
+                      "13:40",
+                      "14:00",
+                      "14:20",
+                      "14:40",
+                      "15:00",
+                      "15:20",
+                      "15:40",
+                      "16:00",
+                      "16:20",
+                      "16:40"
+                    ]
+                  }
+                ]
+              }
+            ],
+            "hospital_image": "/images/BV_NAMSAIGON.png"
+          }
+        ],
+        "selected_department_codes": [
+          "KBKHAM",
+          "TMH"
+        ]
+      }
+    },
+    "symptoms": "Ho khan, sổ mũi trong, đau họng nhẹ",
+    "persist_result": {
+      "soft_hold": {
+        "ok": true,
+        "message": "held",
+        "session_id": "default"
+      },
+      "schedule_backend": {
+        "ok": true,
+        "message": "booked",
+        "finalize_persist": true,
+        "mode": "promote_hold"
+      }
+    }
+  },
+  "summary_struct": {
+    "patient_name": "Phạm Tuấn Hưng",
+    "phone": "0336018126",
+    "customer_id": "(không rõ)",
+    "doctor_name": "LÊ NHẬT VINH",
+    "appointment_time": "2025-09-12 07:40",
+    "room": "",
+    "queue_number": "",
+    "symptoms": "[{\"name\": \"Ho khan\", \"severity\": null, \"duration\": \"hai ngày\"}, {\"name\": \"Sổ mũi trong\", \"severity\": null, \"duration\": \"hai ngày\"}, {\"name\": \"Đau họng\", \"severity\": \"nhẹ\", \"duration\": \"hai ngày\"}]",
+    "tentative_diagnoses": "[]",
+    "tests_recommended": "[]",
+    "medications_advised": "[]",
+    "diet_notes": "(không rõ)",
+    "follow_up": "(không rõ)",
+    "warnings": "Đây chỉ là hỗ trợ sơ bộ, chẩn đoán chính thức sẽ do bác sĩ đưa ra khi khám ạ."
+  },
+  "facts_pretty": "Thông tin cá nhân: Phạm Tuấn Hưng, SĐT 0336018126. Tiền sử bệnh: Đã từng khám tổng quát định kỳ. Dị ứng: Không. Thói quen sinh hoạt quan trọng: Ngồi nghiêng, làm việc xuyên khuya. Thuốc đang dùng thường xuyên: Không. Bệnh di truyền gia đình: Không. Các triệu chứng mạn tính/tái phát: Ho, sổ mũi, đau họng, đau lưng, mỏi lưng. Sở thích, phong cách, thái độ nói chuyện: Trực tiếp, rõ ràng, đồng ý với lịch khám đề xuất.",
+  "summary_pretty": "Lý do khám chính: Đặt lịch khám do bị ho, sổ mũi, đau họng.\nTriệu chứng hiện tại và thời gian xuất hiện: Ho khan, sổ mũi trong, đau họng nhẹ, xuất hiện được hai ngày. Không kèm theo sốt hay khó thở.\nChẩn đoán sơ bộ: Không có.\nKế hoạch điều trị/xét nghiệm: Đặt lịch khám với bác sĩ Lê Nhật Vinh tại khoa Tai - Mũi - Họng, Bệnh viện Nam Sài Gòn vào 7 giờ 40 phút sáng ngày 12 tháng 9.\nLưu ý đặc biệt: Giữ ấm cơ thể, uống đủ nước, hạn chế nói to để tránh ảnh hưởng đến họng.",
+  "booking_index": {
+    "hospital_code": "BV_NAMSAIGON",
+    "department_code": "TMH",
+    "doctor_name": "LÊ NHẬT VINH",
+    "date": "2025-09-12",
+    "slot_time": "07:40"
+  },
+  "hospital_code": "BV_NAMSAIGON",
+  "date": "2025-09-12",
+  "slot_time": "07:40",
+  "doctor_name": "LÊ NHẬT VINH",
+  "appointment_time": "2025-09-12 07:40"
+}

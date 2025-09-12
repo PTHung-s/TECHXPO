@@ -1,5 +1,126 @@
 import { Room, RoomEvent, createLocalAudioTrack } from 'https://esm.sh/livekit-client@2'
 
+// Logo handling
+function createFavicon(logoSrc) {
+  // Create canvas to generate favicon
+  const canvas = document.createElement('canvas')
+  const ctx = canvas.getContext('2d')
+  canvas.width = 32
+  canvas.height = 32
+  
+  const img = new Image()
+  img.onload = function() {
+    // Clear canvas with rounded background
+    ctx.fillStyle = '#2563eb'
+    ctx.fillRect(0, 0, 32, 32)
+    
+    // Draw logo centered
+    const size = 28 // Leave 2px padding
+    const offset = 2
+    ctx.drawImage(img, offset, offset, size, size)
+    
+    // Convert to favicon
+    const faviconUrl = canvas.toDataURL('image/png')
+    
+    // Update favicon
+    let favicon = document.querySelector('link[rel="shortcut icon"]')
+    if (!favicon) {
+      favicon = document.createElement('link')
+      favicon.rel = 'shortcut icon'
+      document.head.appendChild(favicon)
+    }
+    favicon.href = faviconUrl
+    
+    // Also update 32x32 favicon
+    let favicon32 = document.querySelector('link[rel="icon"][sizes="32x32"]')
+    if (favicon32) {
+      favicon32.href = faviconUrl
+    }
+  }
+  img.src = logoSrc
+}
+
+function createFallbackFavicon() {
+  // Create a simple AI favicon as fallback
+  const canvas = document.createElement('canvas')
+  const ctx = canvas.getContext('2d')
+  canvas.width = 32
+  canvas.height = 32
+  
+  // Background gradient
+  const gradient = ctx.createLinearGradient(0, 0, 32, 32)
+  gradient.addColorStop(0, '#2563eb')
+  gradient.addColorStop(1, '#4f46e5')
+  ctx.fillStyle = gradient
+  ctx.fillRect(0, 0, 32, 32)
+  
+  // Draw "AI" text
+  ctx.fillStyle = '#ffffff'
+  ctx.font = 'bold 16px Arial'
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'middle'
+  ctx.fillText('AI', 16, 16)
+  
+  // Update favicon
+  const faviconUrl = canvas.toDataURL('image/png')
+  let favicon = document.querySelector('link[rel="shortcut icon"]')
+  if (!favicon) {
+    favicon = document.createElement('link')
+    favicon.rel = 'shortcut icon'
+    document.head.appendChild(favicon)
+  }
+  favicon.href = faviconUrl
+}
+
+function initLogo() {
+  const logoImg = document.getElementById('logoImg')
+  const logoFallback = document.getElementById('logoFallback')
+  const logoContainer = document.getElementById('logoContainer')
+  
+  // Try to load logo.png from images directory
+  const logoPath = '/images/logo.png'
+  
+  // Test if logo exists
+  const testImg = new Image()
+  testImg.onload = function() {
+    // Logo exists, show it
+    logoImg.src = logoPath
+    logoImg.style.display = 'block'
+    logoFallback.style.display = 'none'
+    logoContainer.classList.remove('fallback')
+    
+    // Create favicon from logo
+    createFavicon(logoPath)
+  }
+  testImg.onerror = function() {
+    // Logo doesn't exist, use fallback
+    logoImg.style.display = 'none'
+    logoFallback.style.display = 'flex'
+    logoContainer.classList.add('fallback')
+    
+    // Create fallback favicon
+    createFallbackFavicon()
+  }
+  testImg.src = logoPath
+}
+
+// Global logo error handler
+window.handleLogoError = function() {
+  const logoImg = document.getElementById('logoImg')
+  const logoFallback = document.getElementById('logoFallback')
+  const logoContainer = document.getElementById('logoContainer')
+  
+  logoImg.style.display = 'none'
+  logoFallback.style.display = 'flex'
+  logoContainer.classList.add('fallback')
+  
+  // Create fallback favicon when logo fails to load
+  createFallbackFavicon()
+}
+
+// Initialize logo on page load
+document.addEventListener('DOMContentLoaded', initLogo)
+
 // DOM refs
 const startBtn = document.getElementById('startBtn')
 const landing = document.getElementById('landing')

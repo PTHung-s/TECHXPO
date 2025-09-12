@@ -4,6 +4,16 @@
   <meta charset="UTF-8" />
   <title>Kiosk Bác sĩ Ảo</title>
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+  
+  <!-- Favicon links - multiple sizes for different devices -->
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+  <link rel="manifest" href="/site.webmanifest">
+  
+  <!-- Fallback favicon -->
+  <link rel="shortcut icon" href="/favicon.ico">
+  
   <style>
     :root {
       --bg-gradient: radial-gradient(circle at 30% 30%, #1e3a8a 0%, #0f172a 60%, #020617 100%);
@@ -27,6 +37,13 @@
     .pill { padding:.45rem .9rem; border-radius:2rem; font-size:.65rem; letter-spacing:.5px; font-weight:600; background:var(--glass); backdrop-filter:blur(10px); border:1px solid var(--border); display:inline-flex; align-items:center; gap:.35rem; }
     #app { min-height:100svh; display:flex; flex-direction:column; }
     header { display:flex; align-items:center; justify-content:space-between; padding:.85rem clamp(.9rem,2.5vw,2rem); gap:1rem; position:relative; z-index:10; }
+    .logo-section { display:flex; align-items:center; gap:.8rem; }
+    .logo-container { display:flex; align-items:center; justify-content:center; width:48px; height:48px; border-radius:12px; background:var(--glass); border:1px solid var(--border); overflow:hidden; backdrop-filter:blur(8px); }
+    .logo-container img { width:100%; height:100%; object-fit:contain; transition:transform 0.3s ease; }
+    .logo-container:hover img { transform:scale(1.05); }
+    .logo-container.fallback { background:linear-gradient(135deg,#2563eb,#4f46e5); color:#fff; font-weight:700; font-size:1.2rem; }
+    .logo-container #logoFallback { display:flex; align-items:center; justify-content:center; width:100%; height:100%; }
+    .app-title { display:flex; align-items:center; gap:.8rem; }
     #callBar { display:none; align-items:center; gap:.65rem; flex-wrap:wrap; }
     #callBar.active { display:flex; }
     #timer { font-variant-numeric:tabular-nums; font-size:.95rem; font-weight:600; background:var(--glass); border:1px solid var(--border); padding:.5rem 1rem; border-radius:1rem; box-shadow:0 0 0 1px rgba(255,255,255,.04), 0 4px 18px -4px #1e40af; }
@@ -103,24 +120,83 @@
       .bk-meta { font-size:.72rem; padding:.55rem .55rem .6rem; }
       .bk-hosp-overlay { font-size:.85rem; }
     }
-    /* Mobile tweaks */
-    @media (max-width:780px){
-      header { flex-direction:column; align-items:stretch; gap:.75rem; }
-      #callBar { width:100%; justify-content:space-between; }
-      #timer { order:2; flex:1; text-align:center; }
-  #infoPanel { min-height:52vh; }
-  #waveBar { height:84px; overflow:visible; }
-  .hangup-btn { width:82px; height:82px; }
-  .hangup-btn img { width:70%; height:70%; position:relative; left:-3px; top:1px; }
+    
   /* Identity stacked block for name & phone two lines */
-  .identity-block { display:flex; flex-direction:column; gap:.55rem; padding:.4rem 0 .2rem; }
-  .identity-line { font-size:1.15rem; font-weight:600; letter-spacing:.4px; }
-  .identity-label { display:block; font-size:.55rem; opacity:.55; text-transform:uppercase; letter-spacing:.55px; margin-bottom:.15rem; }
-  @media (max-width:620px){ .identity-line { font-size:1.05rem; } }
-      #logPanel { width:calc(100% - 2rem); right:50%; transform:translate(50%,8px); }
-      #logPanel.show { transform:translate(50%,0); }
-      #startBtn { width:150px; height:150px; }
+  .identity-block { 
+    display:flex; 
+    flex-direction:column; 
+    gap:.8rem; 
+    padding:.6rem 1rem .4rem; 
+    background: linear-gradient(135deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
+    border-radius: .8rem;
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+  .identity-line { 
+    font-size:2.3rem; 
+    font-weight:800; 
+    letter-spacing:.2px; 
+    color: #ffffff;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    line-height: 1.2;
+  }
+  .identity-label { 
+    display:block; 
+    font-size:.7rem; 
+    opacity:.7; 
+    text-transform:uppercase; 
+    letter-spacing:.8px; 
+    margin-bottom:.25rem; 
+    color: #94a3b8;
+    font-weight: 600;
+  }
+  
+  /* Desktop styling - even larger and more professional */
+  @media (min-width:781px){
+    .identity-line { 
+      font-size:2.0rem; 
+      font-weight:900; 
+      letter-spacing:.1px;
+      text-shadow: 0 3px 12px rgba(0,0,0,0.4);
     }
+    .identity-label { 
+      font-size:.8rem; 
+      opacity:.8; 
+      letter-spacing:.9px; 
+      margin-bottom:.3rem; 
+    }
+    .identity-block { 
+      gap:1rem; 
+      padding:.8rem 1.2rem .6rem; 
+      border-radius: 1rem;
+    }
+  }
+  
+  /* Mobile - slightly smaller but still prominent */
+  @media (max-width:620px){ 
+    .identity-line { 
+      font-size:1.8rem; 
+      font-weight:800;
+    }
+    .identity-block {
+      padding:.5rem .8rem .3rem;
+      gap:.6rem;
+    }
+  }
+  
+  /* Mobile tweaks */
+  @media (max-width:780px){
+    header { flex-direction:column; align-items:stretch; gap:.75rem; }
+    .app-title { justify-content:center; }
+    #callBar { width:100%; justify-content:space-between; }
+    #timer { order:2; flex:1; text-align:center; }
+    #infoPanel { min-height:52vh; }
+    #waveBar { height:84px; overflow:visible; }
+    .hangup-btn { width:82px; height:82px; }
+    .hangup-btn img { width:70%; height:70%; position:relative; left:-3px; top:1px; }
+    #logPanel { width:calc(100% - 2rem); right:50%; transform:translate(50%,8px); }
+    #logPanel.show { transform:translate(50%,0); }
+    #startBtn { width:150px; height:150px; }
+  }
     /* Circle expand transition */
     #startBtn.expanding { animation:none; position:relative; z-index:50; overflow:visible; }
   #startBtn.expanding:after { content:""; position:absolute; inset:0; border-radius:50%; background:radial-gradient(circle at 35% 30%,#2563eb 0%,#1d4ed8 60%,#1e3a8a 100%); animation:circleExpand 1.4s ease-out forwards; }
@@ -132,9 +208,15 @@
 <body>
   <div id="app">
     <header>
-      <div style="display:flex; align-items:center; gap:.8rem;">
-        <div id="statusDot" class="connecting"></div>
-        <h1>Bác sĩ Ảo</h1>
+      <div class="app-title">
+        <div class="logo-container" id="logoContainer">
+          <img id="logoImg" src="" alt="Logo" style="display:none;" onerror="handleLogoError()">
+          <div id="logoFallback" class="fallback">AI</div>
+        </div>
+        <div class="logo-section">
+          <div id="statusDot" class="connecting"></div>
+          <h1>Bác sĩ Ảo</h1>
+        </div>
       </div>
       <div id="callBar">
         <div id="timer">00:00</div>

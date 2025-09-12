@@ -186,15 +186,38 @@ def build_all_tools(
         context: RunContext,
         patient_name: str,
         phone: str,
+        user_summary: str,
+        symptoms: str,
         preferred_time: Optional[str] = None,
-        symptoms: Optional[str] = None,
     ) -> dict:
+        """Đặt lịch khám với thông tin ngắn gọn thay vì full history.
+        
+        Args:
+            patient_name: Tên bệnh nhân
+            phone: Số điện thoại
+            user_summary: Tóm tắt yêu cầu của người dùng (bắt buộc)
+            symptoms: Triệu chứng của bệnh nhân (bắt buộc)
+            preferred_time: Thời gian mong muốn (optional)
+        """
         # Xóa kết quả đặt lịch cũ để bắt đầu một phiên mới, tránh đọc lại lịch cũ
         shared["latest_booking"] = None
         shared["allow_finalize"] = False
 
         if not identity_state.get("identity_confirmed"):
             return {"ok": False, "error": "identity_not_confirmed", "message": "Chưa xác nhận họ tên & SĐT."}
+        
+        # Validation for required parameters
+        if not user_summary or not user_summary.strip():
+            return {"ok": False, "error": "missing_user_summary", "message": "Cần có tóm tắt yêu cầu của người dùng."}
+        if not symptoms or not symptoms.strip():
+            return {"ok": False, "error": "missing_symptoms", "message": "Cần có thông tin triệu chứng."}
+        
+        # Log the booking request details
+        _fn_log(f"BOOKING REQUEST - Patient: {patient_name}, Phone: {phone}")
+        _fn_log(f"USER SUMMARY: {user_summary}")
+        _fn_log(f"SYMPTOMS: {symptoms}")
+        _fn_log(f"PREFERRED TIME: {preferred_time}")
+        
         # Ngăn spam khi đang chạy
         if shared.get("booking_in_progress"):
             return {"ok": False, "error": "booking_in_progress", "message": "Đang tra cứu lịch, vui lòng chờ."}
@@ -212,15 +235,17 @@ def build_all_tools(
         if symptoms:
             state.add("user", f"Triệu chứng khai báo: {symptoms}")
 
-        # Snapshot history (không chặn user tiếp tục nói)
-        history = "\n".join(state.lines)
+        # Prepare lightweight data for booking instead of full history
         rag = shared.get("rag")
+        medical_guidelines = ""
         if rag and symptoms:
             try:
                 guideline_ctx = rag.query(symptoms, k=3, max_chars=600)
                 if guideline_ctx and "[GUIDELINES]" in guideline_ctx:
-                    history += f"\n\n[MEDICAL_GUIDELINES]\n{guideline_ctx}\n[/MEDICAL_GUIDELINES]"
-            except Exception:
+                    medical_guidelines = guideline_ctx
+                    _fn_log(f"RAG MEDICAL GUIDELINES: Found {len(medical_guidelines)} chars for symptoms: {symptoms[:50]}...")
+            except Exception as e:
+                _fn_log(f"RAG query failed: {e}")
                 pass
 
         # Lấy cấu hình datasources
@@ -255,6 +280,8 @@ def build_all_tools(
             "patient_name": raw_name,
             "phone": raw_phone,
             "preferred_time": preferred_time,
+            "user_summary": user_summary,
+            "symptoms": symptoms,
         })
 
         session = shared.get("session")
@@ -269,7 +296,9 @@ def build_all_tools(
             try:
                 result = await asyncio.to_thread(
                     book_appointment,
-                    history,
+                    user_summary,
+                    symptoms,
+                    medical_guidelines,
                     data_path,
                     book_model,
                     extra_paths,
@@ -278,13 +307,23 @@ def build_all_tools(
                     result["symptoms"] = symptoms
                 shared["latest_booking"] = result
                 shared["allow_finalize"] = True
-                # LOGGING: In ra các options trước khi gửi đi để kiểm tra hospital_name
+                
+                # Enhanced logging for booking result
+                options_count = len(result.get('options', []))
+                chosen = result.get('chosen')
+                _fn_log(f"BOOKING RESULT - Found {options_count} options, chosen: {chosen is not None}")
                 _fn_log(f"Publishing booking options with hospital names: {result.get('options', [])[:2]}")
+                
+                # Log individual options
+                for i, option in enumerate(result.get('options', [])[:3]):
+                    _fn_log(f"Option {i+1}: {option.get('hospital_name', 'N/A')} - {option.get('doctor_name', 'N/A')} - {option.get('slot_time', 'N/A')}")
 
                 publish_data({
                     "type": "booking_result",
                     "booking": result,
                 })
+                # Tắt hold mode (đã có kết quả)
+                shared["booking_hold_active"] = False
                 # Kết thúc guard
                 if shared.get("booking_guard_added"):
                     state.add("system", "BOOKING_GUARD_END")
@@ -305,6 +344,9 @@ def build_all_tools(
                     # Phát speak_text (ngắn gọn) cho bệnh nhân nghe
                     speak_text = (result.get("speak_text") or "").strip()
                     if speak_text:
+                        shared["booking_speak_text"] = speak_text
+                        # Thêm system context để model hiểu phải đọc speak_text ngay
+                        state.add("system", f"SPEAK_TEXT_REQUIRED: Phải đọc nguyên văn câu sau cho bệnh nhân: {speak_text}")
                         try:
                             # Chờ âm thanh trước (nếu còn) để tránh chồng tiếng
                             with contextlib.suppress(Exception):
@@ -312,18 +354,19 @@ def build_all_tools(
                         except Exception:
                             pass
                         try:
-                            # Dùng chỉ dẫn mạnh để model đọc nguyên văn
-                            force_instr = (
-                                "ĐỌC NGUYÊN VĂN lịch khám vừa đặt cho bệnh nhân, không thêm câu hỏi hay diễn giải khác. "
-                                "Sau khi đọc xong thì dừng lại chờ bệnh nhân xác nhận. Câu cần đọc: \n" + speak_text
-                            )
+                            # Dùng chỉ dẫn mạnh và đơn giản để model đọc nguyên văn
+                            
                             rg = shared.get("reply_gate")
                             if rg:
-                                await rg.say(force_instr)
+                                await rg.say(speak_text)
+                                shared["booking_speak_text_announced"] = True
                             else:
-                                handle = await session.generate_reply(instructions=force_instr)
+                                # Fallback nếu không có reply_gate - tạo handle session trực tiếp
+                                handle = await session.generate_reply(instructions=speak_text)
                                 await handle
-                        except Exception:
+                                shared["booking_speak_text_announced"] = True
+                        except Exception as e:
+                            _fn_log(f"Error announcing speak_text: {e}")
                             pass
                 except Exception:
                     pass
@@ -332,6 +375,8 @@ def build_all_tools(
                     "type": "booking_error",
                     "error": str(e),
                 })
+                # Tắt hold mode do lỗi
+                shared["booking_hold_active"] = False
                 if shared.get("booking_guard_added"):
                     state.add("system", "BOOKING_GUARD_END")
                     shared["booking_guard_added"] = False
@@ -356,7 +401,7 @@ def build_all_tools(
         return {
             "ok": True,
             "pending": True,
-            "speak_text": "Dạ em đang tìm lịch phù hợp cho mình ạ, xin vui lòng đợi và giữ máy một chút nhé. Em sẽ thông báo lịch khám ngay khi có kết quả ạ",
+            "speak_text": "NHIỆM VỤ: Thông báo với bệnh nhân rằng bạn đang tìm lịch. Nói chính xác câu sau:\n\n\"Dạ em đang tìm lịch phù hợp cho mình ạ, xin vui lòng đợi và giữ máy một chút nhé. Em sẽ thông báo lịch khám ngay khi có kết quả ạ\"\n\nKHÔNG được thêm bất kỳ thông tin lịch nào khác, nói xong câu này thì dừng lại luôn. Nếu nói thêm sẽ gây lỗi hệ thống vì sắp tới bạn sẽ nhận được 1 số lịch để thông báo cho bệnh nhân, còn hiện giờ thì chưa.",
             "instruction": "Không được cung cấp lịch khám cụ thể cho tới khi nhận booking_result. Nếu cần nói gì thêm chỉ nhắc bệnh nhân chờ.",
         }
 

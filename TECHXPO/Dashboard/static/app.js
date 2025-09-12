@@ -123,41 +123,69 @@ async function showVisitDetail(hospital_code, date, doctor_name, slot_time){
         .replace(/>/g,'&gt;')
         .replace(/"/g,'&quot;')
         .replace(/'/g,'&#39;');
+      
       // Gộp thành 1 dòng để cắt theo cặp 'Nhãn:'
       summaryRaw = summaryRaw.replace(/[\r\n]+/g,' ').replace(/\s{2,}/g,' ').trim();
+      
       // Chuyển list JSON ["A","B"] -> A, B
       summaryRaw = summaryRaw.replace(/\[\s*"([^\]]+?)"\s*\]/g,(m,inner)=> inner.split(/"\s*,\s*"/).join(', '));
-      const re = /([A-Za-zÀ-ỹĐđ][A-Za-zÀ-ỹ0-9 ,\/()'"%-]{1,90}?):\s*/g;
-      let match; const labels=[]; // collect label metadata
-      while((match = re.exec(summaryRaw))){ labels.push({label:match[1].trim(), start:match.index, end:re.lastIndex}); }
+      
+      // Regex cải thiện: cho phép nhãn dài hơn và nhiều ký tự đặc biệt hơn
+      const re = /([A-Za-zÀ-ỹĐđ][A-Za-zÀ-ỹ0-9 ,\/()'"%-]{1,150}?):\s*/g;
+      let match; 
+      const labels=[]; // collect label metadata
+      
+      while((match = re.exec(summaryRaw))){ 
+        const label = match[1].trim();
+        // Bỏ qua các pattern không phải nhãn thực sự
+        if(/^[0-9]{1,2}:[0-9]{2}$/.test(label)) continue; // thời gian
+        if(/^[0-9]+$/.test(label)) continue; // chỉ số
+        if(label.length < 3) continue; // quá ngắn
+        
+        labels.push({label, start:match.index, end:re.lastIndex}); 
+      }
+      
       const rows=[];
       for(let i=0;i<labels.length;i++){
         const cur = labels[i];
         const next = labels[i+1];
         let value = summaryRaw.slice(cur.end, next ? next.start : summaryRaw.length).trim();
-        if(/^[0-9]{1,2}:[0-9]{2}$/.test(cur.label)) continue; // tránh thời gian
-        if(!/[A-Za-zÀ-ỹ]/.test(cur.label)) continue;
+        
+        // Loại bỏ value quá ngắn hoặc rỗng
+        if(!value || value.length < 2) continue;
+        
         rows.push({label:cur.label, value});
       }
+      
       if(rows.length === 0){
         // Fallback: chia câu -> mỗi câu 1 dòng (không có nhãn)
-        const sentences = summaryRaw.split(/(?<=[.!?])\s+/).filter(Boolean);
+        const sentences = summaryRaw.split(/(?<=[.!?])\s+/).filter(s => s.trim().length > 0);
         summary = `<table class="summary-table">${sentences.map(s=>`<tr><td colspan='2'>${escapeHtml(s)}</td></tr>`).join('')}</table>`;
       } else {
         summary = `<table class="summary-table">${rows.map(r=>`<tr><th>${escapeHtml(r.label)}</th><td>${escapeHtml(r.value)}</td></tr>`).join('')}</table>`;
       }
     }
+    
     let body = '';
-    body += `<div class='kv'><span>Benh nhân:</span><strong>${p.patient_name || booking.patient_name || '(?)'}</strong></div>`;
+    body += `<div class='kv'><span>Bệnh nhân:</span><strong>${p.patient_name || booking.patient_name || '(?)'}</strong></div>`;
     body += `<div class='kv'><span>Điện thoại:</span><strong>${p.phone || booking.phone || '(?)'}</strong></div>`;
     body += `<div class='kv'><span>Bác sĩ:</span><strong>${booking.doctor_name || p.doctor_name || '(?)'}</strong></div>`;
     body += `<div class='kv'><span>Thời gian:</span><strong>${booking.slot_time || p.slot_time || slot_time}</strong></div>`;
+    
     if(p.summary_struct){
-      try { const ss = typeof p.summary_struct === 'string' ? JSON.parse(p.summary_struct) : p.summary_struct; if(ss.tentative_diagnoses){ body += `<div class='kv'><span>Chẩn đoán sơ bộ:</span><strong>${Array.isArray(ss.tentative_diagnoses)? ss.tentative_diagnoses.join(', '): ss.tentative_diagnoses}</strong></div>`;} }catch(e){}
+      try { 
+        const ss = typeof p.summary_struct === 'string' ? JSON.parse(p.summary_struct) : p.summary_struct; 
+        if(ss.tentative_diagnoses){ 
+          body += `<div class='kv'><span>Chẩn đoán sơ bộ:</span><strong>${Array.isArray(ss.tentative_diagnoses)? ss.tentative_diagnoses.join(', '): ss.tentative_diagnoses}</strong></div>`;
+        } 
+      }catch(e){}
     }
-  if(summary){ body += `<hr><div class='wrap-summary'>${summary}</div>`; }
+    
+    if(summary){ body += `<hr><div class='wrap-summary'>${summary}</div>`; }
     showModal({title:'Phiếu thăm khám', body});
-  }catch(e){ showModal({title:'Lỗi', body:'<p>Lỗi lấy dữ liệu visit.</p>'}); }
+  }catch(e){ 
+    showModal({title:'Lỗi', body:'<p>Lỗi lấy dữ liệu visit.</p>'}); 
+  }
 }
 
 function ensureModalStyles(){

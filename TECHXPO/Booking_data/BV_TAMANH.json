@@ -461,32 +461,6 @@
         }
       ]
     },
-    "TTCTCH": {
-      "name": "Trung TÂM Chấn thương chỉnh hình",
-      "doctors": [
-        {
-          "name": "LÊ VĂN TUẤN",
-          "role": "TTƯT.TS.BS.CKII",
-          "info": "Giám đốc Trung tâm Chấn thương Chỉnh hình",
-          "profile_link": "https://tamanhhospital.vn/chuyen-gia/le-van-tuan-2/",
-          "specialty": "Trung tâm Chấn thương chỉnh hình"
-        },
-        {
-          "name": "HỒ HỮU DŨNG",
-          "role": "THS.BS.CKII",
-          "info": "Phó giám đốc Trung tâm Chấn thương chỉnh hình",
-          "profile_link": "https://tamanhhospital.vn/chuyen-gia/ho-huu-dung/",
-          "specialty": "Trung tâm Chấn thương chỉnh hình"
-        },
-        {
-          "name": "TRƯƠNG HỮU BẢO",
-          "role": "THS.BSNT.CKI",
-          "info": "Trưởng Đơn vị Chấn thương chỉnh hình",
-          "profile_link": "https://tamanhhospital.vn/chuyen-gia/truong-huu-bao/",
-          "specialty": "Trung tâm Chấn thương chỉnh hình"
-        }
-      ]
-    },
     "KNTH": {
       "name": "Khoa Ngoại Tổng HỢP",
       "doctors": [

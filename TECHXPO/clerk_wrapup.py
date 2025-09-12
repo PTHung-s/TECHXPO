@@ -7,7 +7,7 @@ from google import genai
 from google.genai import types
 from pydantic import BaseModel, Field
 
-CLERK_MODEL = os.getenv("CLERK_MODEL", "gemini-2.5-pro")
+CLERK_MODEL = os.getenv("CLERK_MODEL", "gemini-2.5-flash")
 
 # ---------- utils ----------
 def _to_jsonable(x):
