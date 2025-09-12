@@ -10,6 +10,7 @@ volumes:
   booking_data:
   dashboard_data:
   kiosk_data:
+  caddy_log: # Thêm volume cho log của Caddy
 
 services:
   app:
@@ -19,7 +20,7 @@ services:
     image: techxpo:latest
     container_name: techxpo-app
     env_file:
-      - ./TECHXPO/.env
+      - ./.env # SỬA LỖI: Trỏ đến file .env ở thư mục gốc
     environment:
       RUN_AGENT: "1"
       RUN_DASHBOARD: "0"
@@ -46,7 +47,7 @@ services:
     entrypoint: ["/app/TECHXPO/entrypoint-dashboard.sh"]
     command: ["bash","-lc","uvicorn TECHXPO.Dashboard.server:app --host 0.0.0.0 --port 8090"]
     env_file:
-      - ./TECHXPO/.env
+      - ./.env # SỬA LỖI: Trỏ đến file .env ở thư mục gốc
     environment:
       PYTHONPATH: /app
       KIOSK_DB: /data/kiosk.db
@@ -68,16 +69,16 @@ services:
     ports:
       - "80:80"
       - "443:443"
-    environment:
-      KIOSK_HOST: ${KIOSK_HOST}
-      DASHBOARD_HOST: ${DASHBOARD_HOST}
-      CADDY_EMAIL: ${CADDY_EMAIL}
+      - "443:443/udp" # THÊM: Hỗ trợ HTTP/3
+    env_file: # THÊM: Đảm bảo Caddy cũng đọc .env
+      - ./.env
     networks:
       - web
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data
       - caddy_config:/config
+      - caddy_log:/var/log/caddy # THÊM: Lưu log của Caddy
 
   duckdns:
     image: lscr.io/linuxserver/duckdns:latest
@@ -87,6 +88,8 @@ services:
       SUBDOMAINS: ${DUCKDNS_SUBDOMAINS}
       TOKEN: ${DUCKDNS_TOKEN}
       LOG_FILE: "true"
+    env_file: # THÊM: Đảm bảo DuckDNS cũng đọc .env
+      - ./.env
     networks:
       - web
     restart: unless-stopped
