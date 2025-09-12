@@ -1,14 +1,16 @@
-import re
-import os
-import json
 import asyncio
 import contextlib
+import json
+import logging
+import os
+import re
 import threading
 import time
-from typing import Optional, Callable, Dict, Any
-from livekit.agents import function_tool, RunContext
+from typing import Any, Callable, Dict, Optional
+
+from google.cloud import texttospeech as tts
+from livekit.agents import JobContext, RunContext, function_tool
 from storage import get_customer_by_phone, build_personal_context, get_recent_visits
-import logging
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -304,29 +306,28 @@ def build_all_tools(
                         state.add("system", "\n".join(lines))
                     # Phát speak_text (ngắn gọn) cho bệnh nhân nghe
                     speak_text = (result.get("speak_text") or "").strip()
-                    if speak_text:
-                        try:
-                            # Chờ âm thanh trước (nếu còn) để tránh chồng tiếng
-                            with contextlib.suppress(Exception):
-                                await session.wait_for_playout()
-                        except Exception:
-                            pass
-                        try:
-                            # Dùng chỉ dẫn mạnh để model đọc nguyên văn
-                            force_instr = (
-                                "ĐỌC NGUYÊN VĂN lịch khám vừa đặt cho bệnh nhân, không thêm câu hỏi hay diễn giải khác. "
-                                "Sau khi đọc xong thì dừng lại chờ bệnh nhân xác nhận. Câu cần đọc: \n" + speak_text
-                            )
-                            rg = shared.get("reply_gate")
-                            if rg:
-                                await rg.say(force_instr)
-                            else:
-                                handle = await session.generate_reply(instructions=force_instr)
-                                await handle
-                        except Exception:
-                            pass
-                except Exception:
-                    pass
+                    
+                    # Yêu cầu LLM phải trả lời dựa trên context mới, đảm bảo agent không bị im lặng
+                    rg = shared.get("reply_gate")
+                    if rg:
+                        # Kết hợp speak_text và chỉ dẫn để "đánh thức" agent
+                        instruction = "Bạn hãy dựa vào thông tin lịch khám vừa được cung cấp để trình bày các lựa chọn cho bệnh nhân."
+                        if speak_text:
+                            # Nếu có speak_text, ưu tiên dùng nó làm câu mào đầu
+                            full_prompt = f"{speak_text}."
+                        
+                        # Gửi yêu cầu để Agent phải nói. Đây chính là "lời đánh thức" bạn cần.
+                        await rg.say(full_prompt)
+                    else:
+                        # Fallback nếu không có reply_gate
+                        if speak_text and session:
+                            try:
+                                await session.say(text=speak_text)
+                            except Exception as e:
+                                _fn_log(f"Error speaking booking result via session: {e}")
+                    
+                except Exception as e:
+                    _fn_log(f"Error processing booking result for speech: {e}")
             except Exception as e:
                 publish_data({
                     "type": "booking_error",
@@ -353,10 +354,31 @@ def build_all_tools(
         asyncio.create_task(_run_booking())
 
         # Trả về ngay để LLM có thể tiếp tục nói câu giữ chân
+        hold_message = "Dạ em đang tìm lịch phù hợp cho mình ạ, xin vui lòng đợi và giữ máy một chút nhé. Em sẽ thông báo lịch khám ngay khi có kết quả ạ"
+        try:
+            # Sử dụng talker để phát audio trực tiếp
+            talker = shared.get("talker")
+            if talker:
+                # Tạo audio từ Google TTS một cách bất đồng bộ
+                tts_client = tts.TextToSpeechAsyncClient()
+                synth_input = tts.SynthesisInput(text=hold_message)
+                voice = tts.VoiceSelectionParams(language_code="vi-VN", name="vi-VN-Standard-A") # Giọng nữ miền Nam
+                audio_cfg = tts.AudioConfig(audio_encoding=tts.AudioEncoding.LINEAR16, sample_rate_hertz=24000)
+                audio_response = await tts_client.synthesize_speech(input=synth_input, voice=voice, audio_config=audio_cfg)
+                
+                # Phát audio qua talker
+                await talker.speak_audio(audio_response.audio_content)
+            else:
+                # Nếu không có talker, ghi log cảnh báo thay vì dùng fallback
+                _fn_log("Warning: 'talker' object not found. Cannot play hold message directly.")
+
+        except Exception as e:
+            _fn_log(f"Error speaking hold message: {e}")
+        
         return {
             "ok": True,
             "pending": True,
-            "speak_text": "Dạ em đang tìm lịch phù hợp cho mình ạ, xin vui lòng đợi và giữ máy một chút nhé. Em sẽ thông báo lịch khám ngay khi có kết quả ạ",
+            # Xóa speak_text ở đây để LLM không tự ý nói lại câu giữ máy
             "instruction": "Không được cung cấp lịch khám cụ thể cho tới khi nhận booking_result. Nếu cần nói gì thêm chỉ nhắc bệnh nhân chờ.",
         }
 
