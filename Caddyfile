@@ -1,0 +1,31 @@
+# filepath: Caddyfile
+# Caddyfile for TECHXPO Production Deployment
+# This file provides automatic HTTPS, security headers, and reverse proxying.
+
+# Global options block. This MUST be at the very top of the file.
+{
+    # Your email address for Let's Encrypt SSL certificate notifications.
+    email {$CADDY_EMAIL}
+}
+
+# =============================================================================
+# KIOSK INTERFACE - Patient-facing web interface (e.g., ai-doctor.duckdns.org)
+# =============================================================================
+{$KIOSK_HOST} {
+    # Enable gzip compression for faster page loads.
+    encode zstd gzip
+
+    # Reverse proxy requests to the 'app' container on port 8080.
+    reverse_proxy app:8080
+}
+
+# =============================================================================
+# ADMIN DASHBOARD - Management interface (e.g., doctor-dashboard.duckdns.org)
+# =============================================================================
+{$DASHBOARD_HOST} {
+    # Enable gzip compression.
+    encode zstd gzip
+
+    # Reverse proxy requests to the 'dashboard' container on port 8090.
+    reverse_proxy dashboard:8090
+}

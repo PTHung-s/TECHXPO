@@ -1,14 +1,16 @@
-import re
-import os
-import json
 import asyncio
 import contextlib
+import json
+import logging
+import os
+import re
 import threading
 import time
-from typing import Optional, Callable, Dict, Any
-from livekit.agents import function_tool, RunContext
+from typing import Any, Callable, Dict, Optional
+
+from google.cloud import texttospeech as tts
+from livekit.agents import JobContext, RunContext, function_tool
 from storage import get_customer_by_phone, build_personal_context, get_recent_visits
-import logging
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -186,38 +188,15 @@ def build_all_tools(
         context: RunContext,
         patient_name: str,
         phone: str,
-        user_summary: str,
-        symptoms: str,
         preferred_time: Optional[str] = None,
+        symptoms: Optional[str] = None,
     ) -> dict:
-        """Đặt lịch khám với thông tin ngắn gọn thay vì full history.
-        
-        Args:
-            patient_name: Tên bệnh nhân
-            phone: Số điện thoại
-            user_summary: Tóm tắt yêu cầu của người dùng (bắt buộc)
-            symptoms: Triệu chứng của bệnh nhân (bắt buộc)
-            preferred_time: Thời gian mong muốn (optional)
-        """
         # Xóa kết quả đặt lịch cũ để bắt đầu một phiên mới, tránh đọc lại lịch cũ
         shared["latest_booking"] = None
         shared["allow_finalize"] = False
 
         if not identity_state.get("identity_confirmed"):
             return {"ok": False, "error": "identity_not_confirmed", "message": "Chưa xác nhận họ tên & SĐT."}
-        
-        # Validation for required parameters
-        if not user_summary or not user_summary.strip():
-            return {"ok": False, "error": "missing_user_summary", "message": "Cần có tóm tắt yêu cầu của người dùng."}
-        if not symptoms or not symptoms.strip():
-            return {"ok": False, "error": "missing_symptoms", "message": "Cần có thông tin triệu chứng."}
-        
-        # Log the booking request details
-        _fn_log(f"BOOKING REQUEST - Patient: {patient_name}, Phone: {phone}")
-        _fn_log(f"USER SUMMARY: {user_summary}")
-        _fn_log(f"SYMPTOMS: {symptoms}")
-        _fn_log(f"PREFERRED TIME: {preferred_time}")
-        
         # Ngăn spam khi đang chạy
         if shared.get("booking_in_progress"):
             return {"ok": False, "error": "booking_in_progress", "message": "Đang tra cứu lịch, vui lòng chờ."}
@@ -235,17 +214,15 @@ def build_all_tools(
         if symptoms:
             state.add("user", f"Triệu chứng khai báo: {symptoms}")
 
-        # Prepare lightweight data for booking instead of full history
+        # Snapshot history (không chặn user tiếp tục nói)
+        history = "\n".join(state.lines)
         rag = shared.get("rag")
-        medical_guidelines = ""
         if rag and symptoms:
             try:
                 guideline_ctx = rag.query(symptoms, k=3, max_chars=600)
                 if guideline_ctx and "[GUIDELINES]" in guideline_ctx:
-                    medical_guidelines = guideline_ctx
-                    _fn_log(f"RAG MEDICAL GUIDELINES: Found {len(medical_guidelines)} chars for symptoms: {symptoms[:50]}...")
-            except Exception as e:
-                _fn_log(f"RAG query failed: {e}")
+                    history += f"\n\n[MEDICAL_GUIDELINES]\n{guideline_ctx}\n[/MEDICAL_GUIDELINES]"
+            except Exception:
                 pass
 
         # Lấy cấu hình datasources
@@ -280,8 +257,6 @@ def build_all_tools(
             "patient_name": raw_name,
             "phone": raw_phone,
             "preferred_time": preferred_time,
-            "user_summary": user_summary,
-            "symptoms": symptoms,
         })
 
         session = shared.get("session")
@@ -296,9 +271,7 @@ def build_all_tools(
             try:
                 result = await asyncio.to_thread(
                     book_appointment,
-                    user_summary,
-                    symptoms,
-                    medical_guidelines,
+                    history,
                     data_path,
                     book_model,
                     extra_paths,
@@ -307,23 +280,13 @@ def build_all_tools(
                     result["symptoms"] = symptoms
                 shared["latest_booking"] = result
                 shared["allow_finalize"] = True
-                
-                # Enhanced logging for booking result
-                options_count = len(result.get('options', []))
-                chosen = result.get('chosen')
-                _fn_log(f"BOOKING RESULT - Found {options_count} options, chosen: {chosen is not None}")
+                # LOGGING: In ra các options trước khi gửi đi để kiểm tra hospital_name
                 _fn_log(f"Publishing booking options with hospital names: {result.get('options', [])[:2]}")
-                
-                # Log individual options
-                for i, option in enumerate(result.get('options', [])[:3]):
-                    _fn_log(f"Option {i+1}: {option.get('hospital_name', 'N/A')} - {option.get('doctor_name', 'N/A')} - {option.get('slot_time', 'N/A')}")
 
                 publish_data({
                     "type": "booking_result",
                     "booking": result,
                 })
-                # Tắt hold mode (đã có kết quả)
-                shared["booking_hold_active"] = False
                 # Kết thúc guard
                 if shared.get("booking_guard_added"):
                     state.add("system", "BOOKING_GUARD_END")
@@ -343,40 +306,33 @@ def build_all_tools(
                         state.add("system", "\n".join(lines))
                     # Phát speak_text (ngắn gọn) cho bệnh nhân nghe
                     speak_text = (result.get("speak_text") or "").strip()
-                    if speak_text:
-                        shared["booking_speak_text"] = speak_text
-                        # Thêm system context để model hiểu phải đọc speak_text ngay
-                        state.add("system", f"SPEAK_TEXT_REQUIRED: Phải đọc nguyên văn câu sau cho bệnh nhân: {speak_text}")
-                        try:
-                            # Chờ âm thanh trước (nếu còn) để tránh chồng tiếng
-                            with contextlib.suppress(Exception):
-                                await session.wait_for_playout()
-                        except Exception:
-                            pass
-                        try:
-                            # Dùng chỉ dẫn mạnh và đơn giản để model đọc nguyên văn
-                            
-                            rg = shared.get("reply_gate")
-                            if rg:
-                                await rg.say(speak_text)
-                                shared["booking_speak_text_announced"] = True
-                            else:
-                                # Fallback nếu không có reply_gate - tạo handle session trực tiếp
-                                handle = await session.generate_reply(instructions=speak_text)
-                                await handle
-                                shared["booking_speak_text_announced"] = True
-                        except Exception as e:
-                            _fn_log(f"Error announcing speak_text: {e}")
-                            pass
-                except Exception:
-                    pass
+                    
+                    # Yêu cầu LLM phải trả lời dựa trên context mới, đảm bảo agent không bị im lặng
+                    rg = shared.get("reply_gate")
+                    if rg:
+                        # Kết hợp speak_text và chỉ dẫn để "đánh thức" agent
+                        instruction = "Bạn hãy dựa vào thông tin lịch khám vừa được cung cấp để trình bày các lựa chọn cho bệnh nhân."
+                        if speak_text:
+                            # Nếu có speak_text, ưu tiên dùng nó làm câu mào đầu
+                            full_prompt = f"{speak_text}."
+                        
+                        # Gửi yêu cầu để Agent phải nói. Đây chính là "lời đánh thức" bạn cần.
+                        await rg.say(full_prompt)
+                    else:
+                        # Fallback nếu không có reply_gate
+                        if speak_text and session:
+                            try:
+                                await session.say(text=speak_text)
+                            except Exception as e:
+                                _fn_log(f"Error speaking booking result via session: {e}")
+                    
+                except Exception as e:
+                    _fn_log(f"Error processing booking result for speech: {e}")
             except Exception as e:
                 publish_data({
                     "type": "booking_error",
                     "error": str(e),
                 })
-                # Tắt hold mode do lỗi
-                shared["booking_hold_active"] = False
                 if shared.get("booking_guard_added"):
                     state.add("system", "BOOKING_GUARD_END")
                     shared["booking_guard_added"] = False
@@ -398,10 +354,31 @@ def build_all_tools(
         asyncio.create_task(_run_booking())
 
         # Trả về ngay để LLM có thể tiếp tục nói câu giữ chân
+        hold_message = "Dạ em đang tìm lịch phù hợp cho mình ạ, xin vui lòng đợi và giữ máy một chút nhé. Em sẽ thông báo lịch khám ngay khi có kết quả ạ"
+        try:
+            # Sử dụng talker để phát audio trực tiếp
+            talker = shared.get("talker")
+            if talker:
+                # Tạo audio từ Google TTS một cách bất đồng bộ
+                tts_client = tts.TextToSpeechAsyncClient()
+                synth_input = tts.SynthesisInput(text=hold_message)
+                voice = tts.VoiceSelectionParams(language_code="vi-VN", name="vi-VN-Standard-A") # Giọng nữ miền Nam
+                audio_cfg = tts.AudioConfig(audio_encoding=tts.AudioEncoding.LINEAR16, sample_rate_hertz=24000)
+                audio_response = await tts_client.synthesize_speech(input=synth_input, voice=voice, audio_config=audio_cfg)
+                
+                # Phát audio qua talker
+                await talker.speak_audio(audio_response.audio_content)
+            else:
+                # Nếu không có talker, ghi log cảnh báo thay vì dùng fallback
+                _fn_log("Warning: 'talker' object not found. Cannot play hold message directly.")
+
+        except Exception as e:
+            _fn_log(f"Error speaking hold message: {e}")
+        
         return {
             "ok": True,
             "pending": True,
-            "speak_text": "NHIỆM VỤ: Thông báo với bệnh nhân rằng bạn đang tìm lịch. Nói chính xác câu sau:\n\n\"Dạ em đang tìm lịch phù hợp cho mình ạ, xin vui lòng đợi và giữ máy một chút nhé. Em sẽ thông báo lịch khám ngay khi có kết quả ạ\"\n\nKHÔNG được thêm bất kỳ thông tin lịch nào khác, nói xong câu này thì dừng lại luôn. Nếu nói thêm sẽ gây lỗi hệ thống vì sắp tới bạn sẽ nhận được 1 số lịch để thông báo cho bệnh nhân, còn hiện giờ thì chưa.",
+            # Xóa speak_text ở đây để LLM không tự ý nói lại câu giữ máy
             "instruction": "Không được cung cấp lịch khám cụ thể cho tới khi nhận booking_result. Nếu cần nói gì thêm chỉ nhắc bệnh nhân chờ.",
         }
 
@@ -784,3 +761,5 @@ def build_all_tools(
         return {"ok": True, "message": "Finalizing in background."}
 
     return [propose_identity, confirm_identity, schedule_appointment, choose_booking_option, finalize_visit]
+
+
