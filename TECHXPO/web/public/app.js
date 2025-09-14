@@ -139,6 +139,65 @@ const btnLog = document.getElementById('btnLog')
 const logPanel = document.getElementById('logPanel')
 const btnCloseLog = document.getElementById('btnCloseLog')
 const logEl = document.getElementById('log')
+// Progress timeline elements (hidden until call)
+const progressRoot = document.getElementById('flowProgress')
+const progressWrapper = document.getElementById('flowWrapper')
+let currentStage = 1
+
+function setProgressStage(stage){
+  if(!progressRoot) return
+  const steps = Array.from(progressRoot.querySelectorAll('.flow-step'))
+  const bar = progressRoot.querySelector('#flowBarFill')
+  const maxStage = steps.length
+  stage = Math.min(Math.max(1, stage), maxStage)
+  const prev = currentStage
+  currentStage = stage
+  steps.forEach(step => {
+    const s = parseInt(step.getAttribute('data-step'))
+    step.classList.remove('active','completed')
+    if(s < stage) step.classList.add('completed')
+    else if(s === stage) step.classList.add('active')
+    step.classList.remove('bursting')
+  })
+  // Compute dynamic bar start & width (thin line): start at center of first node
+  requestAnimationFrame(()=>{
+    const first = steps[0]?.querySelector('.flow-node')
+    const target = steps[stage-1]?.querySelector('.flow-node')
+    const last = steps[steps.length-1]?.querySelector('.flow-node')
+    if(first && target && bar){
+      const rectFirst = first.getBoundingClientRect()
+      const rectTarget = target.getBoundingClientRect()
+      const rectLast = last.getBoundingClientRect()
+      const containerRect = progressRoot.getBoundingClientRect()
+      const startX = rectFirst.left + rectFirst.width/2 - containerRect.left
+      const endX = rectTarget.left + rectTarget.width/2 - containerRect.left
+      const width = Math.max(0, endX - startX)
+      bar.style.left = startX + 'px'
+      bar.style.width = width + 'px'
+      // Update base line custom properties to stretch EXACTLY from first to last
+      const baseStart = startX
+      const baseEnd = rectLast.left + rectLast.width/2 - containerRect.left
+      const baseWidth = Math.max(0, baseEnd - baseStart)
+      progressRoot.style.setProperty('--base-left', baseStart + 'px')
+      progressRoot.style.setProperty('--base-width', baseWidth + 'px')
+      // Trigger charging animation only when advancing
+      if(stage > prev){
+        progressRoot.classList.remove('charging')
+        void progressRoot.offsetWidth // restart animation
+        progressRoot.classList.add('charging')
+        // Burst effect on the newly active step
+        const activeStep = steps[stage-1]
+        if(activeStep){
+          activeStep.classList.add('bursting')
+          setTimeout(()=>activeStep.classList.remove('bursting'), 900)
+        }
+      }
+    }
+  })
+}
+
+// Initial stage
+setTimeout(()=>setProgressStage(1), 0)
 // Unified panel
 const infoPanel = document.getElementById('infoPanel')
 const infoTitle = document.getElementById('infoTitle')
@@ -184,6 +243,11 @@ function showCall(){
   landing.classList.add('hidden')
   inCall.classList.remove('hidden')
   callBar.classList.add('active')
+  if(progressWrapper){
+    progressWrapper.classList.remove('hidden')
+    // Recalculate layout after becoming visible
+    setTimeout(()=>setProgressStage(currentStage||1),50)
+  }
 }
 function showLanding(){ landing.classList.remove('hidden'); inCall.classList.add('hidden'); callBar.classList.remove('active') }
 
@@ -456,17 +520,22 @@ function attachEvents(r){
           showIdentity(msg);
           infoPanel.classList.remove('glow-green','glow-amber','glow-purple')
           infoPanel.classList.add('glow-blue') // propose -> blue
+          // Stage 1 still active
+          setProgressStage(1)
           break
         case 'identity_confirmed':
           log('Identity xác nhận');
           identityConfirmed=true; showIdentity(msg);
           infoPanel.classList.remove('glow-blue','glow-amber','glow-purple')
           infoPanel.classList.add('glow-green') // confirm -> green
+          // Move to stage 2 (collect request)
+          setProgressStage(2)
           break
         case 'identity_updated': 
           log('Identity cập nhật'); identityConfirmed=true; showIdentity(msg); 
           infoPanel.classList.remove('glow-blue','glow-amber','glow-purple')
           infoPanel.classList.add('glow-green')
+          setProgressStage(2)
           break
         case 'personal_context_loaded':
           log('Personal context loaded: ' + (msg.visits_count || 0) + ' visits')
@@ -484,6 +553,8 @@ function attachEvents(r){
           showBookingPending();
           infoPanel.classList.remove('glow-green','glow-purple')
           infoPanel.classList.add('glow-amber') // searching -> amber
+          // Move to stage 3 (scheduling)
+          setProgressStage(3)
           break
         case 'booking_result':
           log('Đặt lịch xong');
@@ -491,6 +562,8 @@ function attachEvents(r){
           // list options -> purple highlight
           infoPanel.classList.remove('glow-amber','glow-green')
           infoPanel.classList.add('glow-purple')
+          // Stay in stage 3 (still choosing)
+          setProgressStage(3)
           break
         case 'booking_option_chosen':
           log('Đã chọn 1 phương án');
@@ -498,6 +571,8 @@ function attachEvents(r){
           // finalize chosen -> green
           infoPanel.classList.remove('glow-amber','glow-blue','glow-purple')
           infoPanel.classList.add('glow-green')
+          // Move to stage 4 (finished)
+          setProgressStage(4)
           break
   case 'booking_error': log('Lỗi đặt lịch'); infoTitle.textContent='Đặt lịch'; infoBody.innerHTML='<span style="color:#dc2626;font-size:.65rem;">Không đặt được lịch, sẽ thử lại sau.</span>'; break
         case 'wrapup_done': log('Kết thúc phiên'); hangup(); break
@@ -542,7 +617,8 @@ async function hangup(silent){
   stopTimer(); identityConfirmed=false
   infoPanel.classList.remove('show')
   log('Đã thoát phòng')
-  if(!silent){ showLanding(); startBtn.disabled=false; firstRemoteAudio=false; startBtn.textContent='BẮT ĐẦU'; const sm=document.createElement('span'); sm.className='small'; sm.textContent='Cho phép Micro'; startBtn.appendChild(sm) }
+  if(progressWrapper){ progressWrapper.classList.add('hidden') }
+  if(!silent){ showLanding(); startBtn.disabled=false; firstRemoteAudio=false; startBtn.textContent='BẮT ĐẦU'; const sm=document.createElement('span'); sm.className='small'; sm.textContent='Cho phép Micro'; startBtn.appendChild(sm); setProgressStage(1) }
 }
 
 function mute(){ if(!localTrack) return; localTrack.mute(); btnMute.classList.add('hidden'); btnUnmute.classList.remove('hidden'); log('Mic OFF') }

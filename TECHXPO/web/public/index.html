@@ -1,7 +1,11 @@
 <!DOCTYPE html>
 <html lang="vi">
-<head>
-  <meta charset="UTF-8" />
+<hea    /* Progress timeli    .flow-step { position:relative; flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:.4rem; font-size:.5rem; letter-spacing:.5px; color:#64748b; min-width:0; }
+    .flow-step-label { font-size:.5rem; font-weight:600; text-transform:uppercase; letter-spacing:.7px; opacity:.55; margin-top:.35rem; transition:.4s; text-align:center; max-width:86px; line-height:1.2; }
+    .flow-node { position:relative; width:var(--dot); height:var(--dot); border-radius:50%; background:radial-gradient(circle at 35% 35%,#0f172a,#020617); border:2px solid #334155; box-shadow:0 0 0 0 rgba(59,130,246,0); transition:.55s cubic-bezier(.65,.05,.36,1); z-index:3; margin-top:calc(-1 * var(--dot) / 2); }(hidden until call) */
+    .flow-progress-wrapper { position:relative; width:100%; display:flex; justify-content:center; margin:.3rem 0 .5rem; z-index:8; transition:opacity .5s; }
+    .flow-progress-wrapper.hidden { opacity:0; pointer-events:none; height:0; margin:0; }
+    .flow-progress { --line-h:2px; --energy-h:8px; --dot:16px; --dot-active:22px; display:flex; align-items:center; gap:0; position:relative; padding:0 1.2rem; max-width:640px; width:100%; height:44px; }  <meta charset="UTF-8" />
   <title>Kiosk Bác sĩ Ảo</title>
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
   
@@ -37,6 +41,44 @@
     .pill { padding:.45rem .9rem; border-radius:2rem; font-size:.65rem; letter-spacing:.5px; font-weight:600; background:var(--glass); backdrop-filter:blur(10px); border:1px solid var(--border); display:inline-flex; align-items:center; gap:.35rem; }
     #app { min-height:100svh; display:flex; flex-direction:column; }
     header { display:flex; align-items:center; justify-content:space-between; padding:.85rem clamp(.9rem,2.5vw,2rem); gap:1rem; position:relative; z-index:10; }
+    /* Progress timeline (hidden until call) */
+    .flow-progress-wrapper { position:relative; width:100%; display:flex; justify-content:center; margin:.3rem 0 .5rem; z-index:8; transition:opacity .5s; }
+    .flow-progress-wrapper.hidden { opacity:0; pointer-events:none; height:0; margin:0; }
+    .flow-progress { --line-h:2px; --energy-h:8px; --dot:16px; --dot-active:22px; display:flex; align-items:center; gap:0; position:relative; padding:0 1.2rem; max-width:640px; width:100%; height:44px; }
+    /* Base line (exactly from first to last center) controlled via inline calc left/right from JS */
+    .flow-progress::before { content:""; position:absolute; top:50%; height:var(--line-h); background:linear-gradient(90deg,rgba(255,255,255,0.28),rgba(255,255,255,0.08)); transform:translateY(-50%); border-radius:4px; left:var(--base-left,0); width:var(--base-width,0); box-shadow:0 0 6px 1px rgba(255,255,255,0.15); z-index:1; }
+    /* Energy fill (thicker, glow) */
+    .flow-bar-fill { position:absolute; top:50%; height:var(--energy-h); transform:translateY(-50%); background:linear-gradient(90deg,#0ea5e9,#3b82f6,#6366f1,#3b82f6,#0ea5e9); background-size:280% 100%; border-radius:10px; width:0; left:0; filter:brightness(1.15); box-shadow:0 0 12px 4px rgba(56,189,248,0.35),0 0 24px 10px rgba(59,130,246,0.25),0 0 40px 18px rgba(99,102,241,0.18); transition:width .9s cubic-bezier(.7,.05,.25,1), left .9s cubic-bezier(.7,.05,.25,1); overflow:visible; z-index:2; }
+  .flow-bar-fill:before { content:""; position:absolute; inset:0; background:linear-gradient(120deg,rgba(255,255,255,0.55),rgba(255,255,255,0) 40%); mix-blend-mode:overlay; opacity:.45; pointer-events:none; }
+  .flow-bar-fill:after { content:""; position:absolute; top:50%; transform:translateY(-50%); width:18px; height:18px; border-radius:50%; background:radial-gradient(circle,#ffffff,#60a5fa 55%,rgba(14,165,233,0) 70%); box-shadow:0 0 18px 6px rgba(255,255,255,0.55),0 0 38px 14px rgba(56,189,248,0.35); left:calc(100% - 9px); animation:spark 2s linear infinite; }
+  @keyframes spark { 0%{ filter:brightness(1) blur(0); transform:translateY(-50%) scale(.85); } 50%{ filter:brightness(1.35) blur(1px); transform:translateY(-50%) scale(1); } 100%{ filter:brightness(1) blur(0); transform:translateY(-50%) scale(.85); } }
+  .flow-progress.charging .flow-bar-fill { animation:energyShift 1.6s ease forwards; }
+  @keyframes energyShift { 0%{ background-position:0 0; filter:brightness(1); } 45%{ filter:brightness(1.55); } 100%{ background-position:200% 0; filter:brightness(1.1); } }
+  /* Burst ring on stage advance */
+  .flow-step.bursting .flow-node:before { content:""; position:absolute; inset:0; border-radius:50%; background:radial-gradient(circle,rgba(255,255,255,0.9),rgba(255,255,255,0)); animation:burst .9s ease forwards; mix-blend-mode:screen; }
+  @keyframes burst { 0%{ transform:scale(.4); opacity:.9; } 60%{ transform:scale(2.6); opacity:.15; } 100%{ transform:scale(3.2); opacity:0; } }
+  /* Trail glitter behind energy fill */
+  .flow-bar-fill .trail { position:absolute; top:0; bottom:0; left:0; right:0; pointer-events:none; overflow:hidden; }
+  .trail span { position:absolute; top:50%; width:6px; height:6px; margin-top:-3px; border-radius:50%; background:radial-gradient(circle,#ffffff,#93c5fd 60%,rgba(147,197,253,0)); filter:blur(.5px); animation:trail 1.8s linear infinite; opacity:.7; }
+  @keyframes trail { 0%{ transform:translateX(-10%) translateY(-50%) scale(.4); opacity:0; } 15%{ opacity:.85; } 85%{ opacity:.9; } 100%{ transform:translateX(120%) translateY(-50%) scale(1); opacity:0; } }
+    .flow-step { position:relative; flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:.4rem; font-size:.5rem; letter-spacing:.5px; color:#64748b; min-width:0; }
+    .flow-step-label { font-size:.5rem; font-weight:600; text-transform:uppercase; letter-spacing:.7px; opacity:.55; margin-top:.35rem; transition:.4s; text-align:center; max-width:86px; line-height:1.2; }
+  .flow-node { position:absolute; top:50%; transform:translateY(-50%); width:var(--dot); height:var(--dot); border-radius:50%; background:radial-gradient(circle at 35% 35%,#0f172a,#020617); border:2px solid #334155; box-shadow:0 0 0 0 rgba(59,130,246,0); transition:.55s cubic-bezier(.65,.05,.36,1); z-index:3; }
+  .flow-node:after { content:""; position:absolute; inset:-6px; border-radius:50%; background:radial-gradient(circle,#38bdf8 0%,rgba(56,189,248,0) 65%); opacity:0; filter:blur(3px); transition:.6s; }
+  .flow-step.active .flow-node { border-color:#3b82f6; box-shadow:0 0 0 5px rgba(59,130,246,.28),0 0 20px 6px rgba(56,189,248,.55),0 0 34px 12px rgba(99,102,241,.35); transform:translateY(-50%) scale(calc(var(--dot-active)/var(--dot))); }
+  .flow-step.active .flow-node:after { opacity:.85; }
+  .flow-step.completed .flow-node { border-color:#10b981; background:radial-gradient(circle at 35% 35%,#064e3b,#022c22); box-shadow:0 0 0 5px rgba(16,185,129,.28),0 0 20px 6px rgba(16,185,129,.55),0 0 34px 12px rgba(52,211,153,.35); }
+  .flow-step.completed .flow-node:after { background:radial-gradient(circle,#34d399 0%,rgba(52,211,153,0) 65%); opacity:.9; }
+    .flow-step.active .flow-step-label { opacity:.9; color:#e2e8f0; }
+    .flow-step.completed .flow-step-label { opacity:.75; color:#d1fae5; }
+    @media (max-width:680px){
+      .flow-progress { --dot:14px; --dot-active:18px; padding:0 .9rem; }
+      .flow-step-label { font-size:.45rem; letter-spacing:.6px; max-width:60px; }
+    }
+    @media (max-width:480px){
+      .flow-progress { --dot:12px; --dot-active:16px; padding:0 .4rem; }
+      .flow-step-label { display:none; }
+    }
     .logo-section { display:flex; align-items:center; gap:.8rem; }
     .logo-container { display:flex; align-items:center; justify-content:center; width:48px; height:48px; border-radius:12px; background:var(--glass); border:1px solid var(--border); overflow:hidden; backdrop-filter:blur(8px); }
     .logo-container img { width:100%; height:100%; object-fit:contain; transition:transform 0.3s ease; }
@@ -227,6 +269,32 @@
         </div>
       </div>
     </header>
+    <div class="flow-progress-wrapper hidden" id="flowWrapper">
+      <div class="flow-progress" id="flowProgress">
+        <div class="flow-bar-fill" id="flowBarFill"><div class="trail">
+          <span style="animation-delay:0s"></span>
+          <span style="animation-delay:.35s"></span>
+          <span style="animation-delay:.7s"></span>
+          <span style="animation-delay:1.05s"></span>
+        </div></div>
+        <div class="flow-step" data-step="1">
+          <div class="flow-node"></div>
+          <div class="flow-step-label">Thông tin cá nhân</div>
+        </div>
+        <div class="flow-step" data-step="2">
+          <div class="flow-node"></div>
+          <div class="flow-step-label">Nhận yêu cầu</div>
+        </div>
+        <div class="flow-step" data-step="3">
+          <div class="flow-node"></div>
+          <div class="flow-step-label">Đặt lịch</div>
+        </div>
+        <div class="flow-step" data-step="4">
+          <div class="flow-node"></div>
+          <div class="flow-step-label">Kết thúc</div>
+        </div>
+      </div>
+    </div>
     <section id="landing" class="fade-in">
       <h2>Bác sĩ Ảo Trực Tuyến</h2>
   <p style="max-width:520px; font-size:1rem; line-height:1.55; opacity:.9; font-weight:450;">Nhấn để bắt đầu cuộc gọi âm thanh bảo mật. Hệ thống sẽ hỏi thông tin cơ bản và đặt lịch khám nếu cần.</p>
