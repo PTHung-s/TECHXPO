@@ -46,7 +46,7 @@ HƯỚNG DẪN:
    - Triệu chứng hiện tại và thời gian xuất hiện
    - Chẩn đoán sơ bộ (nếu có)
    - Kế hoạch điều trị/xét nghiệm
-   - Lưu ý đặc biệt
+   - Lưu ý đặc biệt: Viết thành một đoạn văn liền và mỗi mục mới thì phải có dấu ':' để tách đề mục và nội dung.
 
 QUY TẮC:
 - Chỉ ghi thông tin được đề cập rõ ràng, không suy đoán

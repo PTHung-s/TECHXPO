@@ -6,16 +6,54 @@
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <h1>Doctor Schedule Dashboard</h1>
-  <form id="control-form">
-    <label>Hospital:
-      <select id="hospital_select"></select>
-    </label>
-    <label>Date: <input type="date" id="date" /></label>
-    <button type="submit">Reload</button>
-  </form>
-  <div id="status"></div>
-  <div id="table-container"></div>
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo">🩺</div>
+      <div class="titles">
+        <h1>Lịch Bác Sĩ</h1>
+        <p class="subtitle">Giám sát & đặt lịch theo thời gian thực</p>
+      </div>
+    </div>
+    <form id="control-form" class="controls">
+      <label>
+        <span>BV</span>
+        <select id="hospital_select"></select>
+      </label>
+      <label>
+        <span>Ngày</span>
+        <input type="date" id="date" />
+      </label>
+      <button type="submit" class="btn-primary">Tải lại</button>
+    </form>
+    <div class="clock-wrapper"><span id="live-clock">--:--:--</span></div>
+  </header>
+  <div id="hospital-banner" class="hospital-banner">&nbsp;</div>
+  <section id="metrics-bar" class="metrics-bar">
+    <div class="metric">
+      <div class="label">Tổng slot</div>
+      <div class="value" id="m-total-slots">-</div>
+    </div>
+    <div class="metric">
+      <div class="label">Đã đặt</div>
+      <div class="value booked" id="m-booked">-</div>
+    </div>
+    <div class="metric">
+      <div class="label">Đang giữ</div>
+      <div class="value held" id="m-held">-</div>
+    </div>
+    <div class="metric">
+      <div class="label">Còn trống</div>
+      <div class="value free" id="m-free">-</div>
+    </div>
+    <div class="metric">
+      <div class="label">Sử dụng</div>
+      <div class="value util" id="m-util">-</div>
+    </div>
+  </section>
+  <div id="status" class="status-line"></div>
+  <div id="table-wrapper">
+    <div id="table-container" class="schedule-table"></div>
+  </div>
 
   <template id="booking-dialog-template">
     <div class="dialog-backdrop">

@@ -3,6 +3,13 @@ let HOSPITALS = {};
 let META = null; // Expect code-centric meta: {departments_by_code:{code:{name,doctors}}, slots:{...}}
 let LAST_VERSION = null;
 let POLL_TIMER = null;
+let POLL_INTERVAL_MS = 5000; // adaptive
+let UNCHANGED_STREAK = 0;
+let WS_ENABLED = true; // can toggle
+let WS_CONN = null;
+let WS_LAST_VERSION = null;
+let SAFETY_POLL_INTERVAL_MS = 60000; // fallback full refresh every 60s if WS active
+let _lastFullPollTs = 0;
 
 // Inject minimal styles for held state if not already present
 (() => {
@@ -73,6 +80,8 @@ function applyBookings(bookings, holds){
     }
   }
   assignCellHandlers();
+  // refresh metrics after applying booking state
+  updateMetrics();
 }
 
 function attachCellHandlersBasic(){ assignCellHandlers(); }
@@ -298,9 +307,52 @@ async function pollBookings(){
       LAST_VERSION = data.version;
       applyBookings(data.bookings, data.holds);
       fmtStatus('Bookings v'+data.version+' @ '+ new Date().toLocaleTimeString());
+      UNCHANGED_STREAK = 0;
+      POLL_INTERVAL_MS = 5000; // reset fast interval
+    } else {
+      UNCHANGED_STREAK += 1;
+      // Back off gradually to reduce load (max 30s)
+      if(UNCHANGED_STREAK > 3 && POLL_INTERVAL_MS < 30000){
+        POLL_INTERVAL_MS = Math.min(30000, POLL_INTERVAL_MS + 5000);
+      }
     }
   }catch(e){ fmtStatus('Bookings poll error'); }
-  POLL_TIMER = setTimeout(pollBookings, 5000);
+  // If WS active, we only maintain a safety poll occasionally
+  if(WS_CONN && WS_CONN.readyState === WebSocket.OPEN){
+    const nowTs = Date.now();
+    const elapsed = nowTs - _lastFullPollTs;
+    if(elapsed >= SAFETY_POLL_INTERVAL_MS){
+      _lastFullPollTs = nowTs;
+      POLL_TIMER = setTimeout(pollBookings, SAFETY_POLL_INTERVAL_MS);
+    } else {
+      // schedule next safety cycle at remaining time
+      const remain = Math.max(2000, SAFETY_POLL_INTERVAL_MS - elapsed);
+      POLL_TIMER = setTimeout(pollBookings, remain);
+    }
+  } else {
+    POLL_TIMER = setTimeout(pollBookings, POLL_INTERVAL_MS);
+  }
+}
+
+async function updateMetrics(){
+  const hospital_code = document.getElementById('hospital_select').value;
+  if(!hospital_code || !META) return;
+  const date = document.getElementById('date').value || new Date().toISOString().slice(0,10);
+  const byCode = META.departments_by_code || {};
+  const codes = Object.keys(byCode).join(',');
+  try {
+    const res = await fetch(`${API_BASE}/api/bookings_stats?hospital_code=${encodeURIComponent(hospital_code)}&date=${encodeURIComponent(date)}&department_codes=${encodeURIComponent(codes)}`);
+    const data = await res.json();
+    const m = data.metrics || {};
+    const set = (id,val)=>{ const el=document.getElementById(id); if(el) el.textContent = val; };
+    set('m-total-slots', m.total_slots ?? '-');
+    set('m-booked', m.booked ?? '-');
+    set('m-held', m.held ?? '-');
+    set('m-free', m.free ?? '-');
+    if(typeof m.utilization === 'number'){
+      set('m-util', (m.utilization*100).toFixed(1)+'%');
+    } else set('m-util','-');
+  } catch(e){ /* ignore */ }
 }
 
 document.getElementById('control-form').addEventListener('submit', async e => { e.preventDefault(); await fetchMeta(); LAST_VERSION=null; await pollBookings(); });
@@ -324,3 +376,61 @@ async function initHospitals(){
   } catch(e){ fmtStatus('Load hospitals failed'); }
 }
 initHospitals();
+// Periodic metrics refresh (independent of bookings poll – lighter weight)
+setInterval(updateMetrics, 10000);
+
+// Live clock & hospital banner updater
+function tickClock(){
+  const el = document.getElementById('live-clock');
+  if(el){
+    const now = new Date();
+    const pad = n=> String(n).padStart(2,'0');
+    el.textContent = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+  }
+  requestAnimationFrame(()=>{ setTimeout(tickClock, 250); });
+}
+tickClock();
+
+// Update banner when hospital changes
+function updateHospitalBanner(){
+  const sel = document.getElementById('hospital_select');
+  const banner = document.getElementById('hospital-banner');
+  if(sel && banner){
+    const code = sel.value || '';
+    banner.textContent = code ? `BỆNH VIỆN: ${code}` : '';
+  }
+}
+document.getElementById('hospital_select').addEventListener('change', updateHospitalBanner);
+// initial banner after hospitals load (poll until exists)
+let _bannerTries = 0;
+const _bannerTimer = setInterval(()=>{ updateHospitalBanner(); if(++_bannerTries>20) clearInterval(_bannerTimer); }, 300);
+
+// ---------------- WebSocket realtime ----------------
+function connectWS(){
+  if(!WS_ENABLED) return;
+  try {
+    const proto = location.protocol === 'https:' ? 'wss' : 'ws';
+    WS_CONN = new WebSocket(`${proto}://${location.host}/ws/updates`);
+    fmtStatus('WS connecting...');
+    WS_CONN.onopen = ()=>{ fmtStatus('WS connected'); };
+    WS_CONN.onclose = ()=>{ fmtStatus('WS closed – retry in 3s'); setTimeout(connectWS, 3000); };
+    WS_CONN.onerror = ()=>{ fmtStatus('WS error'); };
+    WS_CONN.onmessage = (ev)=>{
+      try {
+        const msg = JSON.parse(ev.data);
+        if(msg.type === 'hello'){
+          WS_LAST_VERSION = msg.version;
+        } else if(msg.type === 'version'){
+          // trigger immediate fetch ignoring since logic (set LAST_VERSION null so server returns diff)
+          LAST_VERSION = null;
+          pollBookings();
+        } else if(msg.type === 'refresh'){
+          // Force a full refresh even if version not bumped
+          LAST_VERSION = null;
+          pollBookings();
+        }
+      } catch(e){ /* ignore parse */ }
+    };
+  } catch(e){ fmtStatus('WS init failed'); }
+}
+connectWS();
