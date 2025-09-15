@@ -77,6 +77,17 @@ function initLogo() {
   const logoFallback = document.getElementById('logoFallback')
   const logoContainer = document.getElementById('logoContainer')
   
+  // Error handler function
+  function handleLogoError() {
+    logoImg.style.display = 'none'
+    logoFallback.style.display = 'flex'
+    logoContainer.classList.add('fallback')
+    createFallbackFavicon()
+  }
+  
+  // Set up error handler
+  logoImg.onerror = handleLogoError
+  
   // Try to load logo.png from images directory
   const logoPath = '/images/logo.png'
   
@@ -92,30 +103,8 @@ function initLogo() {
     // Create favicon from logo
     createFavicon(logoPath)
   }
-  testImg.onerror = function() {
-    // Logo doesn't exist, use fallback
-    logoImg.style.display = 'none'
-    logoFallback.style.display = 'flex'
-    logoContainer.classList.add('fallback')
-    
-    // Create fallback favicon
-    createFallbackFavicon()
-  }
+  testImg.onerror = handleLogoError
   testImg.src = logoPath
-}
-
-// Global logo error handler
-window.handleLogoError = function() {
-  const logoImg = document.getElementById('logoImg')
-  const logoFallback = document.getElementById('logoFallback')
-  const logoContainer = document.getElementById('logoContainer')
-  
-  logoImg.style.display = 'none'
-  logoFallback.style.display = 'flex'
-  logoContainer.classList.add('fallback')
-  
-  // Create fallback favicon when logo fails to load
-  createFallbackFavicon()
 }
 
 // Initialize logo on page load
