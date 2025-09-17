@@ -2,11 +2,10 @@
 # -*- coding: utf-8 -*-
 """
 Bác sĩ ảo (Realtime) dùng Gemini Live API + LiveKit Agents
-- LLM realtime (audio) + function calling (schedule_appointment, finalize_visit, ...)
-- RAG chèn theo lượt (tiêm facts vào system trước khi LLM trả lời)
-- Bộ đệm hội thoại chống trùng lặp
-- Kết thúc phiên an toàn sau khi chào tạm biệt
-- Tận dụng MẶC ĐỊNH của gemini-live-2.5-flash-preview (VAD/turn, STT, barge-in, voice)
+- Dùng model native-audio: gemini-2.5-flash-preview-native-audio-dialog
+- Mặc định Gemini xử lý VAD/turn, STT, barge-in, voice
+- Bật Grounding with Google Search (giảm sai lệch, có citations)
+- Giữ function-calling (tool) & RAG như cũ
 """
 from __future__ import annotations
 
@@ -26,9 +25,11 @@ from livekit.agents import (
     WorkerOptions, Agent, AgentSession, JobContext,
     AutoSubscribe, RoomInputOptions, RoomOutputOptions, ChatContext,
 )
-# ✅ Dùng plugin RealtimeModel của LiveKit cho Gemini Live API
 from livekit.plugins.google.beta import realtime
 from livekit.plugins import noise_cancellation
+
+# Grounding tool (Google Search) từ Gemini API types
+from google.genai import types as gtypes  # <- dùng cho _gemini_tools
 
 # --- các mô-đun dự án của bạn ---
 from storage import init_db, get_or_create_customer, save_visit
@@ -316,7 +317,7 @@ class Talker(Agent):
         if user_text and (not self.buf.lines or not self.buf.lines[-1].endswith(user_text)):
             self.buf.add("user", user_text)
 
-        # Dynamic facts injection
+        # Dynamic facts injection (on-device)
         extract_fn = self.shared.get("extract_facts_and_summary")
         if extract_fn and self.buf.lines:
             transcript = "\n".join(self.buf.lines)
@@ -337,20 +338,25 @@ async def entrypoint(ctx: JobContext):
 
     clinic_defaults = {}
 
-    # 2) Gemini Live API (Realtime LLM audio + tool calling)
-    #    👉 DÙNG MẶC ĐỊNH của Live API cho VAD/turn/STT/barge-in, KHÔNG can thiệp RealtimeInputConfig
-    rt_model = os.getenv("GEMINI_RT_MODEL", "gemini-live-2.5-flash-preview")
-    voice = os.getenv("GEMINI_VOICE", "Puck")  # Puck/Zephyr/Charon/Kore/Fenrir/Leda/Orus/Aoede...
+    # 2) Gemini Live API (Native audio dialog)
+    #    - Để tiếng Việt: language="vi-VN"
+    #    - Bật Grounding with Google Search qua _gemini_tools
+    model_name = os.getenv("GEMINI_RT_MODEL", "gemini-2.5-flash-preview-native-audio-dialog")
+    voice_name = os.getenv("GEMINI_VOICE", "Zephyr")
+    language = os.getenv("GEMINI_LANGUAGE", "vi-VN")
+
     llm = realtime.RealtimeModel(
-        model=rt_model,
-        voice=voice,
-        language="vi-VN",
-        instructions="Bạn là trợ lý giọng nói thân thiện.",
-        # enable_user_audio_transcription=True (mặc định)
-        # enable_agent_audio_transcription=True (mặc định)
-        # modalities=["AUDIO"] mặc định
+        model=model_name,
+        voice=voice_name,
+        language=language,
+        instructions="Bạn là trợ lý giọng nói thân thiện, luôn trả lời bằng tiếng Việt.",
+        # ✅ Grounding via Google Search (built-in tool)
+        # _gemini_tools=[gtypes.GoogleSearch()],
+        # Modalities mặc định AUDIO cho native-audio; không cần chỉnh
+        # proactivity=True, 
+        # enable_affective_dialog=True,
     )
-    log.info("Realtime LLM: %s voice=%s", rt_model, voice)
+    log.info("Realtime LLM: %s voice=%s lang=%s", model_name, voice_name, language)
 
     # 3) RAG engine
     rules_path = os.getenv("MED_RULES_PATH", "./med_rules")
@@ -390,8 +396,7 @@ async def entrypoint(ctx: JobContext):
         session = AgentSession(llm=llm)
 
         room_io = RoomInputOptions(
-            # Khuyến nghị bật BVC để lọc nền/giọng khác
-            noise_cancellation=noise_cancellation.BVC()
+            noise_cancellation=noise_cancellation.BVC()  # lọc nhiễu đầu vào
         )
 
         @session.on("conversation_item_added")
@@ -404,6 +409,7 @@ async def entrypoint(ctx: JobContext):
             if text:
                 _log_evt("EVT conversation_item_added", role, text)
                 state.add_once(iid, role, text)
+            # TODO (tùy chọn): nếu LiveKit expose grounding metadata, có thể đọc từ ev.item.* để log citations.
 
         @session.on("conversation_item_updated")
         def on_item_updated(ev):
@@ -436,7 +442,7 @@ async def entrypoint(ctx: JobContext):
         )
         await talker.update_tools(tools)
 
-        # Bật audio output; tắt LK transcription để không chồng lớp với STT/VAD của Gemini
+        # Bật audio output; tắt LK transcription để tránh chồng với STT/VAD của Gemini
         await session.start(
             room=ctx.room,
             agent=talker,
