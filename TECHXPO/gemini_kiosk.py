@@ -2,22 +2,22 @@
 # -*- coding: utf-8 -*-
 """
 Bác sĩ ảo (Realtime) dùng Gemini Live API + LiveKit Agents
-- Realtime LLM (voice) + function calling (schedule_appointment, finalize_visit)
-- RAG chèn theo lượt (system) ngay trước khi LLM trả lời
+- LLM realtime (audio) + function calling (schedule_appointment, finalize_visit, ...)
+- RAG chèn theo lượt (tiêm facts vào system trước khi LLM trả lời)
 - Bộ đệm hội thoại chống trùng lặp
-- Kết thúc phiên an toàn sau khi nói lời chào
+- Kết thúc phiên an toàn sau khi chào tạm biệt
+- Tận dụng MẶC ĐỊNH của gemini-live-2.5-flash-preview (VAD/turn, STT, barge-in, voice)
 """
 from __future__ import annotations
 
 import os
-import re
 import json
 import asyncio
 import contextlib
 import logging
 from dataclasses import dataclass, field
 from typing import List, Optional, Set
-from pathlib import Path
+
 from dotenv import load_dotenv
 load_dotenv(".env.local") or load_dotenv()
 
@@ -26,12 +26,14 @@ from livekit.agents import (
     WorkerOptions, Agent, AgentSession, JobContext,
     AutoSubscribe, RoomInputOptions, RoomOutputOptions, ChatContext,
 )
+# ✅ Dùng plugin RealtimeModel của LiveKit cho Gemini Live API
 from livekit.plugins.google.beta import realtime
 from livekit.plugins import noise_cancellation
 
-from storage import init_db, get_or_create_customer, save_visit  # pared down (remove personalization build)
+# --- các mô-đun dự án của bạn ---
+from storage import init_db, get_or_create_customer, save_visit
 from function_calling_def import build_all_tools
-from facts_extractor import extract_facts_and_summary  # for personalization injection & later finalize
+from facts_extractor import extract_facts_and_summary
 from clerk_wrapup import summarize_visit_json
 from med_rag import MedicalRAG
 from booking import book_appointment
@@ -238,11 +240,9 @@ Chậm rãi, từng bước một, không nói quá nhiều trong một lượt.
     ]
   }
 ]
-
     """
     .strip()
 )
-
 
 # Logging
 logging.basicConfig(level=getattr(logging, os.getenv("KIOSK_LOG_LEVEL", "INFO").upper(), logging.INFO))
@@ -272,31 +272,26 @@ class SessionBuf:
 
 # ================== ReplyGate ==================
 class ReplyGate:
-  """Serialize all session.generate_reply calls to avoid race during reconnect.
+    """Serialize generate_reply calls để tránh đụng độ khi reconnect."""
+    def __init__(self, session: AgentSession, base_delay: float = 0.15):
+        self._session = session
+        self._lock = asyncio.Lock()
+        self._base_delay = base_delay
 
-  Adds a small delay before issuing the request and retries once on transient error.
-  """
-  def __init__(self, session: AgentSession, base_delay: float = 0.15):
-    self._session = session
-    self._lock = asyncio.Lock()
-    self._base_delay = base_delay
-
-  async def say(self, instructions: str, retry: bool = True):
-    async with self._lock:
-      # small debounce to let tool events / reconnect settle
-      await asyncio.sleep(self._base_delay)
-      try:
-        handle = await self._session.generate_reply(instructions=instructions)
-        await handle
-      except Exception:
-        if retry:
-          # brief backoff then single retry
-          await asyncio.sleep(0.5)
-          try:
-            handle = await self._session.generate_reply(instructions=instructions)
-            await handle
-          except Exception as e:  # final give up
-            log.warning("reply_gate retry failed: %s", e)
+    async def say(self, instructions: str, retry: bool = True):
+        async with self._lock:
+            await asyncio.sleep(self._base_delay)
+            try:
+                handle = await self._session.generate_reply(instructions=instructions)
+                await handle
+            except Exception:
+                if retry:
+                    await asyncio.sleep(0.5)
+                    try:
+                        handle = await self._session.generate_reply(instructions=instructions)
+                        await handle
+                    except Exception as e:
+                        log.warning("reply_gate retry failed: %s", e)
 
 # ================== Helpers log ==================
 def _log_evt(tag: str, role: str, text: str, extra: str = ""):
@@ -320,7 +315,7 @@ class Talker(Agent):
             user_text = "\n".join(collected).strip()
         if user_text and (not self.buf.lines or not self.buf.lines[-1].endswith(user_text)):
             self.buf.add("user", user_text)
-        
+
         # Dynamic facts injection
         extract_fn = self.shared.get("extract_facts_and_summary")
         if extract_fn and self.buf.lines:
@@ -336,27 +331,29 @@ async def entrypoint(ctx: JobContext):
     init_db()
     log.info("entrypoint: starting")
 
-    # 1) Kết nối vào room
+    # 1) Kết nối vào room (LiveKit chỉ host/transport)
     await ctx.connect(auto_subscribe=AutoSubscribe.AUDIO_ONLY)
     log.info("connected to room: %s", getattr(ctx.room, "name", "?"))
 
-    # Không dùng clinic_defaults file; giữ tối giản
     clinic_defaults = {}
 
-    # 2) Gemini Live API (Realtime LLM có audio & tool calling)
-    # Tên model theo docs: gemini-live-2.5-flash-preview (voice/video + tool calling)
+    # 2) Gemini Live API (Realtime LLM audio + tool calling)
+    #    👉 DÙNG MẶC ĐỊNH của Live API cho VAD/turn/STT/barge-in, KHÔNG can thiệp RealtimeInputConfig
     rt_model = os.getenv("GEMINI_RT_MODEL", "gemini-live-2.5-flash-preview")
-    rt_lang = os.getenv("GEMINI_LANGUAGE", "vi-VN")  # BCP-47
-
+    voice = os.getenv("GEMINI_VOICE", "Puck")  # Puck/Zephyr/Charon/Kore/Fenrir/Leda/Orus/Aoede...
     llm = realtime.RealtimeModel(
         model=rt_model,
-        voice=os.getenv("GEMINI_VOICE", "Zephyr"),  # "Puck" là mặc định ổn định
-        language=rt_lang,
+        voice=voice,
+        language="vi-VN",
+        instructions="Bạn là trợ lý giọng nói thân thiện.",
+        # enable_user_audio_transcription=True (mặc định)
+        # enable_agent_audio_transcription=True (mặc định)
+        # modalities=["AUDIO"] mặc định
     )
-    log.info("Realtime LLM: %s", rt_model)
+    log.info("Realtime LLM: %s voice=%s", rt_model, voice)
 
     # 3) RAG engine
-    rules_path = os.getenv("MED_RULES_PATH", "./med_rules")  # file hoặc thư mục
+    rules_path = os.getenv("MED_RULES_PATH", "./med_rules")
     rag = MedicalRAG(source_path=rules_path)
 
     # ===== State & session =====
@@ -383,17 +380,19 @@ async def entrypoint(ctx: JobContext):
         except Exception:
             log.exception("publish data failed type=%s", obj.get("type"))
 
-
     async def start_new_session():
         nonlocal session, latest_booking, allow_finalize, closing, shared
         if session is not None:
             with contextlib.suppress(Exception):
                 await session.aclose()
-        
-        # Pass shared dict to Talker for dynamic facts
+
         talker = Talker(rag=rag, buf=state, shared=shared)
         session = AgentSession(llm=llm)
-        room_io = RoomInputOptions(noise_cancellation=noise_cancellation.BVC())
+
+        room_io = RoomInputOptions(
+            # Khuyến nghị bật BVC để lọc nền/giọng khác
+            noise_cancellation=noise_cancellation.BVC()
+        )
 
         @session.on("conversation_item_added")
         def on_item_added(ev):
@@ -420,7 +419,6 @@ async def entrypoint(ctx: JobContext):
             "session": session,
             "rag": rag,
             "reply_gate": None,
-            # Expose talker and facts extractor for tools (identity injection + finalize facts)
             "talker": talker,
             "extract_facts_and_summary": extract_facts_and_summary,
         })
@@ -438,7 +436,7 @@ async def entrypoint(ctx: JobContext):
         )
         await talker.update_tools(tools)
 
-        # Start realtime session first
+        # Bật audio output; tắt LK transcription để không chồng lớp với STT/VAD của Gemini
         await session.start(
             room=ctx.room,
             agent=talker,
@@ -449,14 +447,12 @@ async def entrypoint(ctx: JobContext):
             ),
         )
 
-        # Create ReplyGate after session is active and send greeting once
         shared["reply_gate"] = ReplyGate(session)
         try:
             await shared["reply_gate"].say(WELCOME)
         except Exception as e:
             log.warning("welcome failed: %s", e)
 
-    # Khởi động
     await start_new_session()
 
 
@@ -464,10 +460,6 @@ if __name__ == "__main__":
     agents.cli.run_app(
         WorkerOptions(
             entrypoint_fnc=entrypoint,
-            agent_name=os.getenv("AGENT_NAME", "kiosk"),  # 👈 cho phép dispatch theo tên
+            agent_name=os.getenv("AGENT_NAME", "kiosk"),
         )
     )
-
-
-
-
