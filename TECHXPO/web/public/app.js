@@ -232,6 +232,7 @@ function showCall(){
   landing.classList.add('hidden')
   inCall.classList.remove('hidden')
   callBar.classList.add('active')
+  document.body.classList.add('in-call')
   if(progressWrapper){
     progressWrapper.classList.remove('hidden')
     // Recalculate layout after becoming visible
@@ -270,11 +271,13 @@ function drawWave(){
   const H = waveCanvas.height = cssH * dpr
   ctx.clearRect(0,0,W,H)
 
-  // Background subtle gradient
-  const bgGrad = ctx.createLinearGradient(0,0,W,H)
-  bgGrad.addColorStop(0,'rgba(30,58,138,0.15)')
-  bgGrad.addColorStop(1,'rgba(15,23,42,0.35)')
-  ctx.fillStyle = bgGrad
+  // Pure white background already provided by #waveBar; optional faint center glow
+  ctx.fillStyle = 'rgba(255,255,255,1)'
+  ctx.fillRect(0,0,W,H)
+  const cg = ctx.createRadialGradient(W/2,H/2,0,W/2,H/2,Math.max(W,H)/2)
+  cg.addColorStop(0,'rgba(186,230,253,0.18)')
+  cg.addColorStop(1,'rgba(186,230,253,0)')
+  ctx.fillStyle = cg
   ctx.fillRect(0,0,W,H)
 
   if(!analyser){
@@ -294,10 +297,11 @@ function drawWave(){
   const halfCount = Math.floor(fullCount / 2)
   const binSize = Math.max(1, Math.floor(freqArray.length / fullCount))
 
+  // Ocean blue vertical gradient for bars
   const barGrad = ctx.createLinearGradient(0,0,0,H)
-  barGrad.addColorStop(0,'#a78bfa')
-  barGrad.addColorStop(.35,'#818cf8')
-  barGrad.addColorStop(1,'#60a5fa')
+  barGrad.addColorStop(0,'#0ea5e9')
+  barGrad.addColorStop(.45,'#0284c7')
+  barGrad.addColorStop(1,'#0369a1')
   ctx.fillStyle = barGrad
 
   let globalMax = 0
@@ -358,7 +362,7 @@ function drawWave(){
   }
   ctx.globalAlpha = 1
   const energy = globalMax
-  ctx.fillStyle = `rgba(96,165,250,${0.04 + energy*0.10})`
+  ctx.fillStyle = `rgba(14,165,233,${0.06 + energy*0.12})`
   ctx.fillRect(0,0,W,H)
   // Flat detection retained internally (no text overlay to maximize visual area)
   if(energy < 0.02) { _flatCounter++; } else { _flatCounter = 0 }
@@ -369,24 +373,24 @@ function showIdentity(data){
   infoPanel.classList.add('show')
   // Visual glow for propose / confirm handled externally by caller
   infoTitle.textContent = 'Thông tin bệnh nhân'
-  infoBody.innerHTML = `<div class="identity-block">\n    <div>\n      <span class='identity-label'>Họ tên</span>\n      <span class='identity-line'>${data.patient_name || '<i>(chưa)</i>'}</span>\n    </div>\n    <div>\n      <span class='identity-label'>SĐT</span>\n      <span class='identity-line'>${data.phone || '<i>(chưa)</i>'}</span>\n    </div>\n  </div>`
+  // Unified layout (no background frame). Keep stacked label + large line style from original capture,
+  // but force black text for identity lines and remove dark block visuals.
+  infoBody.innerHTML = `<div class="identity-stack">\n    <div class="identity-field">\n      <span class='identity-label uplain'>Họ tên</span>\n      <span class='identity-line uplain-line'>${data.patient_name || '<i>(chưa)</i>'}</span>\n    </div>\n    <div class="identity-field">\n      <span class='identity-label uplain'>SĐT</span>\n      <span class='identity-line uplain-line'>${data.phone || '<i>(chưa)</i>'}</span>\n    </div>\n  </div>`
   infoActions.innerHTML = ''
-  if(identityConfirmed){
-    const btn = document.createElement('button')
-    btn.textContent = 'Sửa'; btn.className='ghost'; btn.style.fontSize='.6rem'
-    btn.onclick = () => {
-      const n = prompt('Tên', data.patient_name || '')
-      const p = prompt('SĐT', data.phone || '')
-      if(n||p){
-        identityConfirmed = false; // force flow to reconfirm
-        sendData({type:'identity_corrected', patient_name:n||data.patient_name, phone:p||data.phone})
-      }
+  // Always allow edit (still sends correction event; server may decide reconfirm flow)
+  const btn = document.createElement('button')
+  btn.textContent = 'Sửa'
+  btn.className='ghost'
+  btn.style.fontSize='.6rem'
+  btn.onclick = () => {
+    const n = prompt('Tên', data.patient_name || '')
+    const p = prompt('SĐT', data.phone || '')
+    if(n||p){
+      sendData({type:'identity_corrected', patient_name:n||data.patient_name, phone:p||data.phone})
     }
-    infoActions.appendChild(btn)
-    infoActions.style.display='flex'
-  } else {
-    infoActions.style.display='none'
   }
+  infoActions.appendChild(btn)
+  infoActions.style.display='flex'
 }
 
 function showBookingPending(){
@@ -489,13 +493,7 @@ function attachEvents(r){
         try { chime.currentTime = 0; chime.play().catch(()=>{}) } catch{}
         // Animate start button circle expansion before showing call
         if(!inCall || inCall.classList.contains('hidden')){
-          document.body.classList.add('transitioning')
-          if(startBtn){
-            startBtn.classList.add('expanding')
-            setTimeout(()=>{ showCall(); startTimer(); startBtn.classList.remove('expanding'); document.body.classList.remove('transitioning') }, 1300)
-          } else {
-            showCall(); startTimer();
-          }
+          triggerStartOverlayTransition(()=>{ showCall(); startTimer(); })
         }
       }
     }
@@ -578,6 +576,8 @@ async function startCall(){
   startBtn.querySelector('.small')?.classList.add('hidden')
   // Reset UI so new call không thấy card cũ
   resetUI()
+  // Prepare overlay so khi audio tới có thể animate ngay (tính tâm & bán kính hiện tại)
+  prepareStartOverlay()
   try {
     const identity = 'web-' + Math.random().toString(36).slice(2,8)
     const { url, token } = await fetchToken(identity)
@@ -592,7 +592,10 @@ async function startCall(){
     const span = document.createElement('span'); span.className='small'; span.textContent='Đợi phản hồi'; startBtn.appendChild(span)
     log('Đã tham gia phòng (đợi audio)')
     // Fallback: if no remote audio in 6s, proceed anyway
-    setTimeout(()=>{ if(!firstRemoteAudio){ showCall(); startTimer(); log('Không thấy audio, vào giao diện') } }, 6000)
+    setTimeout(()=>{ if(!firstRemoteAudio){
+        log('Không thấy audio, vào giao diện (fallback)')
+        triggerStartOverlayTransition(()=>{ showCall(); startTimer(); })
+      } }, 6000)
   } catch(e){
     statusDot.classList.add('err')
     log('Join lỗi: '+ e.message)
@@ -607,7 +610,12 @@ async function hangup(silent){
   infoPanel.classList.remove('show')
   log('Đã thoát phòng')
   if(progressWrapper){ progressWrapper.classList.add('hidden') }
-  if(!silent){ showLanding(); startBtn.disabled=false; firstRemoteAudio=false; startBtn.textContent='BẮT ĐẦU'; const sm=document.createElement('span'); sm.className='small'; sm.textContent='Cho phép Micro'; startBtn.appendChild(sm); setProgressStage(1) }
+  document.body.classList.remove('in-call')
+  if(!silent){
+    showLanding();
+    startBtn.disabled=false; firstRemoteAudio=false; startBtn.textContent='BẮT ĐẦU';
+    const sm=document.createElement('span'); sm.className='small'; sm.textContent='Cho phép Micro'; startBtn.appendChild(sm); setProgressStage(1)
+  } else { showLanding(); }
 }
 
 function mute(){ if(!localTrack) return; localTrack.mute(); btnMute.classList.add('hidden'); btnUnmute.classList.remove('hidden'); log('Mic OFF') }
@@ -618,6 +626,44 @@ btnUnmute.onclick = unmute
 if(btnHangup) btnHangup.onclick = () => hangup()
 startBtn.addEventListener('click', startCall)
 btnLog.onclick = () => { logPanel.classList.toggle('show') }
+
+// =========== Start Button Overlay Expansion (new implementation) ============
+function ensureOverlayEl(){
+  let ov = document.getElementById('startExpandOverlay')
+  if(!ov){
+    ov = document.createElement('div')
+    ov.id = 'startExpandOverlay'
+    document.body.appendChild(ov)
+  }
+  return ov
+}
+function prepareStartOverlay(){
+  if(!startBtn) return
+  const rect = startBtn.getBoundingClientRect()
+  const cx = rect.left + rect.width/2
+  const cy = rect.top + rect.height/2
+  document.body.style.setProperty('--cx', cx+'px')
+  document.body.style.setProperty('--cy', cy+'px')
+  document.body.style.setProperty('--r0', (rect.width/2)+'px')
+  ensureOverlayEl()
+}
+function triggerStartOverlayTransition(cb){
+  if(!startBtn){ if(cb) cb(); return }
+  prepareStartOverlay()
+  document.body.classList.add('transitioning')
+  startBtn.classList.add('expanding')
+  // Ensure overlay present
+  ensureOverlayEl()
+  const ov = document.getElementById('startExpandOverlay')
+  // Expand duration fixed via CSS var (1.1s)
+  let durationMs = 1100
+  setTimeout(()=>{
+    startBtn.classList.remove('expanding')
+    document.body.classList.remove('transitioning')
+    if(cb) cb()
+  }, durationMs)
+}
+
 btnCloseLog.onclick = () => logPanel.classList.remove('show')
 
 // Resize observer to keep canvas crisp
