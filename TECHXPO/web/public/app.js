@@ -534,7 +534,6 @@ function attachEvents(r){
             infoBody.appendChild(badge)
           }
           break
-  case 'identity_updated': log('Identity cập nhật'); identityConfirmed=true; showIdentity(msg); break
         case 'booking_pending':
           log('Đang đặt lịch');
           showBookingPending();
@@ -640,11 +639,15 @@ function ensureOverlayEl(){
 function prepareStartOverlay(){
   if(!startBtn) return
   const rect = startBtn.getBoundingClientRect()
+  const landingRect = landing.getBoundingClientRect()
+  
+  // Tính vị trí chính xác của nút, bù trừ cho transform: translateY() của #landing
   const cx = rect.left + rect.width/2
   const cy = rect.top + rect.height/2
+  
   document.body.style.setProperty('--cx', cx+'px')
   document.body.style.setProperty('--cy', cy+'px')
-  document.body.style.setProperty('--r0', (rect.width/2)+'px')
+  document.body.style.setProperty('--r0', (Math.max(rect.width, rect.height)/2 + 8)+'px')
   ensureOverlayEl()
 }
 function triggerStartOverlayTransition(cb){
@@ -655,8 +658,8 @@ function triggerStartOverlayTransition(cb){
   // Ensure overlay present
   ensureOverlayEl()
   const ov = document.getElementById('startExpandOverlay')
-  // Expand duration fixed via CSS var (1.1s)
-  let durationMs = 1100
+  // Expand duration tăng từ 1.1s lên 1.6s để chậm hơn
+  let durationMs = 1800
   setTimeout(()=>{
     startBtn.classList.remove('expanding')
     document.body.classList.remove('transitioning')

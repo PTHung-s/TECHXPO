@@ -1,0 +1,232 @@
+{
+  "vinmec_TimesCity": [
+    {
+      "code": "LHHUTH",
+      "name": "Bệnh Lý Huyết Học, Ung Thư Huyết Học - Bệnh Hiếm"
+    },
+    {
+      "code": "LTG",
+      "name": "Bệnh Lý Tuyến Giáp"
+    },
+    {
+      "code": "CTTM",
+      "name": "Can Thiệp Tim Mạch"
+    },
+    {
+      "code": "ĐHA",
+      "name": "Chẩn Đoán Hình Ảnh"
+    },
+    {
+      "code": "CXK",
+      "name": "Cơ Xương Khớp"
+    },
+    {
+      "code": "DLD",
+      "name": "Da Liễu"
+    },
+    {
+      "code": "DDD",
+      "name": "Dinh Dưỡng"
+    },
+    {
+      "code": "DDU",
+      "name": "Dược"
+    },
+    {
+      "code": "DUMDLS",
+      "name": "Dị Ứng Miễn Dịch Lâm Sàng"
+    },
+    {
+      "code": "GTG",
+      "name": "Gan - Mật - Tụy"
+    },
+    {
+      "code": "GPG",
+      "name": "Giải Phẫu Bệnh"
+    },
+    {
+      "code": "GMĐTĐ",
+      "name": "Gây Mê - Điều Trị Đau"
+    },
+    {
+      "code": "GMS",
+      "name": "Gây Mê Hồi Sức"
+    },
+    {
+      "code": "HDUMD",
+      "name": "Hen - Dị Ứng Miễn Dịch"
+    },
+    {
+      "code": "HHH",
+      "name": "Huyết Học"
+    },
+    {
+      "code": "HHTM",
+      "name": "Huyết Học - Truyền Máu"
+    },
+    {
+      "code": "HHH2",
+      "name": "Hô Hấp"
+    },
+    {
+      "code": "SSU",
+      "name": "Hồi Sức - Cấp Cứu"
+    },
+    {
+      "code": "HTSS",
+      "name": "Hỗ Trợ Sinh Sản"
+    },
+    {
+      "code": "KSKQ",
+      "name": "Khám Sức Khỏe Tổng Quát"
+    },
+    {
+      "code": "MDDU",
+      "name": "Miễn Dịch Dị Ứng"
+    },
+    {
+      "code": "NKN",
+      "name": "Nam Khoa"
+    },
+    {
+      "code": "CHC",
+      "name": "Ngoại Chấn Thương Chỉnh Hình"
+    },
+    {
+      "code": "NNH",
+      "name": "Ngoại Nhi"
+    },
+    {
+      "code": "TNT",
+      "name": "Ngoại Thận - Tiết Niệu"
+    },
+    {
+      "code": "THT",
+      "name": "Ngoại Tiêu Hoá"
+    },
+    {
+      "code": "NTM",
+      "name": "Nha Khoa Thẩm Mỹ"
+    },
+    {
+      "code": "NNH2",
+      "name": "Nhi"
+    },
+    {
+      "code": "CXK2",
+      "name": "Nội Cơ Xương Khớp"
+    },
+    {
+      "code": "HHH3",
+      "name": "Nội Hô Hấp"
+    },
+    {
+      "code": "TNT2",
+      "name": "Nội Thận - Tiết Niệu"
+    },
+    {
+      "code": "TMT",
+      "name": "Nội Tim Mạch"
+    },
+    {
+      "code": "THS",
+      "name": "Nội Tiêu Hoá - Nội Soi"
+    },
+    {
+      "code": "NTN",
+      "name": "Nội Tiết"
+    },
+    {
+      "code": "QQU",
+      "name": "Nội Tổng Quát"
+    },
+    {
+      "code": "PTTM",
+      "name": "Phẩu Thuật Thẩm Mỹ"
+    },
+    {
+      "code": "PTTMLN",
+      "name": "Phẫu Thuật Tim Mạch - Lồng Ngực"
+    },
+    {
+      "code": "PPH",
+      "name": "Phụ Khoa"
+    },
+    {
+      "code": "PHCN",
+      "name": "Phục Hồi Chức Năng"
+    },
+    {
+      "code": "RHR",
+      "name": "Răng - Hàm - Mặt"
+    },
+    {
+      "code": "SSI",
+      "name": "Sơ Sinh"
+    },
+    {
+      "code": "SSA",
+      "name": "Sản Khoa"
+    },
+    {
+      "code": "SPS",
+      "name": "Sản Phụ Khoa"
+    },
+    {
+      "code": "TMH",
+      "name": "Tai - Mũi - Họng"
+    },
+    {
+      "code": "TKT",
+      "name": "Thần Kinh"
+    },
+    {
+      "code": "TMT2",
+      "name": "Thẩm Mỹ"
+    },
+    {
+      "code": "TMT3",
+      "name": "Tim Mạch"
+    },
+    {
+      "code": "THT2",
+      "name": "Tiêu Hóa"
+    },
+    {
+      "code": "NNI",
+      "name": "Tiết Niệu"
+    },
+    {
+      "code": "TNT3",
+      "name": "Truyền Nhiễm"
+    },
+    {
+      "code": "UBXT",
+      "name": "Ung Bướu - Xạ Trị"
+    },
+    {
+      "code": "XNX",
+      "name": "Xét Nghiệm"
+    },
+    {
+      "code": "XNHS",
+      "name": "Xét Nghiệm Hoá Sinh"
+    },
+    {
+      "code": "XNVS",
+      "name": "Xét Nghiệm Vi Sinh"
+    },
+    {
+      "code": "HCT",
+      "name": "Y Học Cổ Truyền"
+    },
+    {
+      "code": "HHN",
+      "name": "Y Học Hạt Nhân"
+    },
+    {
+      "code": "HTTKBN",
+      "name": "Y Học Tái Tạo (tự Kỷ Bại Não, Tế Bào Gốc)"
+    }
+  ]
+}

@@ -1,63 +1,232 @@
 {
-  "BV_BINHDAN": [
-    { "code": "NTQ", "name": "Ngoại tổng quát" },
-    { "code": "NTN", "name": "Ngoại tiết niệu" },
-    { "code": "PTTMM", "name": "Phẫu Thuật TIM - Mạch MÁU" },
-    { "code": "NNNIEU", "name": "Niệu NỮ" },
-    { "code": "NKNAMK", "name": "NAM khoa" }
-  ],
-  "BV_NAMSAIGON": [
-    { "code": "TMH", "name": "TAI - MŨI - Họng" },
-    { "code": "NTKCS", "name": "Ngoại Thần Kinh - CỘT Sống" },
-    { "code": "NLN", "name": "Ngoại Lồng Ngực" },
-    { "code": "CTCHCX", "name": "Chấn Thương Chỉnh Hình, CƠ - Xương - Khớp" },
-    { "code": "NTH", "name": "Ngoại Tổng HỢP" },
-    { "code": "KBKHAM", "name": "Khám Bệnh" },
-    { "code": "NTH1", "name": "NỘI Tổng HỢP" },
-    { "code": "GMHS", "name": "GÂY MÊ - HỒI SỨC" },
-    { "code": "HSTCCC", "name": "HỒI SỨC Tích CỰC - CẤP CỨU" },
-    { "code": "COHA", "name": "Chẩn Đoán Hình Ảnh" },
-    { "code": "VLTLPH", "name": "VẬT LÝ TRỊ Liệu - Phục HỒI Chức Năng" },
-    { "code": "KDKHOA", "name": "Khoa Dược" },
-    { "code": "PKM", "name": "Phòng khám MẮT" }
-  ],
-  "BV_TAMANH": [
-    { "code": "TTTM", "name": "Trung TÂM TIM mạch" },
-    { "code": "TTTNTH", "name": "Trung TÂM Tiết niệu - Thận HỌC - NAM khoa" },
-    { "code": "TTSPK", "name": "Trung TÂM SẢN PHỤ Khoa" },
-    { "code": "TTNSPT", "name": "Trung TÂM NỘI SOI & Phẫu thuật NỘI SOI tiêu HÓA" },
-    { "code": "TTSS", "name": "Trung TÂM SƠ sinh" },
-    { "code": "KNKHOA", "name": "Khoa NHI" },
-    { "code": "TTTMH", "name": "Trung TÂM TAI MŨI Họng" },
-    { "code": "KUB", "name": "Khoa UNG bướu" },
-    { "code": "TTXN", "name": "Trung TÂM XÉT nghiệm" },
-    { "code": "TTCOHA", "name": "Trung TÂM Chẩn đoán hình ảnhĐiện quang CAN thiệp" },
-    { "code": "KHSCCI", "name": "Khoa HỒI SỨC CẤP CỨU (Icu)" },
-    { "code": "TTKHTK", "name": "Trung TÂM Khoa HỌC Thần kinh" },
-    { "code": "KNTH", "name": "Khoa Ngoại Tổng HỢP" },
-    { "code": "KNLNMM", "name": "Khoa Ngoại Lồng ngực - Mạch MÁU" },
-    { "code": "KNVAMC", "name": "Khoa Ngoại VÚ - ĐẦU MẶT CỔ" },
-    { "code": "KNTH1", "name": "Khoa NỘI tổng HỢP" },
-    { "code": "KCCTH", "name": "Khoa CẤP CỨU Tổng HỢP" },
-    { "code": "TTHTSS", "name": "Trung TÂM HỖ TRỢ sinh SẢN" },
-    { "code": "KKSNK", "name": "Khoa Kiểm soát nhiễm khuẩn" },
-    { "code": "KKB", "name": "Khoa Khám bệnh" },
-    { "code": "TTYHBT", "name": "Trung TÂM Y HỌC BÀO thai" },
-    { "code": "KDLTMD", "name": "Khoa DA Liễu - Thẩm MỸ DA" },
-    { "code": "KDKHOA", "name": "Khoa Dược" },
-    { "code": "KTNNH", "name": "Khoa Tiết niệu - NAM HỌC" },
-    { "code": "KNN", "name": "Khoa Ngoại NHI" },
-    { "code": "TTTMCT", "name": "Trung TÂM TIM mạch CAN thiệp" },
-    { "code": "KTHGMT", "name": "Khoa Tiêu HÓA - GAN MẬT - TỤY" },
-    { "code": "KPHCN", "name": "Khoa Phục HỒI chức năng" },
-    { "code": "KPTKVN", "name": "Khoa phẫu thuật khớp VÀ NỘI SOI" },
-    { "code": "TTMCNC", "name": "Trung TÂM MẮT Công nghệ CAO" },
-    { "code": "KDDTC", "name": "Khoa Dinh dưỡng Tiết CHẾ" },
-    { "code": "KCXK", "name": "Khoa CƠ xương khớp" },
-    { "code": "KGPBTB", "name": "Khoa Giải phẫu bệnh& TẾ BÀO" },
-    { "code": "KRHM", "name": "Khoa Răng HÀM MẶT" },
-    { "code": "TTTCBK", "name": "Trung TÂM tiêm chủng Bvđk TÂM ANH" },
-    { "code": "KMDLS", "name": "Khoa Miễn dịch LÂM sàng" },
-    { "code": "KSCNVI", "name": "Kiểm soát CÂN nặng VÀ Điều TRỊ BÉO PHÌ" }
+  "vinmec_TimesCity": [
+    {
+      "code": "NHI",
+      "name": "Nhi"
+    },
+    {
+      "code": "NCTCH",
+      "name": "Ngoại Chấn Thương Chỉnh Hình"
+    },
+    {
+      "code": "GMITA",
+      "name": "Gây Mê - Điều Trị Đau"
+    },
+    {
+      "code": "HDUMD",
+      "name": "Hen - Dị Ứng Miễn Dịch"
+    },
+    {
+      "code": "HTSS",
+      "name": "Hỗ Trợ Sinh Sản"
+    },
+    {
+      "code": "DUMDLS",
+      "name": "Dị Ứng Miễn Dịch Lâm Sàng"
+    },
+    {
+      "code": "THTIEU",
+      "name": "Tiêu Hóa"
+    },
+    {
+      "code": "NNNGOA",
+      "name": "Ngoại Nhi"
+    },
+    {
+      "code": "NTNOIT",
+      "name": "Nội Tiết"
+    },
+    {
+      "code": "DDDINH",
+      "name": "Dinh Dưỡng"
+    },
+    {
+      "code": "GMT",
+      "name": "Gan - Mật - Tụy"
+    },
+    {
+      "code": "XNXETN",
+      "name": "Xét Nghiệm"
+    },
+    {
+      "code": "SPK",
+      "name": "Sản Phụ Khoa"
+    },
+    {
+      "code": "CXK",
+      "name": "Cơ Xương Khớp"
+    },
+    {
+      "code": "BLHHUT",
+      "name": "Bệnh Lý Huyết Học, Ung Thư Huyết Học - Bệnh Hiếm"
+    },
+    {
+      "code": "TMTIMM",
+      "name": "Tim Mạch"
+    },
+    {
+      "code": "UBXT",
+      "name": "Ung Bướu - Xạ Trị"
+    },
+    {
+      "code": "KSKTQ",
+      "name": "Khám Sức Khỏe Tổng Quát"
+    },
+    {
+      "code": "NTHNS",
+      "name": "Nội Tiêu Hoá - Nội Soi"
+    },
+    {
+      "code": "YHHN",
+      "name": "Y Học Hạt Nhân"
+    },
+    {
+      "code": "SKSANK",
+      "name": "Sản Khoa"
+    },
+    {
+      "code": "DUOC",
+      "name": "Dược"
+    },
+    {
+      "code": "COHA",
+      "name": "Chẩn Đoán Hình Ảnh"
+    },
+    {
+      "code": "HHTM",
+      "name": "Huyết Học - Truyền Máu"
+    },
+    {
+      "code": "PTTMLN",
+      "name": "Phẫu Thuật Tim Mạch - Lồng Ngực"
+    },
+    {
+      "code": "GMHS",
+      "name": "Gây Mê Hồi Sức"
+    },
+    {
+      "code": "PKPHUK",
+      "name": "Phụ Khoa"
+    },
+    {
+      "code": "DLDALI",
+      "name": "Da Liễu"
+    },
+    {
+      "code": "HHHUYE",
+      "name": "Huyết Học"
+    },
+    {
+      "code": "TNTRUY",
+      "name": "Truyền Nhiễm"
+    },
+    {
+      "code": "SSSOSI",
+      "name": "Sơ Sinh"
+    },
+    {
+      "code": "NTTN",
+      "name": "Ngoại Thận - Tiết Niệu"
+    },
+    {
+      "code": "BLTG",
+      "name": "Bệnh Lý Tuyến Giáp"
+    },
+    {
+      "code": "TMTHAM",
+      "name": "Thẩm Mỹ"
+    },
+    {
+      "code": "PHCN",
+      "name": "Phục Hồi Chức Năng"
+    },
+    {
+      "code": "TKTHAN",
+      "name": "Thần Kinh"
+    },
+    {
+      "code": "CTTM",
+      "name": "Can Thiệp Tim Mạch"
+    },
+    {
+      "code": "TNTIET",
+      "name": "Tiết Niệu"
+    },
+    {
+      "code": "TMH",
+      "name": "Tai - Mũi - Họng"
+    },
+    {
+      "code": "NKTM",
+      "name": "Nha Khoa Thẩm Mỹ"
+    },
+    {
+      "code": "NHH",
+      "name": "Nội Hô Hấp"
+    },
+    {
+      "code": "HHHOHA",
+      "name": "Hô Hấp"
+    },
+    {
+      "code": "NKNAMK",
+      "name": "Nam Khoa"
+    },
+    {
+      "code": "NTH",
+      "name": "Ngoại Tiêu Hoá"
+    },
+    {
+      "code": "HSCC",
+      "name": "Hồi Sức - Cấp Cứu"
+    },
+    {
+      "code": "PTTM",
+      "name": "Phẩu Thuật Thẩm Mỹ"
+    },
+    {
+      "code": "NCXK",
+      "name": "Nội Cơ Xương Khớp"
+    },
+    {
+      "code": "RHM",
+      "name": "Răng - Hàm - Mặt"
+    },
+    {
+      "code": "MDDU",
+      "name": "Miễn Dịch Dị Ứng"
+    },
+    {
+      "code": "NTM",
+      "name": "Nội Tim Mạch"
+    },
+    {
+      "code": "NTQ",
+      "name": "Nội Tổng Quát"
+    },
+    {
+      "code": "XNVS",
+      "name": "Xét Nghiệm Vi Sinh"
+    },
+    {
+      "code": "GPB",
+      "name": "Giải Phẫu Bệnh"
+    },
+    {
+      "code": "YHCT",
+      "name": "Y Học Cổ Truyền"
+    },
+    {
+      "code": "XNHS",
+      "name": "Xét Nghiệm Hoá Sinh"
+    },
+    {
+      "code": "YHTTTK",
+      "name": "Y Học Tái Tạo (tự Kỷ Bại Não, Tế Bào Gốc)"
+    },
+    {
+      "code": "NTTN1",
+      "name": "Nội Thận - Tiết Niệu"
+    }
   ]
 }

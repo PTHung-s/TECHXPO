@@ -45,6 +45,7 @@ html, body {
   background: #3d8bff; /* lighter + softer fallback before gradient */
   color: #f1f5f9;
   height: 100%;
+  overflow-x: clip; /* prevent horizontal shift due to negative-position glow spots */
 }
 
 body {
@@ -184,6 +185,8 @@ header {
   align-items: center; justify-content: flex-start;
   padding: clamp(0.2rem, 0.9vw, 0.9rem) 1rem 1.6rem;
   text-align: center; gap: 0.65rem; transform: translateY(-6vh);
+  position: relative; /* containing block for glow spots */
+  max-width: 100%;
 }
 /* Large desktop: lift content higher (reduce wasted bottom space) */
 @media (min-width: 1200px) and (min-height: 720px) {
@@ -258,6 +261,26 @@ header {
   0% { box-shadow: 0 0 0 0 rgba(59,130,246,0.6); }
   70% { box-shadow: 0 0 0 70px rgba(59,130,246,0); }
   100% { box-shadow: 0 0 0 0 rgba(59,130,246,0); }
+}
+
+/* === Desktop hero reposition overrides (move logo + heading + CTA further down) === */
+/* We previously lifted the block quite high with negative translateY. For large desktop screens
+   we now relax that so layout breathes more and centers vertically nicer. */
+@media (min-width: 1200px) and (min-height: 720px) {
+  #landing { 
+    transform: translateY(-4vh); /* nâng nhẹ lên (trước đó 0) */
+    padding-top: 4vh; /* giảm so với 6vh */
+  }
+  #landing .landing-logo { margin-bottom: 0.65rem; }
+  #landing h2 { margin-top: 0.15rem; }
+  .landing-intro { margin-top: 0.3rem !important; }
+}
+@media (min-width: 1600px) and (min-height: 850px) {
+  #landing { 
+    transform: translateY(-6vh); /* vẫn thấp hơn bản gốc ban đầu (-16vh) nhưng cao hơn lần hạ quá thấp */
+    padding-top: 5vh;
+  }
+  #landing .landing-logo { margin-bottom: 0.8rem; }
 }
 .hidden { display: none !important; }
 
@@ -566,8 +589,8 @@ header {
   z-index: 10000; pointer-events: none; opacity: 0;
 }
 body.transitioning #startExpandOverlay {
-  --expand-duration: 1.1s;
-  animation: startExpandCircle var(--expand-duration,1.1s) cubic-bezier(.4,0,.2,1) forwards;
+  --expand-duration: 1.6s;
+  animation: startExpandCircle var(--expand-duration,1.6s) cubic-bezier(.4,0,.2,1) forwards;
 }
 @keyframes startExpandCircle {
   0% { clip-path: circle(var(--r0, 95px) at var(--cx, 50%) var(--cy, 50%)); opacity:1; }
