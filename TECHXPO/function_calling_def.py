@@ -6,6 +6,7 @@ import os
 import re
 import threading
 import time
+import datetime
 from typing import Any, Callable, Dict, Optional
 
 from google.cloud import texttospeech as tts
@@ -18,6 +19,71 @@ log = logging.getLogger(__name__)
 
 def _fn_log(msg: str):
     log.info(f"[FnDef] {msg}")
+
+# ---------------- Time parsing helpers (Vietnamese) ----------------
+_RE_DDMMYYYY = re.compile(r"\b(\d{1,2})[\-/](\d{1,2})[\-/](\d{4})\b")
+_RE_DDMM = re.compile(r"\b(\d{1,2})[\-/](\d{1,2})\b")
+_RE_ISO = re.compile(r"\b(\d{4})-(\d{1,2})-(\d{1,2})\b")
+_RE_VI_TEXT = re.compile(r"\b(\d{1,2})\s*(?:tháng)\s*(\d{1,2})(?:\s*(?:năm)\s*(\d{4}))?\b", re.IGNORECASE)
+
+def _clamp_date(y: int, m: int, d: int) -> Optional[datetime.date]:
+    try:
+        return datetime.date(int(y), int(m), int(d))
+    except Exception:
+        return None
+
+def _parse_vi_preferred_date(text: Optional[str], today: Optional[datetime.date] = None) -> Optional[str]:
+    """Parse common Vietnamese natural date phrases into ISO date (YYYY-MM-DD).
+
+    Supports:
+      - 'ngày mai', 'mai'; 'ngày mốt' (+2); 'hôm nay' (today)
+      - 'dd/mm/yyyy', 'dd-mm-yyyy', 'yyyy-mm-dd'
+      - 'dd/mm' or 'dd-mm' (assume current year; if past, roll to next year)
+      - 'dd tháng mm (năm yyyy)'
+    Ignores time-of-day words like 'sáng', 'chiều', 'tối' (date only).
+    """
+    s = (text or "").strip().lower()
+    if not s:
+        return None
+    td = today or datetime.date.today()
+    # quick keywords
+    if "hôm nay" in s:
+        return td.isoformat()
+    if "ngày mai" in s or s == "mai" or "mai" in s:
+        return (td + datetime.timedelta(days=1)).isoformat()
+    if "ngày mốt" in s or "mốt" in s:
+        return (td + datetime.timedelta(days=2)).isoformat()
+
+    # ISO yyyy-mm-dd
+    m = _RE_ISO.search(s)
+    if m:
+        y, mo, d = map(int, m.groups())
+        dtv = _clamp_date(y, mo, d)
+        return dtv.isoformat() if dtv else None
+    # dd/mm/yyyy or dd-mm-yyyy
+    m = _RE_DDMMYYYY.search(s)
+    if m:
+        d, mo, y = map(int, m.groups())
+        dtv = _clamp_date(y, mo, d)
+        return dtv.isoformat() if dtv else None
+    # textual: "20 tháng 9 (năm 2025)"
+    m = _RE_VI_TEXT.search(s)
+    if m:
+        d, mo, y = m.group(1), m.group(2), m.group(3)
+        y = int(y) if y else td.year
+        dtv = _clamp_date(y, int(mo), int(d))
+        if dtv:
+            return dtv.isoformat()
+    # dd/mm or dd-mm -> assume current year; if past date, roll to next year
+    m = _RE_DDMM.search(s)
+    if m:
+        d, mo = map(int, m.groups())
+        y = td.year
+        dtv = _clamp_date(y, mo, d)
+        if dtv and dtv < td:
+            dtv = _clamp_date(y + 1, mo, d)
+        return dtv.isoformat() if dtv else None
+    return None
 
 # Regex helpers (Vietnam local mobile carriers starting 03/05/07/08/09)
 PHONE_RE_FULL = re.compile(r"^0(3|5|7|8|9)\d{8}$")
@@ -188,7 +254,7 @@ def build_all_tools(
         context: RunContext,
         patient_name: str,
         phone: str,
-        preferred_time: Optional[str] = None,
+        preferred_time: str,
         symptoms: Optional[str] = None,
     ) -> dict:
         # Xóa kết quả đặt lịch cũ để bắt đầu một phiên mới, tránh đọc lại lịch cũ
@@ -250,6 +316,15 @@ def build_all_tools(
                 seen.add(p); _dedup.append(p)
         extra_paths = _dedup
 
+        # Parse preferred_time to a concrete ISO date for Stage2 schedule lookup
+        parsed_date = _parse_vi_preferred_date(preferred_time)
+        if not parsed_date:
+            # fallback to today if cannot parse, but log it for debugging
+            parsed_date = datetime.date.today().isoformat()
+            _fn_log(f"preferred_time parse failed for: {preferred_time!r}; fallback to today={parsed_date}")
+        else:
+            _fn_log(f"preferred_time parsed -> target_date={parsed_date}")
+
         shared["booking_in_progress"] = True
         # Báo UI đang xử lý
         publish_data({
@@ -257,6 +332,7 @@ def build_all_tools(
             "patient_name": raw_name,
             "phone": raw_phone,
             "preferred_time": preferred_time,
+            "target_date": parsed_date,
         })
 
         session = shared.get("session")
@@ -275,11 +351,17 @@ def build_all_tools(
                     data_path,
                     book_model,
                     extra_paths,
+                    target_date=parsed_date,
                 )
                 if symptoms and not result.get("symptoms"):
                     result["symptoms"] = symptoms
                 shared["latest_booking"] = result
                 shared["allow_finalize"] = True
+                # Attach echo of target_date to meta for UI/LLM clarity
+                try:
+                    result.setdefault("meta", {})["target_date"] = parsed_date
+                except Exception:
+                    pass
                 # LOGGING: In ra các options trước khi gửi đi để kiểm tra hospital_name
                 _fn_log(f"Publishing booking options with hospital names: {result.get('options', [])[:2]}")
 

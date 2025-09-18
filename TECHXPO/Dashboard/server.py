@@ -13,6 +13,13 @@ from typing import List, Optional, Dict, Any
 import asyncio
 import datetime as dt
 from pathlib import Path
+# >>>>>>>>>> ADD THIS BLOCK TO LOAD .ENV <<<<<<<<<<
+from dotenv import load_dotenv
+# Load from .env in the same directory as this server file, or parent directories
+# This ensures KIOSK_DB, VISIT_LOOKUP_DEBUG etc. are loaded at startup
+load_dotenv()
+# >>>>>>>>>>>>>>>>>>>>> END BLOCK <<<<<<<<<<<<<<<<<<<
+
 
 from .schedule_logic import (
     get_overview,

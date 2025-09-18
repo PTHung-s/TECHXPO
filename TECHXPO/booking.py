@@ -131,6 +131,7 @@ class BookingResult(BaseModel):
     patient_name: Optional[str] = None
     phone: Optional[str] = None
     speak_text: Optional[str] = Field(..., description="Thông báo các lựa chọn ra một cách dễ nghe, thật ngắn gọn, ngôn ngữ đời thường, chỉ đọc ngày giờ chứ không đọc năm.")
+    booking_date: Optional[str] = Field(None, description="Ngày đặt lịch duy nhất được chọn, định dạng YYYY-MM-DD")
 
 
 SYSTEM = (
@@ -624,6 +625,7 @@ def book_appointment(
 
     if not target_date:
         target_date = datetime.date.today().isoformat()
+    _blog(f"Book appointment target_date={target_date}")
 
     departments_index = _load_departments_index(departments_index_path)
     selected_codes: List[str] = []
@@ -652,6 +654,11 @@ def book_appointment(
 
     # Stage 2: gather schedule (by codes)
     schedule_data = _gather_schedule(selected_codes, departments_index, target_date) if selected_codes else {"error": "no_departments_selected"}
+    try:
+        if isinstance(schedule_data, dict):
+            _blog(f"Stage2 schedule date={schedule_data.get('date')} target_date={target_date} selected_codes={selected_codes}")
+    except Exception:
+        pass
     if two_stage and not schedule_data.get("error"):
         try:
             hosp_count = len(schedule_data.get("hospitals", []))
@@ -774,6 +781,18 @@ def book_appointment(
     if two_stage:
         result_dict["meta"]["dept_index_map"] = dept_index_map
 
+    # Try to infer a single booking_date if all options are on the same day
+    try:
+        opts = (result_dict or {}).get("options") or []
+        dates = set()
+        for o in opts:
+            ts = o.get("slot_time")
+            if isinstance(ts, str) and len(ts) >= 10:
+                dates.add(ts[:10])
+        if len(dates) == 1:
+            result_dict.setdefault("booking_date", next(iter(dates)))
+    except Exception:
+        pass
     return result_dict
 
 
