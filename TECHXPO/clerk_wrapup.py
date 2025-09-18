@@ -95,6 +95,26 @@ def _first_json_like_from_parts(resp) -> Optional[str]:
         pass
     return None
 
+# Thêm helper chuẩn hóa HH:MM
+import datetime as _dt
+import re as _re
+
+_HHMM_RE = _re.compile(r"\b(\d{1,2}):(\d{2})\b")
+def _to_hhmm(val: Optional[str]) -> Optional[str]:
+    if not val or not isinstance(val, str):
+        return None
+    m = _HHMM_RE.search(val)
+    if not m:
+        return None
+    h, mm = m.group(1), m.group(2)
+    try:
+        h_i = int(h)
+        if not (0 <= h_i <= 23):
+            return None
+        return f"{h_i:02d}:{mm}"
+    except Exception:
+        return None
+
 # ---------- Structured Output schema ----------
 class Symptom(BaseModel):
     name: str
@@ -230,4 +250,18 @@ Bạn là thư ký y khoa. Hãy trích xuất phiếu thăm khám (tiếng Việ
         "follow_up": data.get("follow_up") or "Tái khám khi có dấu hiệu bất thường.",
         "warnings": data.get("warnings") or "",
     }
+    # BỔ SUNG: ghi thêm slot_time = HH:MM để Dashboard tra cứu được
+    slot = None
+    for cand in [
+        data.get("slot_time"),
+        data.get("appointment_time"),
+        (booking_safe or {}).get("slot_time"),
+        clinic_defaults.get("appointment_time"),
+    ]:
+        slot = _to_hhmm(cand) or slot
+        if slot:
+            break
+    if slot:
+        safe["slot_time"] = slot  # quan trọng cho find_visit_by_booking (LIKE '"slot_time": "HH:MM"')
+
     return safe
