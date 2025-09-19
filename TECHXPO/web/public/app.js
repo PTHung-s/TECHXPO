@@ -448,7 +448,7 @@ function showBookingPending(){
     centerNotice.style.display = 'flex'
   }
 }
-function showBooking(result){
+function showBooking(result, showChoiceGuide = true){
   infoPanel.classList.add('show')
   infoTitle.textContent='Lịch hẹn'
   const payload = result.booking || result
@@ -494,8 +494,10 @@ function showBooking(result){
   infoActions.style.display='none'
   // Hide center notice after options appear
   if(centerNotice){ centerNotice.style.display = 'none' }
-  // Guidance after schedules appear
-  setGuide(`Hãy nói với Medly bạn muốn chọn lịch nào.`)
+  // Guidance after schedules appear - only if requested and multiple options
+  if(showChoiceGuide && multi && !payload.chosen) {
+    setGuide(`Hãy nói với Medly bạn muốn chọn lịch nào.`)
+  }
 }
 
 function renderBookingOptions(options) {
@@ -597,16 +599,18 @@ function attachEvents(r){
           break
         case 'booking_result':
           log('Đặt lịch xong');
-          showBooking(msg);
+          showBooking(msg, false); // Don't auto-show guide in showBooking
           // list options -> purple highlight
           infoPanel.classList.remove('glow-amber','glow-green')
           infoPanel.classList.add('glow-purple')
           // Stay in stage 3 (still choosing)
           setProgressStage(3)
+          // Always show choice guidance after booking results
+          setGuide(`Hãy nói với Medly bạn muốn chọn lịch nào.`)
           break
         case 'booking_option_chosen':
           log('Đã chọn 1 phương án');
-          showBooking(msg.booking || msg);
+          showBooking(msg.booking || msg, false); // Don't show choice guide since option is already chosen
           // finalize chosen -> green
           infoPanel.classList.remove('glow-amber','glow-blue','glow-purple')
           infoPanel.classList.add('glow-green')

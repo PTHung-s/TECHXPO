@@ -19,6 +19,7 @@ from dataclasses import dataclass, field
 from typing import List, Optional, Set
 from pathlib import Path
 from datetime import datetime
+from zoneinfo import ZoneInfo
 from dotenv import load_dotenv
 load_dotenv(".env.local") or load_dotenv()
 
@@ -43,9 +44,10 @@ WELCOME = (
     "Luôn bắt đầu cuộc hội thoại bằng câu chào đó"
 )
 
+vn_time = datetime.now(ZoneInfo("Asia/Ho_Chi_Minh"))
 SYSTEM_PROMPT = (
     "# General context\n"
-    f"Current date and time: {datetime.now().strftime('%A, %d %B %Y, %H:%M')}\n\n"
+    f"Current date and time: {vn_time.strftime('%A, %d %B %Y, %H:%M')}\n\n"
     """
 # Personality and Tone
 ## Identity
