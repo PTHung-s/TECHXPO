@@ -1,0 +1,268 @@
+{
+  "patient_name": "Phạm Tuấn Hưng",
+  "phone": "0336018126",
+  "booking": {
+    "options": [
+      {
+        "hospital_name": "Bệnh viện VinMec TimesCity",
+        "hospital_code": "vinmec_timescity",
+        "department": "Khám Sức Khỏe Tổng Quát",
+        "department_code": "KSKTQ",
+        "doctor_name": "Lê Thị Hường",
+        "slot_time": "2025-09-20 07:40",
+        "room": null,
+        "score": null,
+        "image_url": "/images/VINMEC_TIMESCITY.png",
+        "hospital": "Bệnh viện VinMec TimesCity"
+      },
+      {
+        "hospital_name": "Bệnh viện VinMec TimesCity",
+        "hospital_code": "vinmec_timescity",
+        "department": "Khám Sức Khỏe Tổng Quát",
+        "department_code": "KSKTQ",
+        "doctor_name": "Lê Thị Hường",
+        "slot_time": "2025-09-20 08:00",
+        "room": null,
+        "score": null,
+        "image_url": "/images/VINMEC_TIMESCITY.png",
+        "hospital": "Bệnh viện VinMec TimesCity"
+      },
+      {
+        "hospital_name": "Bệnh viện VinMec TimesCity",
+        "hospital_code": "vinmec_timescity",
+        "department": "Khám Sức Khỏe Tổng Quát",
+        "department_code": "KSKTQ",
+        "doctor_name": "Lê Thị Hường",
+        "slot_time": "2025-09-20 08:20",
+        "room": null,
+        "score": null,
+        "image_url": "/images/VINMEC_TIMESCITY.png",
+        "hospital": "Bệnh viện VinMec TimesCity"
+      }
+    ],
+    "chosen": {
+      "hospital_name": "Bệnh viện VinMec TimesCity",
+      "hospital_code": "vinmec_timescity",
+      "department": "Khám Sức Khỏe Tổng Quát",
+      "department_code": "KSKTQ",
+      "doctor_name": "Lê Thị Hường",
+      "slot_time": "2025-09-20 08:00",
+      "room": null,
+      "score": null,
+      "image_url": "/images/VINMEC_TIMESCITY.png",
+      "hospital": "Bệnh viện VinMec TimesCity"
+    },
+    "rationale": "Dựa trên thông tin bạn cung cấp, tôi đã chọn lịch khám sức khỏe tổng quát định kỳ vào ngày 20 tháng 9 năm 2025, lúc 07:40 sáng với bác sĩ Lê Thị Hường tại Bệnh viện VinMec TimesCity.",
+    "patient_name": "Phạm Tuấn Hưng",
+    "phone": "0336018126",
+    "booking_date": "2025-09-20",
+    "meta": {
+      "selected_department_codes": [
+        "KSKTQ"
+      ],
+      "selected_departments": [
+        "Khám Sức Khỏe Tổng Quát"
+      ],
+      "two_stage": true,
+      "schedule": {
+        "date": "2025-09-20",
+        "slots": {
+          "start": "07:40",
+          "end": "16:40",
+          "slot_minutes": 20
+        },
+        "hospitals": [
+          {
+            "hospital_code": "vinmec_timescity",
+            "hospital_name": "Bệnh viện VinMec TimesCity",
+            "departments": [
+              {
+                "department_code": "KSKTQ",
+                "department_name": "Khám Sức Khỏe Tổng Quát",
+                "doctors": [
+                  {
+                    "name": "Lê Thị Hường",
+                    "free_slots": [
+                      "07:40",
+                      "08:00",
+                      "08:20",
+                      "08:40",
+                      "09:00",
+                      "09:20",
+                      "09:40",
+                      "10:00",
+                      "10:20",
+                      "10:40",
+                      "11:00",
+                      "11:20",
+                      "11:40",
+                      "12:00",
+                      "12:20",
+                      "12:40",
+                      "13:00",
+                      "13:20",
+                      "13:40",
+                      "14:00",
+                      "14:20",
+                      "14:40",
+                      "15:00",
+                      "15:20",
+                      "15:40",
+                      "16:00",
+                      "16:20",
+                      "16:40"
+                    ]
+                  },
+                  {
+                    "name": "Nguyễn Văn Quyết",
+                    "free_slots": [
+                      "07:40",
+                      "08:00",
+                      "08:20",
+                      "08:40",
+                      "09:00",
+                      "09:20",
+                      "09:40",
+                      "10:00",
+                      "10:20",
+                      "10:40",
+                      "11:00",
+                      "11:20",
+                      "11:40",
+                      "12:00",
+                      "12:20",
+                      "12:40",
+                      "13:00",
+                      "13:20",
+                      "13:40",
+                      "14:00",
+                      "14:20",
+                      "14:40",
+                      "15:00",
+                      "15:20",
+                      "15:40",
+                      "16:00",
+                      "16:20",
+                      "16:40"
+                    ]
+                  }
+                ]
+              }
+            ],
+            "hospital_image": "/images/VINMEC_TIMESCITY.png"
+          }
+        ],
+        "selected_department_codes": [
+          "KSKTQ"
+        ]
+      },
+      "dept_index_map": {
+        "vinmec_timescity": {
+          "NHI": "Nhi",
+          "NCTCH": "Ngoại Chấn Thương Chỉnh Hình",
+          "GMITA": "Gây Mê - Điều Trị Đau",
+          "HDUMD": "Hen - Dị Ứng Miễn Dịch",
+          "HTSS": "Hỗ Trợ Sinh Sản",
+          "DUMDLS": "Dị Ứng Miễn Dịch Lâm Sàng",
+          "THTIEU": "Tiêu Hóa",
+          "NNNGOA": "Ngoại Nhi",
+          "NTNOIT": "Nội Tiết",
+          "DDDINH": "Dinh Dưỡng",
+          "GMT": "Gan - Mật - Tụy",
+          "XNXETN": "Xét Nghiệm",
+          "SPK": "Sản Phụ Khoa",
+          "CXK": "Cơ Xương Khớp",
+          "BLHHUT": "Bệnh Lý Huyết Học, Ung Thư Huyết Học - Bệnh Hiếm",
+          "TMTIMM": "Tim Mạch",
+          "UBXT": "Ung Bướu - Xạ Trị",
+          "KSKTQ": "Khám Sức Khỏe Tổng Quát",
+          "NTHNS": "Nội Tiêu Hoá - Nội Soi",
+          "YHHN": "Y Học Hạt Nhân",
+          "SKSANK": "Sản Khoa",
+          "DUOC": "Dược",
+          "COHA": "Chẩn Đoán Hình Ảnh",
+          "HHTM": "Huyết Học - Truyền Máu",
+          "PTTMLN": "Phẫu Thuật Tim Mạch - Lồng Ngực",
+          "GMHS": "Gây Mê Hồi Sức",
+          "PKPHUK": "Phụ Khoa",
+          "DLDALI": "Da Liễu",
+          "HHHUYE": "Huyết Học",
+          "TNTRUY": "Truyền Nhiễm",
+          "SSSOSI": "Sơ Sinh",
+          "NTTN": "Ngoại Thận - Tiết Niệu",
+          "BLTG": "Bệnh Lý Tuyến Giáp",
+          "TMTHAM": "Thẩm Mỹ",
+          "PHCN": "Phục Hồi Chức Năng",
+          "TKTHAN": "Thần Kinh",
+          "CTTM": "Can Thiệp Tim Mạch",
+          "TNTIET": "Tiết Niệu",
+          "TMH": "Tai - Mũi - Họng",
+          "NKTM": "Nha Khoa Thẩm Mỹ",
+          "NHH": "Nội Hô Hấp",
+          "HHHOHA": "Hô Hấp",
+          "NKNAMK": "Nam Khoa",
+          "NTH": "Ngoại Tiêu Hoá",
+          "HSCC": "Hồi Sức - Cấp Cứu",
+          "PTTM": "Phẩu Thuật Thẩm Mỹ",
+          "NCXK": "Nội Cơ Xương Khớp",
+          "RHM": "Răng - Hàm - Mặt",
+          "MDDU": "Miễn Dịch Dị Ứng",
+          "NTM": "Nội Tim Mạch",
+          "NTQ": "Nội Tổng Quát",
+          "XNVS": "Xét Nghiệm Vi Sinh",
+          "GPB": "Giải Phẫu Bệnh",
+          "YHCT": "Y Học Cổ Truyền",
+          "XNHS": "Xét Nghiệm Hoá Sinh",
+          "YHTTTK": "Y Học Tái Tạo (tự Kỷ Bại Não, Tế Bào Gốc)",
+          "NTTN1": "Nội Thận - Tiết Niệu"
+        }
+      },
+      "target_date": "2025-09-20"
+    },
+    "symptoms": "khám tổng quát định kỳ",
+    "persist_result": {
+      "soft_hold": {
+        "ok": true,
+        "message": "held",
+        "session_id": "default"
+      },
+      "schedule_backend": {
+        "ok": true,
+        "message": "booked",
+        "finalize_persist": true,
+        "mode": "promote_hold"
+      }
+    }
+  },
+  "summary_struct": {
+    "patient_name": "Phạm Tuấn Hưng",
+    "phone": "0336018126",
+    "customer_id": "(không rõ)",
+    "doctor_name": "Lê Thị Hường",
+    "appointment_time": "2025-09-20 08:00",
+    "room": "",
+    "queue_number": "",
+    "symptoms": "[{\"name\": \"khám tổng quát định kỳ\", \"severity\": null, \"duration\": null}]",
+    "tentative_diagnoses": "[]",
+    "tests_recommended": "[]",
+    "medications_advised": "[]",
+    "diet_notes": "(không rõ)",
+    "follow_up": "(không rõ)",
+    "warnings": "Đây chỉ là hỗ trợ đặt lịch sơ bộ, không thay thế chẩn đoán chính thức của bác sĩ.",
+    "slot_time": "08:00"
+  },
+  "facts_pretty": "Thông tin cá nhân cơ bản: Phạm Tuấn Hưng, số điện thoại 0336018126. Tiền sử bệnh: Là khách quen của Bệnh viện VinMec TimesCity, đã từng đặt lịch khám tổng quát trước đây, và lần này tiếp tục đặt khám tổng quát định kỳ. Sở thích, phong cách, thái độ nói chuyện: Thân thiện, thoải mái, trực tiếp.",
+  "summary_pretty": "Lý do khám chính: Đặt lịch khám tổng quát định kỳ. Triệu chứng hiện tại và thời gian xuất hiện: Không có triệu chứng cụ thể, chỉ khám để kiểm tra sức khỏe định kỳ. Chẩn đoán sơ bộ: Chưa có. Kế hoạch điều trị/xét nghiệm: Đã đặt lịch khám tổng quát tại Bệnh viện VinMec TimesCity với Bác sĩ Lê Thị Hường vào lúc 8 giờ sáng ngày 20 tháng 9 năm 2025. Lưu ý đặc biệt: Đây là lịch khám định kỳ, không cần chuẩn bị gì đặc biệt, chỉ cần giữ tinh thần thoải mái.",
+  "booking_index": {
+    "hospital_code": "vinmec_timescity",
+    "department_code": "KSKTQ",
+    "doctor_name": "Lê Thị Hường",
+    "date": "2025-09-20",
+    "slot_time": "08:00"
+  },
+  "hospital_code": "vinmec_timescity",
+  "date": "2025-09-20",
+  "slot_time": "08:00",
+  "doctor_name": "Lê Thị Hường",
+  "appointment_time": "2025-09-20 08:00"
+}
