@@ -23,6 +23,9 @@ RUN apt-get purge -y build-essential && apt-get autoremove -y && rm -rf /var/lib
 # Add entrypoint script to run services and make executable
 COPY TECHXPO/entrypoint.sh /app/TECHXPO/entrypoint.sh
 COPY TECHXPO/entrypoint-dashboard.sh /app/TECHXPO/entrypoint-dashboard.sh
+RUN sed -i 's/\r$//' /app/TECHXPO/entrypoint*.sh && \
+    chmod +x /app/TECHXPO/entrypoint*.sh
+
 RUN chmod +x /app/TECHXPO/entrypoint.sh && chmod +x /app/TECHXPO/entrypoint-dashboard.sh
 
 # Non‑root
