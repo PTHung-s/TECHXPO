@@ -257,6 +257,24 @@ def build_all_tools(
         preferred_time: str,
         symptoms: Optional[str] = None,
     ) -> dict:
+        """
+        Đặt lịch khám theo yêu cầu của bệnh nhân.
+
+        YÊU CẦU QUAN TRỌNG CHO preferred_time:
+        - BẮT BUỘC phải là NGÀY CỤ THỂ (YYYY-MM-DD) trước khi gọi tool này.
+        - Nếu người dùng nói tương đối (ví dụ: "hôm nay", "mai", "ngày mốt", "chiều 20 tháng 9 năm 2025"),
+          bạn PHẢI quy đổi thành ngày cụ thể dựa trên ngày hiện tại (đã có trong system prompt).
+        - Chấp nhận các định dạng đầu vào như: "YYYY-MM-DD", "DD/MM/YYYY", "DD-MM-YYYY", hoặc "DD tháng MM (năm YYYY)".
+        - KHÔNG truyền các cụm mơ hồ ("chiều mai", "tối mai"). Thời điểm sáng/chiều/tối sẽ được hệ thống xử lý sau.
+
+        Ví dụ hợp lệ khi gọi tool:
+        {
+          "patient_name": "Nguyễn Văn A",
+          "phone": "0903123456",
+          "preferred_time": "2025-09-20",
+          "symptoms": "khám tổng quát"
+        }
+        """
         # Xóa kết quả đặt lịch cũ để bắt đầu một phiên mới, tránh đọc lại lịch cũ
         shared["latest_booking"] = None
         shared["allow_finalize"] = False
