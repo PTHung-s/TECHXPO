@@ -38,16 +38,35 @@ from clerk_wrapup import summarize_visit_json
 from med_rag import MedicalRAG
 from booking import book_appointment
 
+
 # ================== Cấu hình hội thoại ==================
 WELCOME = (
     "Nói nguyên văn cụm này khi bắt đầu hội thoại: Dạ xin chào! Em là Mét Ly, em có thể hỗ trợ gì cho mình ạ."
     "Luôn bắt đầu cuộc hội thoại bằng câu chào đó"
 )
 
+# Hàm chuyển đổi ngày giờ sang tiếng Việt
+def vietnamese_datetime(dt):
+    days = {
+        "Monday": "Thứ Hai", "Tuesday": "Thứ Ba", "Wednesday": "Thứ Tư",
+        "Thursday": "Thứ Năm", "Friday": "Thứ Sáu", "Saturday": "Thứ Bảy", "Sunday": "Chủ Nhật"
+    }
+    months = {
+        "January": "Tháng Một", "February": "Tháng Hai", "March": "Tháng Ba",
+        "April": "Tháng Tư", "May": "Tháng Năm", "June": "Tháng Sáu",
+        "July": "Tháng Bảy", "August": "Tháng Tám", "September": "Tháng Chín",
+        "October": "Tháng Mười", "November": "Tháng Mười Một", "December": "Tháng Mười Hai"
+    }
+    day = days[dt.strftime('%A')]
+    month = months[dt.strftime('%B')]
+    return f"{day}, {dt.strftime('%d')} {month} {dt.strftime('%Y, %H:%M')}"
+
 vn_time = datetime.now(ZoneInfo("Asia/Ho_Chi_Minh"))
+formatted_time = vietnamese_datetime(vn_time)
+
 SYSTEM_PROMPT = (
-    "# General context\n"
-    f"Current date and time: {vn_time.strftime('%A, %d %B %Y, %H:%M')}\n\n"
+    "# Bối cảnh chung\n"
+    f"Ngày giờ hiện tại: {formatted_time}\n\n"
     """
 # Personality and Tone
 ## Identity
@@ -57,7 +76,7 @@ Bạn là một bác sĩ hỏi bệnh có kinh nghiệm lâu năm, làm việc t
 Bạn sẽ thực hiện cuộc gọi hỏi bệnh sơ bộ để: thu thập danh tính, xác nhận lại thông tin, kiểm tra nếu là khách cũ, khai thác triệu chứng, đề xuất đặt lịch, và dặn dò trước khám.
 
 ## Demeanor
-Thân thiện, điềm tĩnh, chuyên nghiệp.
+Thân thiện, điềm tĩnh, chuyên nghiệp, chỉ được xưng là 'em' và gọi bệnh nhân là 'mình'.
 
 ## Tone
 Trầm, nhẹ nhàng, rõ ràng, không phán đoán chủ quan.
@@ -66,7 +85,7 @@ Trầm, nhẹ nhàng, rõ ràng, không phán đoán chủ quan.
 Vừa phải, luôn giữ thái độ tận tâm, không phô trương.
 
 ## Level of Formality
-Chuyên nghiệp, đúng mực, xưng hô lịch sự phù hợp giới tính sau khi biết tên.
+Chuyên nghiệp, đúng mực, chỉ được xưng là 'em' và gọi bệnh nhân là 'mình'.
 
 ## Level of Emotion
 Chân thành và biết lắng nghe, biểu cảm nhẹ, tránh vô cảm nhưng không được cường điệu.
@@ -144,12 +163,12 @@ Chậm rãi, từng bước một, không nói quá nhiều trong một lượt.
     "description": "Xác nhận danh tính đã chính xác và kiểm tra có phải khách cũ không.",
     "instructions": [
       "Gọi `confirm_identity(confirm=True)` nếu bệnh nhân xác nhận thông tin đúng.",
-      "Nếu là khách quen, chủ động hỏi thăm lại tình trạng cũ: 'Dạ lần trước mình có chia sẻ về [triệu chứng trước], nay tình hình sao rồi ạ?'"
+      "Nếu là đã từng đặt lịch khám bênh, chủ động hỏi thăm lại tình trạng cũ: 'Dạ lần trước mình có chia sẻ về [triệu chứng trước], nay tình hình sao rồi ạ?'"
     ],
     "examples": [
       "Dạ đúng rồi em.",
       "Dạ em xác nhận thông tin của mình là đúng ạ",
-      "(Nếu là khách quen): Dạ lần trước mình có nhắc tới đau lưng, nay còn đau nhiều không ạ?"
+      "(Nếu là cũ): Dạ lần trước mình có nhắc tới đau lưng, nay còn đau nhiều không ạ?"
     ],
     "transitions": [
       {
@@ -310,6 +329,7 @@ def _log_evt(tag: str, role: str, text: str, extra: str = ""):
         log.debug("%s role=%s %s text=%r", tag, role, extra, text)
 
 # ================== Talker (Agent) có RAG ==================
+# Cập nhật Talker để tiêm ngày giờ vào mỗi lần cập nhật instructions
 class Talker(Agent):
     """Agent có RAG và tiêm facts động."""
     def __init__(self, rag: MedicalRAG, buf: SessionBuf, shared: dict):
@@ -334,7 +354,14 @@ class Talker(Agent):
             facts_result = await asyncio.to_thread(extract_fn, transcript, "", "")
             live_facts = (facts_result.get("facts") or "").strip()
             if live_facts:
-                new_instr = self.base_instructions + f"\n\n# LIVE FACTS (from this call)\n{live_facts}"
+                # Cập nhật ngày giờ hiện tại mỗi lần tiêm facts
+                current_time = vietnamese_datetime(datetime.now(ZoneInfo("Asia/Ho_Chi_Minh")))
+                new_instr = (
+                    f"# Bối cảnh chung\n"
+                    f"Ngày giờ hiện tại: {current_time}\n\n"
+                    f"{self.base_instructions}\n\n"
+                    f"# LIVE FACTS (from this call)\n{live_facts}"
+                )
                 await self.update_instructions(new_instr)
 
 # ================== Entrypoint ==================
