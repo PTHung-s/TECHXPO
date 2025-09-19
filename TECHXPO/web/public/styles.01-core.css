@@ -529,6 +529,61 @@ header {
   .bk-hosp-overlay { font-size: 0.85rem; }
 }
 
+/* ===== Enlarge booking presentation on desktop (≈3x) ===== */
+@media (min-width: 1024px) {
+  /* scale up grid cells and typography */
+  .bk-grid { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; }
+  .bk-card { border-radius: 1.1rem; }
+  .bk-img { aspect-ratio: 16/11; }
+  .bk-hosp-overlay { font-size: 1.2rem; line-height: 1.2; }
+  .bk-meta { font-size: 0.95rem; line-height: 1.4; padding: 0.7rem 0.8rem 0.8rem; }
+  .bk-badge { font-size: 0.8rem; padding: 0.4rem 0.7rem; border-radius: 0.8rem; }
+  .bk-score { font-size: 0.85rem; }
+}
+
+/* ===== Guide content animated transitions ===== */
+.info-guide { position: relative; min-height: 2.2rem; }
+.info-guide .guide-block { opacity: 0; transform: translateY(-8px); animation: guideIn 380ms cubic-bezier(.2,.7,.2,1) forwards; }
+.info-guide .guide-block.leave { animation: guideOut 380ms cubic-bezier(.2,.7,.2,1) forwards; position: absolute; left: 0; right: 0; }
+@keyframes guideIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes guideOut { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(10px); } }
+
+/* Ensure larger, readable guidance text (overrides inline removed) */
+.info-guide { font-size: 1.5rem; color: #0f172a; }
+@media (min-width: 1024px) { .info-guide { font-size: 1.5rem; } }
+@media (min-width: 1440px) { .info-guide { font-size: 1.75rem; } }
+
+/* ===== Center notice vivid style with animated border ===== */
+#centerNotice {
+  position: fixed; inset: 0; display: none; align-items: center; justify-content: center;
+  z-index: 1000; pointer-events: none;
+}
+#centerNoticeText {
+  position: relative; pointer-events: auto; color: #052e16;
+  background: linear-gradient(135deg, #a7f3d0, #6ee7b7 45%, #34d399);
+  box-shadow: 0 10px 34px -10px rgba(16,185,129,.45), 0 0 0 1px rgba(255,255,255,.6);
+  border-radius: 16px; padding: 1.1rem 1.35rem; font-size: 1.6rem; font-weight: 700;
+  max-width: min(920px, 90%); text-align: center; filter: saturate(115%);
+}
+#centerNoticeText::before {
+  /* running-color border */
+  content: ""; position: absolute; inset: -3px; border-radius: 18px; padding: 2px;
+  background: linear-gradient(90deg, #10b981, #06b6d4, #0ea5e9, #22c55e, #10b981);
+  background-size: 200% 100%;
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor; mask-composite: exclude;
+  animation: borderSlide 3s linear infinite; filter: brightness(1.05) saturate(120%);
+}
+@keyframes borderSlide { to { background-position: 200% 0; } }
+
+/* Single booking enlarged on desktop */
+@media (min-width: 1024px) {
+  .booking-single { font-size: 1rem; line-height: 1.5; }
+  .booking-single b { font-size: 1.05rem; }
+}
+
+
 /* ===== Identity Stack (no frame) ===== */
 .identity-block {
   display: flex; flex-direction: column; gap: 0.8rem;

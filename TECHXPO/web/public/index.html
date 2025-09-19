@@ -96,6 +96,8 @@
       <div id="infoPanel">
         <h3 id="infoTitle">Thông tin</h3>
         <div id="infoBody" style="font-size:.7rem; opacity:.85;">Đang nhận dữ liệu...</div>
+        <!-- Hướng dẫn tương tác theo trạng thái -->
+  <div id="infoGuide" class="info-guide" style="margin-top:.5rem; line-height:1.45;"></div>
         <div class="actionsRow" id="infoActions" style="display:none;"></div>
       </div>
       <div id="waveBar">
@@ -104,6 +106,10 @@
         <button id="btnEndCall" aria-label="Kết thúc" title="Kết thúc" class="hangup-btn">
           <img src="icons/phone_white.svg" alt="Kết thúc" />
         </button>
+      </div>
+      <!-- Thông báo trung tâm (overlay) -->
+      <div id="centerNotice">
+        <div id="centerNoticeText"></div>
       </div>
       <div id="logPanel">
         <div id="logHeader">LOG HỆ THỐNG <button id="btnCloseLog" class="ghost" style="padding:.35rem .6rem; font-size:.55rem;">Đóng</button></div>

@@ -192,6 +192,9 @@ const infoPanel = document.getElementById('infoPanel')
 const infoTitle = document.getElementById('infoTitle')
 const infoBody = document.getElementById('infoBody')
 const infoActions = document.getElementById('infoActions')
+const infoGuide = document.getElementById('infoGuide')
+const centerNotice = document.getElementById('centerNotice')
+const centerNoticeText = document.getElementById('centerNoticeText')
 
 let room, localTrack, analyser, freqArray, audioCtx, remoteSource
 let firstRemoteAudio = false
@@ -206,12 +209,35 @@ function resetUI(){
   infoTitle.textContent = 'Thông tin'
   infoBody.innerHTML = '<span style="font-size:.9rem;opacity:.6;">Đang nhận dữ liệu...</span>'
   infoActions.innerHTML = ''
+  if(infoGuide){ infoGuide.innerHTML = '' }
   infoPanel.className = ''
   infoPanel.id = 'infoPanel' // ensure id intact (class reset)
   // Clear log
   logEl.innerHTML = ''
   // Flags
   identityConfirmed = false
+  // Hide center notice
+  if(centerNotice){ centerNotice.style.display = 'none'; if(centerNoticeText){ centerNoticeText.textContent = '' } }
+}
+
+// Smoothly transition guide content with slide/fade
+function setGuide(html){
+  if(!infoGuide) return
+  const prev = infoGuide.querySelector('.guide-block')
+  if(prev){
+    prev.classList.add('leave')
+    // Remove after animation ends
+    prev.addEventListener('animationend', () => {
+      if(prev && prev.parentElement) prev.parentElement.removeChild(prev)
+    }, { once: true })
+  }
+  const block = document.createElement('div')
+  block.className = 'guide-block'
+  block.innerHTML = `
+    <div><b>Hướng dẫn:</b></div>
+    <div class="guide-content">${html}</div>
+  `
+  infoGuide.appendChild(block)
 }
 
 function log(msg){
@@ -238,6 +264,13 @@ function showCall(){
     // Recalculate layout after becoming visible
     setTimeout(()=>setProgressStage(currentStage||1),50)
   }
+  // Initial guidance before identity
+  setGuide(`
+    <ul style="margin:.25rem 0 0 1rem;">
+      <li>Nói yêu cầu của bạn</li>
+      <li>Đọc rõ họ tên và số điện thoại</li>
+    </ul>
+  `)
 }
 function showLanding(){ landing.classList.remove('hidden'); inCall.classList.add('hidden'); callBar.classList.remove('active') }
 
@@ -391,6 +424,17 @@ function showIdentity(data){
   }
   infoActions.appendChild(btn)
   infoActions.style.display='flex'
+  // Update guidance after propose or confirm
+  if(!identityConfirmed){
+    setGuide(`
+      <ul style="margin:.25rem 0 0 1rem;">
+        <li>Kiểm tra kĩ lại tên và số điện thoại</li>
+        <li>Nếu đúng rồi thì thông báo xác nhận <b>Đúng</b> với Medly</li>
+      </ul>
+    `)
+  } else {
+    setGuide(`Hãy trò chuyện với Medly để nêu các triệu chứng và các nhu cầu đặt lịch nhé`)
+  }
 }
 
 function showBookingPending(){
@@ -398,6 +442,11 @@ function showBookingPending(){
   infoTitle.textContent='Đặt lịch'
   infoBody.innerHTML='<span class="muted" style="font-size:.65rem;">Đang tìm lịch khám phù hợp...</span>'
   infoActions.style.display='none'
+  // Center notice while booking
+  if(centerNotice && centerNoticeText){
+    centerNoticeText.textContent = 'Quá trình đặt lịch của Medly có thể diễn ra khoảng 30 giây tới 1 phút. Vui lòng đợi.'
+    centerNotice.style.display = 'flex'
+  }
 }
 function showBooking(result){
   infoPanel.classList.add('show')
@@ -432,7 +481,7 @@ function showBooking(result){
     </div>`
   } else {
     const b = payload
-    infoBody.innerHTML = `<div style='display:grid;gap:.35rem;font-size:.65rem;'>
+    infoBody.innerHTML = `<div class='booking-single' style='display:grid;gap:.35rem;'>
   ${(b.hospital_name||b.hospital)?`<div><b>Bệnh viện:</b> ${b.hospital_name||b.hospital}</div>`:''}
       ${b.department?`<div><b>Khoa:</b> ${b.department}</div>`:''}
       ${b.doctor_name?`<div><b>Bác sĩ:</b> ${b.doctor_name}</div>`:''}
@@ -443,6 +492,10 @@ function showBooking(result){
     </div>`
   }
   infoActions.style.display='none'
+  // Hide center notice after options appear
+  if(centerNotice){ centerNotice.style.display = 'none' }
+  // Guidance after schedules appear
+  setGuide(`Hãy nói với Medly bạn muốn chọn lịch nào.`)
 }
 
 function renderBookingOptions(options) {
@@ -559,6 +612,8 @@ function attachEvents(r){
           infoPanel.classList.add('glow-green')
           // Move to stage 4 (finished)
           setProgressStage(4)
+          // Final guidance before wrapup
+          setGuide(`Khi Medly thông báo kết thúc cuộc gọi và chào bạn thì hãy chào lại Medly nhé.`)
           break
   case 'booking_error': log('Lỗi đặt lịch'); infoTitle.textContent='Đặt lịch'; infoBody.innerHTML='<span style="color:#dc2626;font-size:.65rem;">Không đặt được lịch, sẽ thử lại sau.</span>'; break
         case 'wrapup_done': log('Kết thúc phiên'); hangup(); break

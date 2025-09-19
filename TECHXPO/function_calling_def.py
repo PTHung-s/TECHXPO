@@ -311,7 +311,7 @@ def build_all_tools(
 
         # Lấy cấu hình datasources
         data_path = os.getenv("CLINIC_DATA_PATH", "./clinic_data.json")
-        book_model = os.getenv("BOOK_MODEL", "gemini-2.5-flash")
+        book_model = os.getenv("BOOK_MODEL", "gemini-2.5-flash-lite")
         extra_paths_env = os.getenv("CLINIC_DATA_PATHS", "")
         extra_paths = []
         if not os.path.exists(data_path):
