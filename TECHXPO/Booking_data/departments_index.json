@@ -1,5 +1,5 @@
 {
-  "vinmec_timescity": [
+  "VINMEC_TIMESCITY": [
     {
       "code": "LHHUTH",
       "name": "Bệnh Lý Huyết Học, Ung Thư Huyết Học - Bệnh Hiếm"
@@ -93,10 +93,6 @@
       "name": "Ngoại Chấn Thương Chỉnh Hình"
     },
     {
-      "code": "NNH",
-      "name": "Ngoại Nhi"
-    },
-    {
       "code": "TNT",
       "name": "Ngoại Thận - Tiết Niệu"
     },
@@ -107,10 +103,6 @@
     {
       "code": "NTM",
       "name": "Nha Khoa Thẩm Mỹ"
-    },
-    {
-      "code": "NNH2",
-      "name": "Nhi"
     },
     {
       "code": "CXK2",

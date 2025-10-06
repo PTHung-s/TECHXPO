@@ -1,9 +1,5 @@
 {
-  "vinmec_timescity": [
-    {
-      "code": "NHI",
-      "name": "Nhi"
-    },
+  "VINMEC_TIMESCITY": [
     {
       "code": "NCTCH",
       "name": "Ngoại Chấn Thương Chỉnh Hình"
@@ -27,10 +23,6 @@
     {
       "code": "THTIEU",
       "name": "Tiêu Hóa"
-    },
-    {
-      "code": "NNNGOA",
-      "name": "Ngoại Nhi"
     },
     {
       "code": "NTNOIT",

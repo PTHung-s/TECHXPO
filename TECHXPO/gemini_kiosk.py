@@ -37,6 +37,8 @@ from facts_extractor import extract_facts_and_summary  # for personalization inj
 from clerk_wrapup import summarize_visit_json
 from med_rag import MedicalRAG
 from booking import book_appointment
+from google.genai import types as gtypes
+
 
 # ================== Cấu hình hội thoại ==================
 WELCOME = (
@@ -44,10 +46,30 @@ WELCOME = (
     "Luôn bắt đầu cuộc hội thoại bằng câu chào đó"
 )
 
+# Hàm chuyển đổi ngày giờ sang tiếng Việt
+def vietnamese_datetime(dt):
+    days = {
+        "Monday": "Thứ Hai", "Tuesday": "Thứ Ba", "Wednesday": "Thứ Tư",
+        "Thursday": "Thứ Năm", "Friday": "Thứ Sáu", "Saturday": "Thứ Bảy", "Sunday": "Chủ Nhật"
+    }
+    months = {
+        "January": "Tháng Một", "February": "Tháng Hai", "March": "Tháng Ba",
+        "April": "Tháng Tư", "May": "Tháng Năm", "June": "Tháng Sáu",
+        "July": "Tháng Bảy", "August": "Tháng Tám", "September": "Tháng Chín",
+        "October": "Tháng Mười", "November": "Tháng Mười Một", "December": "Tháng Mười Hai"
+    }
+    day = days[dt.strftime('%A')]
+    month = months[dt.strftime('%B')]
+    return f"{day}, {dt.strftime('%d')} {month} {dt.strftime('%Y, %H:%M')}"
+
 vn_time = datetime.now(ZoneInfo("Asia/Ho_Chi_Minh"))
+formatted_time = vietnamese_datetime(vn_time)
+
 SYSTEM_PROMPT = (
-    "# General context\n"
-    f"Current date and time: {vn_time.strftime('%A, %d %B %Y, %H:%M')}\n\n"
+    "# Bối cảnh chung\n"
+    f"Ngày giờ hiện tại: {formatted_time}\n\n"
+    "Chú ý ngày giờ hiện tại là:\n:"
+    f"Ngày giờ hiện tại: {formatted_time}\n\n"
     """
 # Personality and Tone
 ## Identity
@@ -57,7 +79,7 @@ Bạn là một bác sĩ hỏi bệnh có kinh nghiệm lâu năm, làm việc t
 Bạn sẽ thực hiện cuộc gọi hỏi bệnh sơ bộ để: thu thập danh tính, xác nhận lại thông tin, kiểm tra nếu là khách cũ, khai thác triệu chứng, đề xuất đặt lịch, và dặn dò trước khám.
 
 ## Demeanor
-Thân thiện, điềm tĩnh, chuyên nghiệp.
+Thân thiện, điềm tĩnh, chuyên nghiệp, chỉ được xưng là 'em' và gọi bệnh nhân là 'mình', luôn chỉ được 'Dạ' hoặc 'Dạ vâng' chứ không được 'Dạ vâng ạ'.
 
 ## Tone
 Trầm, nhẹ nhàng, rõ ràng, không phán đoán chủ quan.
@@ -66,7 +88,7 @@ Trầm, nhẹ nhàng, rõ ràng, không phán đoán chủ quan.
 Vừa phải, luôn giữ thái độ tận tâm, không phô trương.
 
 ## Level of Formality
-Chuyên nghiệp, đúng mực, xưng hô lịch sự phù hợp giới tính sau khi biết tên.
+Chuyên nghiệp, đúng mực, chỉ được xưng là 'em' và gọi bệnh nhân là 'mình', luôn chỉ được 'Dạ' hoặc 'Dạ vâng' chứ không được 'Dạ vâng ạ'.
 
 ## Level of Emotion
 Chân thành và biết lắng nghe, biểu cảm nhẹ, tránh vô cảm nhưng không được cường điệu.
@@ -144,12 +166,12 @@ Chậm rãi, từng bước một, không nói quá nhiều trong một lượt.
     "description": "Xác nhận danh tính đã chính xác và kiểm tra có phải khách cũ không.",
     "instructions": [
       "Gọi `confirm_identity(confirm=True)` nếu bệnh nhân xác nhận thông tin đúng.",
-      "Nếu là khách quen, chủ động hỏi thăm lại tình trạng cũ: 'Dạ lần trước mình có chia sẻ về [triệu chứng trước], nay tình hình sao rồi ạ?'"
+      "Nếu là đã từng đặt lịch khám bênh, chủ động hỏi thăm lại tình trạng cũ: 'Dạ lần trước mình có chia sẻ về [triệu chứng trước], nay tình hình sao rồi ạ?'"
     ],
     "examples": [
       "Dạ đúng rồi em.",
       "Dạ em xác nhận thông tin của mình là đúng ạ",
-      "(Nếu là khách quen): Dạ lần trước mình có nhắc tới đau lưng, nay còn đau nhiều không ạ?"
+      "(Nếu là cũ): Dạ lần trước mình có nhắc tới đau lưng, nay còn đau nhiều không ạ?"
     ],
     "transitions": [
       {
@@ -245,6 +267,8 @@ Chậm rãi, từng bước một, không nói quá nhiều trong một lượt.
 ]
 
     """
+    "Chú ý ngày giờ hiện tại là:\n"
+    f"Ngày giờ hiện tại: {formatted_time}\n\n"
     .strip()
 )
 
@@ -310,6 +334,7 @@ def _log_evt(tag: str, role: str, text: str, extra: str = ""):
         log.debug("%s role=%s %s text=%r", tag, role, extra, text)
 
 # ================== Talker (Agent) có RAG ==================
+# Cập nhật Talker để tiêm ngày giờ vào mỗi lần cập nhật instructions
 class Talker(Agent):
     """Agent có RAG và tiêm facts động."""
     def __init__(self, rag: MedicalRAG, buf: SessionBuf, shared: dict):
@@ -327,15 +352,25 @@ class Talker(Agent):
         if user_text and (not self.buf.lines or not self.buf.lines[-1].endswith(user_text)):
             self.buf.add("user", user_text)
         
-        # Dynamic facts injection
+        # Cập nhật ngày giờ hiện tại mỗi lượt hội thoại
+        current_time = vietnamese_datetime(datetime.now(ZoneInfo("Asia/Ho_Chi_Minh")))
+        new_instr = (
+            f"# Bối cảnh chung\n"
+            f"Ngày giờ hiện tại: {current_time}\n\n"
+            f"{self.base_instructions}"
+        )
+        
+        # Nếu có facts, thêm vào instructions
         extract_fn = self.shared.get("extract_facts_and_summary")
         if extract_fn and self.buf.lines:
             transcript = "\n".join(self.buf.lines)
             facts_result = await asyncio.to_thread(extract_fn, transcript, "", "")
             live_facts = (facts_result.get("facts") or "").strip()
             if live_facts:
-                new_instr = self.base_instructions + f"\n\n# LIVE FACTS (from this call)\n{live_facts}"
-                await self.update_instructions(new_instr)
+                new_instr += f"\n\n# LIVE FACTS (from this call)\n{live_facts}"
+        
+        # Cập nhật instructions
+        await self.update_instructions(new_instr)
 
 # ================== Entrypoint ==================
 async def entrypoint(ctx: JobContext):
@@ -356,8 +391,9 @@ async def entrypoint(ctx: JobContext):
 
     llm = realtime.RealtimeModel(
         model=rt_model,
-        voice=os.getenv("GEMINI_VOICE", "Zephyr"),  # "Puck" là mặc định ổn định
+        voice=os.getenv("GEMINI_VOICE", "Kore"),  # "Puck" là mặc định ổn định
         language=rt_lang,
+        # _gemini_tools=[gtypes.GoogleSearch()], 
     )
     log.info("Realtime LLM: %s", rt_model)
 
